@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local
+.env
+uploads/
+!.env.example
+
+# bundle worker/migrate
+/dist
+/backups
+
+# Claude Code (local)
+.claude/

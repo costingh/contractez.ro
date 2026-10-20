@@ -1,0 +1,151 @@
+# CI + deploy: la fiecare push pe main rulează verificările, construiește imaginea Docker,
+# o publică în GHCR și o pornește pe VPS (docker compose + nginx de pe host).
+#
+# Secrete necesare (Settings → Secrets and variables → Actions):
+#   VPS_HOST, VPS_USER, VPS_SSH_KEY (cheie dedicată deploy-ului), VPS_KNOWN_HOSTS (ssh-keyscan al serverului)
+# Pe server: /opt/contractez/.env (secretele aplicației), creat o singură dată, manual.
+
+name: CI & Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  check:
+    name: Lint, tipuri, teste
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: imresamu/postgis:17-3.5
+        env:
+          POSTGRES_USER: prestio
+          POSTGRES_PASSWORD: prestio
+          POSTGRES_DB: prestio
+        ports: ["5442:5432"]
+        options: >-
+          --health-cmd "pg_isready -U prestio -d prestio"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6392:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      DATABASE_URL: postgres://prestio:prestio@localhost:5442/prestio
+      REDIS_URL: redis://localhost:6392
+      APP_SECRET: ci-only-secret
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - name: Typecheck
+        run: pnpm exec next typegen && pnpm typecheck
+      - run: pnpm test
+
+  image:
+    name: Imagine Docker
+    needs: check
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: NEXT_PUBLIC_APP_NAME=Contractez
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy pe VPS
+    needs: image
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://contractez.ro
+    permissions:
+      contents: read
+      packages: read
+    env:
+      APP_DIR: /opt/contractez
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Cheia SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          printf 'Host vps\n  HostName %s\n  User %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n' \
+            "${{ secrets.VPS_HOST }}" "${{ secrets.VPS_USER }}" > ~/.ssh/config
+
+      - name: Copiază fișierele de compose
+        run: |
+          ssh vps "mkdir -p $APP_DIR/infra"
+          scp -q compose.yml compose.vps.yml vps:$APP_DIR/
+          scp -q -r infra/postgres infra/scripts vps:$APP_DIR/infra/
+
+      - name: Pornește versiunea nouă
+        run: |
+          ssh vps "APP_DIR=$APP_DIR APP_IMAGE=$IMAGE:${{ github.sha }} GHCR_USER=${{ github.actor }} sh -s" <<'EOF'
+          set -eu
+          cd "$APP_DIR"
+          test -f .env || { echo "Lipsește $APP_DIR/.env"; exit 1; }
+          export APP_IMAGE
+          ghcr_login() { printf '%s' "$1" | docker login ghcr.io -u "$GHCR_USER" --password-stdin >/dev/null; }
+          ghcr_login "${{ secrets.GITHUB_TOKEN }}"
+          trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+          dc() { docker compose -f compose.yml -f compose.vps.yml "$@"; }
+          dc pull --quiet migrate web worker
+          dc up -d --no-build --remove-orphans
+          # Așteaptă health-check-ul aplicației (max ~2 minute).
+          port="$(grep -E '^WEB_PORT=' .env | cut -d= -f2)"; port="${port:-3700}"
+          for i in $(seq 1 40); do
+            if wget -qO- "http://127.0.0.1:$port/api/health" 2>/dev/null | grep -q '"ok":true'; then
+              echo "Sănătos după $((i * 3))s: $APP_IMAGE"
+              # Șterge doar imaginile vechi ale acestui proiect (VPS-ul e comun).
+              docker image prune -af --filter "label=org.opencontainers.image.source=https://github.com/costingh/contractez.ro" --filter "until=72h" >/dev/null || true
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "Aplicația nu a trecut health-check-ul"; dc ps; dc logs --tail 80 web migrate
+          exit 1
+          EOF

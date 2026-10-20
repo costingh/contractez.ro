@@ -1,0 +1,9 @@
+# Expune Postgres și Redis doar pe localhost, pe porturi care nu intră în conflict
+# cu instalările locale (5432/6379).
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:5442:5432"
+  redis:
+    ports:
+      - "127.0.0.1:6392:6379"

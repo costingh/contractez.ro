@@ -1,26 +1,773 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
+/*
+ * Contractez design system — „Cerneală & hârtie”.
+ * Ink-navy primary, paper-white surfaces, one cobalt accent (`brand`) for links,
+ * focus and AI; calm green (`success`) reserved for trust / verification signals.
+ * Borders over shadows, 8px spacing, 8px base radius. Docs: docs/DESIGN.md.
+ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --font-display: var(--font-serif);
+  --color-ink: var(--ink);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-electric: var(--electric);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
+  --color-surface: var(--surface);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --shadow-xs: 0 1px 2px 0 var(--shadow-color);
+  --shadow-sm: 0 1px 2px 0 var(--shadow-color), 0 1px 3px 0 var(--shadow-color);
+  --shadow-md: 0 1px 2px 0 var(--shadow-color), 0 4px 12px -2px var(--shadow-color);
+  --shadow-lg: 0 2px 4px 0 var(--shadow-color), 0 12px 32px -8px var(--shadow-color-strong);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* Surfaces */
+  --background: #f7f7f5; /* hârtie */
+  --surface: #fbfbfa; /* benzi alternante, sidebar-uri */
+  --foreground: #0d1626; /* cerneală */
+  --card: #ffffff;
+  --card-foreground: #0d1626;
+  --popover: #ffffff;
+  --popover-foreground: #0d1626;
+  /* Brand */
+  --primary: #142340; /* ink navy */
+  --primary-foreground: #ffffff;
+  --brand: #2b4acb; /* cobalt — linkuri, focus, AI */
+  --brand-foreground: #ffffff;
+  --brand-soft: #eef1fc;
+  /* Ink: panourile întunecate de marketing (hero, CTA), identice în ambele teme */
+  --ink: #060b16;
+  --ink-foreground: #f4f6fb;
+  --electric: #5b7cff; /* lumina din panourile ink: auroră, glow, accente */
+  /* Gradientul pentru cuvintele evidențiate în secțiunile deschise */
+  --grad-text: linear-gradient(100deg, #1d3bb8 0%, #2f6be0 45%, #5a45d1 100%);
+  --highlight: color-mix(in oklab, #3d63ff 16%, transparent);
+  /* Neutrals */
+  --secondary: #eeefeb;
+  --secondary-foreground: #142340;
+  --muted: #f0f0ec;
+  --muted-foreground: #5b6472;
+  --accent: #eceef3;
+  --accent-foreground: #0d1626;
+  /* Signals */
+  --success: #17714a; /* încredere / verificat */
+  --success-foreground: #ffffff;
+  --warning: #9a5a07;
+  --warning-foreground: #ffffff;
+  --destructive: #c4352b;
+  /* Lines */
+  --border: #e3e3de;
+  --border-strong: #cfd0c9;
+  --input: #d6d7d0;
+  --ring: #2b4acb;
+  --shadow-color: rgb(13 22 38 / 0.05);
+  --shadow-color-strong: rgb(13 22 38 / 0.12);
+  /* Charts */
+  --chart-1: #142340;
+  --chart-2: #2b4acb;
+  --chart-3: #17714a;
+  --chart-4: #c08a2e;
+  --chart-5: #8a93a3;
+  --radius: 0.5rem;
+  --sidebar: #fbfbfa;
+  --sidebar-foreground: #0d1626;
+  --sidebar-primary: #142340;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eceef3;
+  --sidebar-accent-foreground: #0d1626;
+  --sidebar-border: #e3e3de;
+  --sidebar-ring: #2b4acb;
+}
+
+.dark {
+  --background: #0a0f18;
+  --surface: #0d131e;
+  --foreground: #e8ebf0;
+  --card: #101724;
+  --card-foreground: #e8ebf0;
+  --popover: #131b29;
+  --popover-foreground: #e8ebf0;
+  --primary: #e8ebf0;
+  --primary-foreground: #0a0f18;
+  --brand: #8aa2ff;
+  --brand-foreground: #0a0f18;
+  --brand-soft: #151e3a;
+  --ink: #050913;
+  --ink-foreground: #f4f6fb;
+  --electric: #6d8bff;
+  --grad-text: linear-gradient(100deg, #9fb5ff 0%, #6fd3ff 50%, #b8a6ff 100%);
+  --highlight: color-mix(in oklab, #6d8bff 26%, transparent);
+  --secondary: #1a2231;
+  --secondary-foreground: #e8ebf0;
+  --muted: #161e2b;
+  --muted-foreground: #98a2b3;
+  --accent: #1b2434;
+  --accent-foreground: #e8ebf0;
+  --success: #4cc38a;
+  --success-foreground: #04140c;
+  --warning: #e3a64b;
+  --warning-foreground: #1a1002;
+  --destructive: #f2766b;
+  --border: #222b3a;
+  --border-strong: #2f3a4c;
+  --input: #2c3647;
+  --ring: #8aa2ff;
+  --shadow-color: rgb(0 0 0 / 0.3);
+  --shadow-color-strong: rgb(0 0 0 / 0.5);
+  --chart-1: #c9d3ff;
+  --chart-2: #8aa2ff;
+  --chart-3: #4cc38a;
+  --chart-4: #e3a64b;
+  --chart-5: #6b7587;
+  --sidebar: #0d131e;
+  --sidebar-foreground: #e8ebf0;
+  --sidebar-primary: #e8ebf0;
+  --sidebar-primary-foreground: #0a0f18;
+  --sidebar-accent: #1b2434;
+  --sidebar-accent-foreground: #e8ebf0;
+  --sidebar-border: #222b3a;
+  --sidebar-ring: #8aa2ff;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    letter-spacing: -0.018em;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 22%, transparent);
+  }
+  a:focus-visible,
+  summary:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+  }
+  /* Etichetă mică, majuscule — pentru secțiuni și metadate. */
+  .eyebrow {
+    @apply text-xs font-medium tracking-[0.08em] text-muted-foreground uppercase;
+  }
+  /* Suprafață standard: card cu bordură fină, fără umbră grea. */
+  .surface-card {
+    @apply rounded-xl border bg-card text-card-foreground shadow-xs;
+  }
+}
+
+/*
+ * ─── Motion (doar CSS) ─────────────────────────────────────────────────────────
+ * Intrările: 700ms, ease-out-expo, o singură dată, legate de scroll unde browserul permite
+ * (animation-timeline: view()); altfel conținutul e pur și simplu vizibil.
+ * Buclele există doar în ilustrații (hero, bento) și sunt lente. Totul se oprește la
+ * prefers-reduced-motion (regula din @layer base + excepțiile de mai jos).
+ */
+@property --t {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.9;
+}
+@property --n {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(6px);
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes hl-swipe {
+  to {
+    background-size: 100% 100%;
+  }
+}
+@keyframes shimmer-text {
+  to {
+    background-position: 200% center;
+  }
+}
+@keyframes aurora-a {
+  50% {
+    transform: translate3d(8%, 6%, 0) scale(1.15) rotate(8deg);
+  }
+}
+@keyframes aurora-b {
+  50% {
+    transform: translate3d(-10%, -4%, 0) scale(0.9) rotate(-10deg);
+  }
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes spin-angle {
+  to {
+    --angle: 360deg;
+  }
+}
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, currentColor 55%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+@keyframes bob {
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes clock {
+  from {
+    --t: 0;
+  }
+  to {
+    --t: 1;
+  }
+}
+@keyframes count {
+  from {
+    --n: 0;
+  }
+}
+@keyframes rotate-words {
+  /* 6 cuvinte + copia primului: fiecare stă ~2.2s, apoi urcă */
+  0%, 13% { transform: translateY(0); }
+  16.6%, 29.6% { transform: translateY(-1lh); }
+  33.3%, 46.3% { transform: translateY(-2lh); }
+  50%, 63% { transform: translateY(-3lh); }
+  66.6%, 79.6% { transform: translateY(-4lh); }
+  83.3%, 96.3% { transform: translateY(-5lh); }
+  100% { transform: translateY(-6lh); }
+}
+@keyframes type {
+  0% {
+    width: 0;
+    animation-timing-function: steps(var(--chars), end);
+  }
+  14% {
+    width: calc(var(--chars) * 1ch);
+  }
+  21% {
+    width: calc(var(--chars) * 1ch);
+    animation-timing-function: steps(var(--chars), end);
+  }
+  25%,
+  100% {
+    width: 0;
+  }
+}
+@keyframes caret {
+  50% {
+    border-color: transparent;
+  }
+}
+@keyframes sweep {
+  to {
+    transform: rotate(1turn);
+  }
+}
+@keyframes blip {
+  0%, 100% { opacity: 0; transform: scale(0.4); }
+  8% { opacity: 1; transform: scale(1); }
+  40% { opacity: 0.9; }
+  60% { opacity: 0; }
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: var(--len, 40);
+  }
+}
+@keyframes fill-slot {
+  from {
+    transform: scaleY(0.2);
+    opacity: 0.2;
+  }
+}
+@keyframes travel {
+  0%, 8% { left: 0%; }
+  25%, 33% { left: 33.33%; }
+  50%, 58% { left: 66.66%; }
+  75%, 100% { left: 100%; }
+}
+@keyframes step-on {
+  0%, 100% { background: var(--border-strong); color: var(--muted-foreground); }
+  10%, 90% { background: var(--brand); color: var(--brand-foreground); }
+}
+@keyframes stars {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+@layer components {
+  /* ── Tipografie de display ── */
+  .display-xl {
+    font-size: clamp(2.75rem, 1.6rem + 5.2vw, 6rem);
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    font-weight: 600;
+  }
+  .display-lg {
+    font-size: clamp(2.1rem, 1.4rem + 2.8vw, 3.75rem);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    font-weight: 600;
+  }
+  .display-md {
+    font-size: clamp(1.75rem, 1.3rem + 1.6vw, 2.6rem);
+    line-height: 1.08;
+    letter-spacing: -0.032em;
+    font-weight: 600;
+  }
+  /* Cuvânt evidențiat în serif italic (Instrument Serif), puțin mai mare ca să egaleze înălțimea x. */
+  .serif-em {
+    font-family: var(--font-serif), ui-serif, Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    font-size: 1.08em;
+    padding-right: 0.06em;
+  }
+  .text-gradient {
+    background: var(--grad-text);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .text-gradient-ink {
+    background: linear-gradient(100deg, #a9bcff 0%, #74dcff 38%, #c4b5ff 70%, #a9bcff 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer-text 8s linear infinite;
+  }
+  /* Marcaj „cu markerul” sub termenii importanți; se desenează la intrarea în ecran. */
+  .hl {
+    background-image: linear-gradient(transparent 58%, var(--highlight) 58%, var(--highlight) 92%, transparent 92%);
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    padding-inline: 0.12em;
+    margin-inline: -0.06em;
+    color: var(--foreground);
+    font-weight: 600;
+  }
+  .hl-ink {
+    background-image: linear-gradient(transparent 60%, rgb(91 124 255 / 0.42) 60%, rgb(91 124 255 / 0.42) 94%, transparent 94%);
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    padding-inline: 0.1em;
+    margin-inline: -0.05em;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ── Panou „ink” (hero, CTA): întunecat în ambele teme, cu auroră ── */
+  .ink-panel {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: var(--ink);
+    color: var(--ink-foreground);
+    color-scheme: dark;
+  }
+  .ink-panel::after {
+    /* grilă fină, estompată spre margini */
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 70% at 60% 30%, black 20%, transparent 75%);
+  }
+  .aurora {
+    position: absolute;
+    z-index: -2;
+    border-radius: 9999px;
+    filter: blur(80px);
+    opacity: 0.55;
+    pointer-events: none;
+    will-change: transform;
+  }
+  .aurora-a {
+    background: radial-gradient(circle at 30% 30%, #3557ff, transparent 65%);
+    animation: aurora-a 22s ease-in-out infinite;
+  }
+  .aurora-b {
+    background: radial-gradient(circle at 60% 40%, #19b3e6, transparent 60%);
+    animation: aurora-b 26s ease-in-out infinite;
+  }
+  .aurora-c {
+    background: radial-gradient(circle at 50% 50%, #6b4dff, transparent 62%);
+    animation: aurora-a 30s ease-in-out infinite reverse;
+  }
+  .glass {
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.075), rgb(255 255 255 / 0.03));
+    border: 1px solid rgb(255 255 255 / 0.1);
+    box-shadow:
+      inset 0 1px 0 0 rgb(255 255 255 / 0.08),
+      0 30px 80px -20px rgb(0 0 0 / 0.6);
+    backdrop-filter: blur(16px);
+  }
+
+  /* Chenar cu lumină care se rotește (CTA principal, cardul recomandat). */
+  .ring-glow {
+    position: relative;
+    isolation: isolate;
+  }
+  .ring-glow::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(from var(--angle), transparent 0deg, #7d97ff 60deg, #5ee0ff 110deg, transparent 170deg, transparent 360deg);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: spin-angle 5s linear infinite;
+  }
+
+  /* ── Intrări legate de scroll ── */
+  .reveal {
+    animation: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 90ms);
+  }
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation-delay: 0s;
+      animation-timeline: view();
+      animation-range: entry 0% entry calc(55% + var(--i, 0) * 8%);
+    }
+    .reveal-hl .hl,
+    .reveal-hl.hl {
+      background-size: 0% 100%;
+      animation: hl-swipe linear both;
+      animation-timeline: view();
+      animation-range: entry 40% cover 35%;
+    }
+    .count-up {
+      animation: count linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 40%;
+    }
+  }
+  /* Intrare la încărcare (hero): fără scroll, cu întârziere în cascadă. */
+  .enter {
+    animation: rise 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 110ms + 80ms);
+  }
+  .enter-hl {
+    background-size: 0% 100%;
+    animation: hl-swipe 0.9s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+    animation-delay: calc(var(--i, 0) * 180ms + 900ms);
+  }
+  .count-up,
+  .count-in {
+    counter-reset: n var(--n);
+    --n: var(--to);
+  }
+  .count-in::after {
+    content: counter(n);
+  }
+  /* Numărătoare la încărcare (panouri), nu la scroll. */
+  .count-in {
+    animation: count 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 80ms + 150ms);
+  }
+  .count-up::after {
+    content: counter(n);
+  }
+
+  /* ── Rotator de cuvinte (hero) ── */
+  .rotator {
+    display: block;
+    /* mai înalt decât restul titlului, ca descendentele serifului (g, ț, ș) să nu fie tăiate */
+    font-size: 1.08em;
+    line-height: 1.14;
+    margin-top: -0.04em;
+    height: 1lh;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .rotator > span {
+    display: block;
+    animation: rotate-words 13.2s cubic-bezier(0.76, 0, 0.24, 1) infinite;
+  }
+  .rotator > span > span {
+    display: block;
+    height: 1lh;
+    /* mărimea vine de pe .rotator, altfel 1lh al cuvântului ≠ 1lh al ferestrei */
+    font-size: 1em;
+  }
+
+  /* ── Placeholder care se scrie singur (căutarea din hero) ── */
+  .typer {
+    position: absolute;
+    pointer-events: none;
+    display: grid;
+    align-items: center;
+  }
+  .typer > span {
+    grid-area: 1 / 1;
+    width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid currentColor;
+    animation:
+      type 16s infinite both,
+      caret 0.8s step-end infinite;
+    animation-delay: calc(var(--k) * 4s), 0s;
+  }
+  .prompt:focus-within .typer,
+  .prompt:has(textarea:not(:placeholder-shown)) .typer,
+  .prompt:has(input:not(:placeholder-shown)) .typer {
+    opacity: 0;
+  }
+
+  /* ── Teatrul din hero: un ceas (--t, 0→1) condus de CSS, fiecare „bătaie” apare la --at ── */
+  .theater {
+    /* pornește din mijlocul poveștii: la încărcare se văd deja cererea și brief-ul */
+    animation: clock 17s linear -4.5s infinite;
+  }
+  .beat {
+    --in: clamp(0, (var(--t) - var(--at)) * 16, 1);
+    --out: clamp(0, (0.975 - var(--t)) * 40, 1);
+    --e: calc(var(--in) * (2 - var(--in)));
+    opacity: min(var(--e), var(--out));
+    transform: translateY(calc((1 - var(--e)) * 16px)) scale(calc(0.97 + var(--e) * 0.03));
+    filter: blur(calc((1 - var(--e)) * 4px));
+  }
+  .beat-fade {
+    --in: clamp(0, (var(--t) - var(--at)) * 16, 1);
+    --out: clamp(0, (0.975 - var(--t)) * 40, 1);
+    opacity: min(var(--in), var(--out));
+  }
+  .beat-count {
+    --in: clamp(0, (var(--t) - var(--at)) * 10, 1);
+    --n: calc(var(--in) * var(--to));
+    counter-reset: n var(--n);
+  }
+  .beat-count::after {
+    content: counter(n);
+  }
+
+  /* ── Diverse ── */
+  .marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee 60s linear infinite;
+  }
+  .marquee-mask {
+    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+  .marquee-mask:hover .marquee {
+    animation-play-state: paused;
+  }
+  .live-dot {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: currentColor;
+    animation: pulse-ring 2s ease-out infinite;
+  }
+  .bob {
+    animation: bob 6s ease-in-out infinite;
+  }
+  .lift {
+    transition:
+      transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.25s,
+      border-color 0.2s;
+  }
+  .lift:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-strong);
+  }
+  .radar {
+    background: conic-gradient(from 0deg, transparent 0deg, color-mix(in oklab, var(--brand) 38%, transparent) 50deg, transparent 52deg);
+    animation: sweep 4s linear infinite;
+  }
+  .blip {
+    animation: blip 4s ease-out infinite;
+    animation-delay: var(--d, 0s);
+  }
+  .draw {
+    stroke-dasharray: var(--len, 40);
+    stroke-dashoffset: 0;
+  }
+  @supports (animation-timeline: view()) {
+    .draw {
+      animation: draw linear both;
+      animation-timeline: view();
+      animation-range: entry 30% cover 45%;
+    }
+    .stars-fill {
+      animation: stars linear both;
+      animation-timeline: view();
+      animation-range: entry 30% cover 50%;
+    }
+    .slot-fill {
+      transform-origin: bottom;
+      animation: fill-slot linear both;
+      animation-timeline: view();
+      animation-range: entry calc(20% + var(--i, 0) * 10%) cover calc(30% + var(--i, 0) * 6%);
+    }
+  }
+  .traveler {
+    animation: travel 8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+  .step-dot {
+    animation: step-on 8s infinite;
+    animation-delay: var(--d, 0s);
+  }
+  /* Tab-uri doar din CSS (radio + :has) */
+  .seg:has(input:focus-visible) {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theater,
+    .rotator > span,
+    .typer > span,
+    .marquee,
+    .aurora,
+    .radar,
+    .blip,
+    .traveler,
+    .step-dot,
+    .bob,
+    .ring-glow::before,
+    .text-gradient-ink,
+    .live-dot {
+      animation: none !important;
+    }
+    .theater {
+      --t: 0.9;
+    }
+    .typer > span:first-child {
+      width: auto;
+      border: 0;
+    }
+    .enter,
+    .reveal,
+    .count-in {
+      animation: none !important;
+    }
+    .enter-hl,
+    .reveal-hl .hl {
+      animation: none !important;
+      background-size: 100% 100% !important;
+    }
+  }
 }

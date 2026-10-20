@@ -1,0 +1,18 @@
+# VPS-ul comun (nginx + certbot pe host, alte proiecte alături):
+#   docker compose -f compose.yml -f compose.vps.yml up -d --no-build
+# - imaginea vine din GHCR (construită de GitHub Actions), nu se construiește pe server;
+# - aplicația ascultă doar pe 127.0.0.1:${WEB_PORT}, iar nginx-ul de pe host face TLS și proxy;
+# - Caddy nu pornește (porturile 80/443 sunt ale nginx-ului).
+# Numele proiectului (COMPOSE_PROJECT_NAME=contractez) și WEB_PORT stau în .env pe server.
+
+services:
+  migrate:
+    image: ${APP_IMAGE:?APP_IMAGE lipsește}
+  web:
+    image: ${APP_IMAGE:?APP_IMAGE lipsește}
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3700}:3000"
+  worker:
+    image: ${APP_IMAGE:?APP_IMAGE lipsește}
+  caddy:
+    profiles: ["caddy"]

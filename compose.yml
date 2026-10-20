@@ -1,0 +1,127 @@
+# Producție: docker compose up -d --build
+# Dezvoltare locală: docker compose -f compose.yml -f compose.dev.yml up -d postgres redis
+# VPS (nginx pe host, imagine din GHCR): vezi compose.vps.yml și .github/workflows/deploy.yml
+name: prestio
+
+services:
+  postgres:
+    image: ${POSTGIS_IMAGE:-imresamu/postgis:17-3.5}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: prestio
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-prestio}
+      POSTGRES_DB: prestio
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prestio -d prestio"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  migrate:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_APP_NAME: ${APP_NAME:-Contractez}
+    image: prestio-app
+    command: ["node", "dist/migrate.mjs"]
+    env_file: .env
+    healthcheck:
+      disable: true
+    environment:
+      DATABASE_URL: postgres://prestio:${POSTGRES_PASSWORD:-prestio}@postgres:5432/prestio
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    image: prestio-app
+    restart: unless-stopped
+    command: ["node", "server.js"]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://prestio:${POSTGRES_PASSWORD:-prestio}@postgres:5432/prestio
+      REDIS_URL: redis://redis:6379
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  worker:
+    image: prestio-app
+    restart: unless-stopped
+    command: ["node", "dist/worker.mjs"]
+    env_file: .env
+    healthcheck:
+      disable: true
+    environment:
+      DATABASE_URL: postgres://prestio:${POSTGRES_PASSWORD:-prestio}@postgres:5432/prestio
+      REDIS_URL: redis://redis:6379
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+    depends_on:
+      - web
+
+volumes:
+  pgdata:
+  redisdata:
+  uploads:
+  caddydata:
+  caddyconfig:
