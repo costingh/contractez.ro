@@ -15,7 +15,8 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U prestio -d prestio"]
+      # Prin TCP: la prima pornire, serverul temporar de inițializare ascultă doar pe socket.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U prestio -d prestio"]
       interval: 5s
       timeout: 5s
       retries: 20
