@@ -19,18 +19,18 @@ export type City = {
 const DEER = "Distribuție Energie Electrică Romania (DEER)";
 
 export const cities: City[] = [
-  { slug: "bucuresti", name: "București", county: "București", countyCode: "B", powerDistributor: "Rețele Electrice Muntenia", highPrices: true },
+  { slug: "bucuresti", name: "București", county: "București", countyCode: "B", powerDistributor: "Rețele Electrice România", highPrices: true },
   { slug: "cluj-napoca", name: "Cluj-Napoca", county: "Cluj", countyCode: "CJ", powerDistributor: DEER, highPrices: true },
-  { slug: "timisoara", name: "Timișoara", county: "Timiș", countyCode: "TM", powerDistributor: "Rețele Electrice Banat", highPrices: true },
+  { slug: "timisoara", name: "Timișoara", county: "Timiș", countyCode: "TM", powerDistributor: "Rețele Electrice România", highPrices: true },
   { slug: "iasi", name: "Iași", county: "Iași", countyCode: "IS", powerDistributor: "Delgaz Grid" },
-  { slug: "constanta", name: "Constanța", county: "Constanța", countyCode: "CT", powerDistributor: "Rețele Electrice Dobrogea" },
+  { slug: "constanta", name: "Constanța", county: "Constanța", countyCode: "CT", powerDistributor: "Rețele Electrice România" },
   { slug: "brasov", name: "Brașov", county: "Brașov", countyCode: "BV", powerDistributor: DEER, highPrices: true },
   { slug: "craiova", name: "Craiova", county: "Dolj", countyCode: "DJ", powerDistributor: "Distribuție Energie Oltenia" },
   { slug: "galati", name: "Galați", county: "Galați", countyCode: "GL", powerDistributor: DEER },
   { slug: "ploiesti", name: "Ploiești", county: "Prahova", countyCode: "PH", powerDistributor: DEER },
   { slug: "oradea", name: "Oradea", county: "Bihor", countyCode: "BH", powerDistributor: DEER },
   { slug: "sibiu", name: "Sibiu", county: "Sibiu", countyCode: "SB", powerDistributor: DEER },
-  { slug: "arad", name: "Arad", county: "Arad", countyCode: "AR", powerDistributor: "Rețele Electrice Banat" },
+  { slug: "arad", name: "Arad", county: "Arad", countyCode: "AR", powerDistributor: "Rețele Electrice România" },
   { slug: "pitesti", name: "Pitești", county: "Argeș", countyCode: "AG", powerDistributor: "Distribuție Energie Oltenia" },
   { slug: "bacau", name: "Bacău", county: "Bacău", countyCode: "BC", powerDistributor: "Delgaz Grid" },
   { slug: "braila", name: "Brăila", county: "Brăila", countyCode: "BR", powerDistributor: DEER },
@@ -134,6 +134,18 @@ export const indexedCityPages = new Set([
   "mutari/brasov",
   "curatenie/oradea",
   "dezinsectie/galati",
+  "dezinsectie/iasi",
+  "curatenie/brasov",
+  "curatenie/iasi",
+  "mutari/constanta",
+  "gresie-faianta/brasov",
+  "gresie-faianta/iasi",
+  "electrocasnice/iasi",
+  "instalatii-electrice/galati",
+  "instalatii-electrice/arad",
+  "instalatii-sanitare/ploiesti",
+  "topografie-cadastru/craiova",
+  "renovari-complete/sibiu",
 ]);
 
 export function isCityPageIndexedByDefault(categorySlug: string, city: City) {
@@ -142,6 +154,9 @@ export function isCityPageIndexedByDefault(categorySlug: string, city: City) {
 
 /** Servicii pentru care contează distribuitorul de energie (avize, branșamente, PRAM). */
 export const powerRelatedServices = new Set(["instalatii-electrice", "panouri-solare", "aer-conditionat", "instalatii-termice", "renovari-complete"]);
+
+/** Servicii pentru care contează distribuitorul de gaze (verificări, revizii, branșamente). */
+export const gasRelatedServices = new Set(["instalatii-termice", "instalatii-sanitare", "renovari-complete"]);
 
 /** „Cluj-Napoca și județul Cluj”, „București și Ilfov”. */
 export function areaLabel(city: City) {

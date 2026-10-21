@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cssVars } from "@/components/home/css-vars";
 import { areaLabel, cities, citiesBySlug, cityServices, isCityPageIndexedByDefault } from "@/content/cities";
+import { cityFacts } from "@/content/city-facts";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { env } from "@/server/env";
 import { categoryDemand } from "@/server/insights";
@@ -77,6 +78,12 @@ export default async function CityHubPage({ params }: { params: Params }) {
             Alege serviciul de care ai nevoie în {areaLabel(city)}. Publici gratuit proiectul și primești până la 5 oferte de la
             prestatori verificați, fără comision.
           </p>
+          {cityFacts[city.slug]?.neighborhoods.length ? (
+            <p className="enter mt-4 flex max-w-2xl gap-2 text-sm text-muted-foreground" style={cssVars({ i: 2 })}>
+              <MapPin className="mt-0.5 size-4 shrink-0" />
+              <span>Inclusiv în cartierele {cityFacts[city.slug].neighborhoods.join(", ")}.</span>
+            </p>
+          ) : null}
           <Link
             href="/proiecte/nou"
             className="enter mt-8 inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-[0.9375rem] font-semibold text-primary-foreground transition-opacity hover:opacity-90"

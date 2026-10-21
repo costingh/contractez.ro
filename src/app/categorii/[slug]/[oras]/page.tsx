@@ -11,7 +11,8 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { site } from "@/config/site";
 import { getCategoryGuide } from "@/content/category-guides";
-import { areaLabel, cities, citiesBySlug, cityServices, isCityPageIndexedByDefault, powerRelatedServices } from "@/content/cities";
+import { areaLabel, cities, citiesBySlug, cityServices, gasRelatedServices, isCityPageIndexedByDefault, powerRelatedServices } from "@/content/cities";
+import { cityFacts } from "@/content/city-facts";
 import { findLocalityByName, nearbyLocalities } from "@/server/catalog/localities";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { env } from "@/server/env";
@@ -71,6 +72,7 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
   const [{ providers, projects }, nearby] = await Promise.all([localData(category.id, locality.id), nearbyLocalities(locality, 30, 8)]);
 
   const nounLower = service.noun.toLowerCase();
+  const facts = cityFacts[city.slug];
   const firstPrice = guide?.prices?.[0];
   const faq = [
     {
@@ -87,6 +89,14 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
       q: `Cum găsesc ${service.plural} de încredere în ${city.name}?`,
       a: `Descrie lucrarea pe ${site.name}, gratuit. Primești cel mult 5 oferte de la ${service.plural} compatibili cu cererea ta, care lucrează în ${city.name} și în jur. Vezi profilul, portofoliul și recenziile fiecăruia; recenziile pot fi lăsate doar după o colaborare confirmată.`,
     },
+    ...(facts?.neighborhoods.length
+      ? [
+          {
+            q: `În ce cartiere din ${city.name} găsesc ${service.plural}?`,
+            a: `În toate. Proiectul ajunge la ${service.plural} care lucrează în zona ta, fie că locuiești în ${facts.neighborhoods.slice(0, 4).join(", ")} sau în alt cartier. Alegi localitatea când publici, iar prestatorii își setează raza de deplasare.`,
+          },
+        ]
+      : []),
     ...(nearby.length
       ? [
           {
@@ -189,12 +199,26 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
                 măsurătorile PRAM.
               </p>
             )}
-            {slug === "topografie-cadastru" && (
+            {gasRelatedServices.has(slug) && facts?.gasDistributor && (
               <p>
-                Documentația cadastrală întocmită de un expert autorizat ANCPI se depune la OCPI {city.countyCode === "B" ? "București" : city.county} (Oficiul de Cadastru și Publicitate
-                Imobiliară), care face și înscrierea în cartea funciară.
+                Pentru verificarea la 2 ani și revizia la 10 ani a instalației de gaze sau pentru un branșament nou, în {city.name} operatorul de
+                distribuție este {facts.gasDistributor}. Lucrările la instalația de gaze le face doar o firmă autorizată ANRE.
               </p>
             )}
+            {slug === "topografie-cadastru" && (
+              <p>
+                Documentația cadastrală întocmită de un expert autorizat ANCPI se depune la {facts?.ocpi ?? `OCPI ${city.county}`} (Oficiul de Cadastru
+                și Publicitate Imobiliară){facts?.ocpiAddress ? `, ${facts.ocpiAddress}` : ""}, care face și înscrierea în cartea funciară.
+              </p>
+            )}
+            {facts?.neighborhoods.length ? (
+              <p className="flex gap-2 text-sm text-muted-foreground">
+                <MapPin className="mt-0.5 size-4 shrink-0" />
+                <span>
+                  Prestatori în toate cartierele din {city.name}: {facts.neighborhoods.join(", ")}.
+                </span>
+              </p>
+            ) : null}
             {nearby.length > 0 && (
               <p className="flex gap-2 text-sm text-muted-foreground">
                 <MapPin className="mt-0.5 size-4 shrink-0" />
