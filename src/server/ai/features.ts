@@ -4,7 +4,7 @@ import { getCatalog, skillsForCategory } from "../catalog/taxonomy";
 import { aiStructured, aiText, withFallback } from "./client";
 import { extractBudget, guessInvoice, guessUrgency, guessWorkMode, ruleQuality, type QualityInput } from "./rules";
 
-const SYSTEM_BASE =
+export const SYSTEM_BASE =
   "Ești asistentul unei platforme românești de servicii (marketplace între clienți și prestatori). " +
   "Răspunzi mereu în limba română, concis și concret. Nu inventezi informații care nu apar în text; " +
   "când lipsește o informație folosești null.";

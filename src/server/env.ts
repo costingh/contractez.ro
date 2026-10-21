@@ -34,6 +34,10 @@ const schema = z.object({
   VISITRACK_API_KEY: z.string().optional(),
   /** Crisp (opțional): id-ul site-ului din Crisp → Settings → Website Settings. */
   CRISP_WEBSITE_ID: z.string().optional(),
+  /** Outreach copilot (docs/OUTREACH.md): token Bearer al extensiei; fără el, API-ul /api/outreach/* răspunde 503. */
+  OUTREACH_TOKEN: z.string().min(24).optional(),
+  /** Câte mesaje de outreach trimite omul pe zi (doar afișat și verificat în /admin/leads). */
+  OUTREACH_DAILY_CAP: z.coerce.number().int().min(1).max(500).default(20),
 });
 
 const parsed = schema.safeParse(
@@ -54,6 +58,7 @@ export const features = {
   managedPayments: env.STRIPE_MANAGED_PAYMENTS,
   google: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
   visitrack: Boolean(env.VISITRACK_SITE_ID),
+  outreach: Boolean(env.OUTREACH_TOKEN),
 };
 
 export const adminEmails = new Set(

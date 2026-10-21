@@ -38,6 +38,12 @@ export default async function AdminEmailPreview({ params }: { params: Promise<{ 
         </div>
       )}
       <iframe title="Previzualizare email" srcDoc={email.html} sandbox="" className="h-[720px] w-full rounded-xl border bg-white" />
+      {email.text && (
+        <details className="rounded-2xl border bg-card text-sm shadow-xs">
+          <summary className="cursor-pointer px-5 py-3 font-medium">Varianta text</summary>
+          <pre className="overflow-x-auto border-t px-5 py-4 font-mono text-xs leading-relaxed whitespace-pre-wrap">{email.text}</pre>
+        </details>
+      )}
     </div>
   );
 }

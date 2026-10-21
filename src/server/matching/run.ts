@@ -6,6 +6,7 @@ import { categoryPath, getCatalog, rootOf } from "../catalog/taxonomy";
 import { db } from "../db";
 import { localities, projectMatches, projectSkills, projects, type Project } from "../db/schema";
 import { getPreferences, notify } from "../notifications";
+import { matchNewTemplate, matchSummaryTemplate } from "../email/templates";
 import { distribute, keywordsFrom, scoreMatch, type ProjectForMatch, type ProviderForMatch } from "./score";
 
 type CandidateRow = {
@@ -165,7 +166,7 @@ export async function runMatchingForProject(projectId: string) {
       .returning({ id: projectMatches.id });
     if (!claimed) continue; // deja notificat
     notified++;
-    const top = s.reasons.filter((r) => r.positive).slice(0, 3).map((r) => `✓ ${r.label}`);
+    const top = s.reasons.filter((r) => r.positive).slice(0, 3).map((r) => r.label);
     await notify({
       userId: s.row.user_id,
       type: "match.new",
@@ -175,21 +176,15 @@ export async function runMatchingForProject(projectId: string) {
       dedupeKey: `match:${projectId}:${s.row.user_id}`,
       email:
         prefs.matchFrequency === "instant"
-          ? {
-              kind: "matches",
-              subject: `Proiect nou compatibil: ${project.title}`,
-              heading: "Am găsit un proiect potrivit pentru tine",
-              cta: "Vezi proiectul și aplică",
-              blocks: [
-                {
-                  type: "card",
-                  meta: `${path} · ${where}`,
-                  title: project.title,
-                  lines: [`Buget: ${describeBudget(project)}`, `Compatibilitate: ${s.score}%`, ...top],
-                },
-                { type: "muted", text: truncate(project.description.replace(/\s+/g, " "), 240) },
-              ],
-            }
+          ? matchNewTemplate({
+              projectTitle: project.title,
+              path,
+              where,
+              budget: describeBudget(project),
+              score: s.score,
+              reasons: top,
+              description: truncate(project.description.replace(/\s+/g, " "), 240),
+            })
           : undefined,
     });
   }
@@ -311,19 +306,15 @@ export async function matchOpenProjectsForProvider(providerId: string) {
     email:
       prefs.matchFrequency === "off"
         ? undefined
-        : {
-            kind: "matches",
-            subject: `${fresh.length} proiecte deschise potrivite pentru tine`,
-            heading: "Proiecte la care poți aplica chiar acum",
-            cta: "Vezi toate recomandările",
-            blocks: top.map((r) => ({
-              type: "card" as const,
+        : matchSummaryTemplate({
+            total: fresh.length,
+            projects: top.map((r) => ({
               meta: `${categoryPath(catalog, r.project.categoryId)} · compatibilitate ${r.score}%`,
               title: r.project.title,
               href: `${process.env.APP_URL ?? ""}/proiecte/${r.project.id}`,
-              lines: [describeBudget(r.project)],
+              budget: describeBudget(r.project),
             })),
-          },
+          }),
   });
   return { matched: relevant.length, notified: fresh.length };
 }

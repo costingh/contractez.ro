@@ -16,6 +16,7 @@ import {
 } from "../db/schema";
 import { DomainError } from "../errors";
 import { notify } from "../notifications";
+import { collabCompletedTemplate } from "../email/templates";
 import { refreshProviderStats } from "../providers/service";
 import { systemMessage } from "../chat/service";
 
@@ -77,7 +78,7 @@ export async function completeCollaboration(id: string, userId: string) {
     title: "Colaborare finalizată — lasă o recenzie",
     link: "/colaborari",
     dedupeKey: `collab-completed:${id}:${other}`,
-    email: { kind: "system", subject: "Cum a fost colaborarea?", cta: "Lasă o recenzie", blocks: [{ type: "p", text: "Recenziile verificate ajută comunitatea să aleagă mai ușor." }] },
+    email: collabCompletedTemplate({ projectTitle: p?.title }),
   });
   await track("collaboration.completed", userId, { collaborationId: id });
 }

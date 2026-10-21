@@ -6,8 +6,8 @@ import { grantCompPlan } from "../billing/plans";
 import { db } from "../db";
 import { notificationPreferences, users, verificationTokens } from "../db/schema";
 import { adminEmails, env } from "../env";
-import { renderEmail } from "../email/layout";
 import { queueEmail } from "../email/send";
+import { passwordResetTemplate, verifyEmailTemplate } from "../email/templates";
 import { DomainError } from "../errors";
 import { notify } from "../notifications";
 import { hashPassword, randomOtp, randomToken, sha256, verifyPassword } from "./crypto";
@@ -83,21 +83,8 @@ export async function sendVerificationEmail(userId: string) {
   const token = await createToken(userId, "email_verify", 60 * 48);
   const link = `${env.APP_URL}/verifica-email?token=${token}`;
   if (env.NODE_ENV !== "production") console.log(`[auth:dev] Link verificare pentru ${u.email}: ${link}`);
-  await queueEmail({
-    to: u.email,
-    userId,
-    template: "verify-email",
-    subject: `Confirmă adresa de email · ${env.APP_NAME}`,
-    html: renderEmail({
-      heading: `Bun venit, ${u.name.split(" ")[0]}!`,
-      preheader: "Confirmă emailul ca să-ți activezi contul.",
-      blocks: [
-        { type: "p", text: "Confirmă adresa de email ca să poți publica proiecte și aplica la oportunități." },
-        { type: "button", text: "Confirmă emailul", href: link },
-        { type: "muted", text: "Linkul este valabil 48 de ore. Dacă nu ți-ai creat cont, ignoră acest email." },
-      ],
-    }),
-  });
+  const { subject, html, text } = verifyEmailTemplate({ firstName: u.name.split(" ")[0], link });
+  await queueEmail({ to: u.email, userId, template: "verify-email", subject, html, text });
 }
 
 export async function verifyEmailToken(token: string) {
@@ -162,20 +149,8 @@ export async function requestPasswordReset(email: string) {
   const token = await createToken(u.id, "password_reset", 60);
   const link = `${env.APP_URL}/resetare-parola?token=${token}`;
   if (env.NODE_ENV !== "production") console.log(`[auth:dev] Link resetare pentru ${u.email}: ${link}`);
-  await queueEmail({
-    to: u.email,
-    userId: u.id,
-    template: "password-reset",
-    subject: `Resetare parolă · ${env.APP_NAME}`,
-    html: renderEmail({
-      heading: "Resetează parola",
-      blocks: [
-        { type: "p", text: "Am primit o cerere de resetare a parolei pentru contul tău." },
-        { type: "button", text: "Setează o parolă nouă", href: link },
-        { type: "muted", text: "Linkul expiră într-o oră. Dacă nu ai cerut resetarea, ignoră acest email." },
-      ],
-    }),
-  });
+  const { subject, html, text } = passwordResetTemplate({ link });
+  await queueEmail({ to: u.email, userId: u.id, template: "password-reset", subject, html, text });
 }
 
 export async function resetPassword(token: string, password: string) {

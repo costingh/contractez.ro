@@ -9,6 +9,7 @@ const items = [
   { href: "/admin/proiecte", label: "Proiecte & moderare" },
   { href: "/admin/utilizatori", label: "Utilizatori" },
   { href: "/admin/rapoarte", label: "Raportări" },
+  { href: "/admin/leads", label: "Lead-uri outreach" },
   { href: "/admin/emailuri", label: "Emailuri" },
   { href: "/admin/plati", label: "Plăți & configurare" },
 ];

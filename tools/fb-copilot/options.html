@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contractez Copilot — Opțiuni</title>
+  <style>
+    :root {
+      --ink: #142340; --brand: #2b4acb; --muted: #64748b; --bg: #f8fafc; --card: #ffffff; --fg: #0f172a; --line: #e2e8f0;
+      --ok-bg: #ecfdf5; --ok-fg: #065f46; --err-bg: #fef2f2; --err-fg: #991b1b;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #0b1220; --card: #111a2e; --fg: #e2e8f0; --line: #24324d; --muted: #94a3b8;
+              --ok-bg: #052e1f; --ok-fg: #86efac; --err-bg: #3b0d0d; --err-fg: #fecaca; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    header { background: var(--ink); color: #fff; padding: 18px 16px; }
+    header .in { max-width: 640px; margin: 0 auto; display: flex; gap: 10px; align-items: center; }
+    header img { width: 32px; height: 32px; border-radius: 8px; }
+    header h1 { font-size: 18px; margin: 0; }
+    main { max-width: 640px; margin: 20px auto; padding: 0 16px 40px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+    .card h2 { margin: 0 0 4px; font-size: 15px; }
+    .card p { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+    label { display: block; font-weight: 600; font-size: 13px; margin: 12px 0 4px; }
+    input[type=text], input[type=password], input[type=url] { width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px;
+      background: var(--bg); color: var(--fg); font: inherit; }
+    input:focus { outline: 2px solid var(--brand); outline-offset: 1px; }
+    .inline { display: flex; gap: 8px; }
+    .inline input { flex: 1; }
+    .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    button { padding: 9px 14px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--fg); font: inherit; font-weight: 600; cursor: pointer; }
+    button.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+    button.danger { color: #dc2626; border-color: #fca5a5; }
+    button:disabled { opacity: .6; cursor: progress; }
+    .msg { margin-top: 12px; padding: 9px 12px; border-radius: 10px; font-size: 13px; display: none; }
+    .msg.ok { display: block; background: var(--ok-bg); color: var(--ok-fg); }
+    .msg.err { display: block; background: var(--err-bg); color: var(--err-fg); }
+    small.hint { color: var(--muted); display: block; margin-top: 4px; }
+    code { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 0 5px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header><div class="in"><img src="icons/icon-48.png" alt=""><h1>Contractez Copilot — Opțiuni</h1></div></header>
+  <main>
+    <section class="card">
+      <h2>Conexiune la server</h2>
+      <p>Extensia trimite postările citite spre serverul Contractez. Tokenul este valoarea variabilei <code>OUTREACH_TOKEN</code> din mediul serverului.</p>
+
+      <label for="baseUrl">URL de bază</label>
+      <input id="baseUrl" type="url" list="bases" placeholder="https://contractez.ro" spellcheck="false">
+      <datalist id="bases">
+        <option value="https://contractez.ro">
+        <option value="http://localhost:3000">
+      </datalist>
+      <small class="hint">Permise: <code>https://contractez.ro</code> (producție) sau <code>http://localhost:3000</code> (dezvoltare).</small>
+
+      <label for="token">Token</label>
+      <div class="inline">
+        <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="lipește OUTREACH_TOKEN">
+        <button id="toggleToken" type="button">Arată</button>
+      </div>
+      <small class="hint">Tokenul rămâne doar în acest browser (nu se sincronizează în contul Google).</small>
+
+      <div class="btns">
+        <button id="save" class="primary" type="button">Salvează</button>
+        <button id="test" type="button">Testează conexiunea</button>
+      </div>
+      <div id="msg" class="msg"></div>
+    </section>
+
+    <section class="card">
+      <h2>Cache local</h2>
+      <p>Extensia ține minte ultimele ~20.000 de id-uri trimise, ca să nu le retrimită. Golește cache-ul doar dacă serverul a fost resetat sau vrei să retrimiți tot ce vezi.</p>
+      <div id="cacheInfo" class="hint" style="color:var(--muted)"></div>
+      <div class="btns">
+        <button id="reset" class="danger" type="button">Golește cache-ul</button>
+      </div>
+      <div id="msgReset" class="msg"></div>
+    </section>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>

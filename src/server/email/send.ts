@@ -10,6 +10,8 @@ export async function queueEmail(opts: {
   to: string;
   subject: string;
   html: string;
+  /** Varianta text (o generează `renderEmail`); ajută livrabilitatea. */
+  text?: string;
   template: string;
   userId?: string | null;
   dedupeKey?: string;
@@ -20,6 +22,7 @@ export async function queueEmail(opts: {
       to: opts.to,
       subject: opts.subject,
       html: opts.html,
+      text: opts.text ?? null,
       template: opts.template,
       userId: opts.userId ?? null,
       dedupeKey: opts.dedupeKey ?? null,
@@ -46,7 +49,7 @@ export async function deliverEmail(emailId: string) {
   }
   resend ??= new Resend(env.RESEND_API_KEY);
   const { data, error } = await resend.emails.send(
-    { from: env.EMAIL_FROM, to: row.to, subject: row.subject, html: row.html },
+    { from: env.EMAIL_FROM, to: row.to, subject: row.subject, html: row.html, ...(row.text ? { text: row.text } : {}) },
     { idempotencyKey: `email-${row.id}` },
   );
   if (error) {

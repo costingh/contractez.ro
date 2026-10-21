@@ -15,6 +15,7 @@ import { moderationActions, projectSkills, projectStatusHistory, projects, skill
 import { env } from "../env";
 import { DomainError } from "../errors";
 import { notify } from "../notifications";
+import { projectApprovedTemplate } from "../email/templates";
 import { enqueue } from "../queue";
 import { slugify } from "@/lib/text";
 
@@ -284,7 +285,7 @@ export async function approveProject(projectId: string, adminId: string) {
     title: `Proiectul „${p.title}” a fost publicat`,
     link: `/proiectele-mele/${p.id}`,
     dedupeKey: `project-approved:${p.id}`,
-    email: { kind: "system", subject: "Proiectul tău a fost publicat", blocks: [{ type: "p", text: "Am verificat proiectul și l-am publicat. Prestatorii compatibili primesc acum notificări." }] },
+    email: projectApprovedTemplate({ projectTitle: p.title }),
   });
   await afterOpened(p.id);
 }

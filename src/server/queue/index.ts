@@ -13,8 +13,8 @@ export type JobMap = {
   matching: { projectId: string } | { providerId: string };
   autobid: { projectId: string };
   email: { emailId: string };
-  ai: { kind: "project-enrich"; projectId: string } | { kind: "provider-skills"; providerId: string };
-  scheduled: { kind: "digest-daily" | "digest-weekly" | "maintenance" | "unseen-refunds" };
+  ai: { kind: "project-enrich"; projectId: string } | { kind: "provider-skills"; providerId: string } | { kind: "outreach-classify" };
+  scheduled: { kind: "digest-daily" | "digest-weekly" | "maintenance" | "unseen-refunds" | "outreach-sweep" };
 };
 
 const g = globalThis as unknown as { queues?: Map<string, Queue> };

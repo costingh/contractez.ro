@@ -21,6 +21,7 @@ import { DomainError, isDomainError } from "../errors";
 import { features } from "../features";
 import { scoreProvidersForProject } from "../matching/run";
 import { notify } from "../notifications";
+import { autobidAppliedTemplate, autobidProposedTemplate } from "../email/templates";
 
 /*
  * Auto Bid = prestatorul autorizează platforma să aplice în numele lui, strict în limitele setate.
@@ -186,12 +187,7 @@ export async function runAutoBidForProject(projectId: string) {
           body: "Mesajul este pregătit. Îl poți edita înainte de trimitere.",
           link: "/auto-bid?tab=propuneri",
           dedupeKey: `autobid-proposed:${row.id}`,
-          email: {
-            kind: "autobid",
-            subject: `Auto Bid: proiect compatibil ${c.score}% — confirmi aplicarea?`,
-            cta: "Revizuiește și trimite",
-            blocks: [{ type: "card", title: project.title, lines: [`Compatibilitate ${c.score}%`] }, { type: "muted", text: truncate(message, 400) }],
-          },
+          email: autobidProposedTemplate({ projectTitle: project.title, score: c.score, message: truncate(message, 400) }),
         });
       }
       continue;
@@ -220,7 +216,7 @@ export async function runAutoBidForProject(projectId: string) {
         body: `Compatibilitate ${c.score}%. Îți mai rămân ${usage.remaining - 1} aplicări în perioada curentă.`,
         link: "/aplicarile-mele",
         dedupeKey: `autobid-applied:${row.id}`,
-        email: { kind: "autobid", subject: `Auto Bid: aplicare trimisă — ${truncate(project.title, 60)}`, blocks: [{ type: "muted", text: truncate(message, 400) }] },
+        email: autobidAppliedTemplate({ projectTitle: truncate(project.title, 60), score: c.score, remaining: usage.remaining - 1, message: truncate(message, 400) }),
       });
     } catch (err) {
       const reason = isDomainError(err) ? err.message : "Eroare la aplicare";

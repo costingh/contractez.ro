@@ -4,6 +4,7 @@ import { db } from "../db";
 import { applications, conversations, messages, projects, users, type Conversation } from "../db/schema";
 import { DomainError } from "../errors";
 import { notify } from "../notifications";
+import { messageNewTemplate } from "../email/templates";
 import { rateLimit } from "../rate-limit";
 
 export async function getConversationFor(conversationId: string, userId: string) {
@@ -126,12 +127,7 @@ export async function sendMessage(
     body: truncate(text || `📎 ${attachment?.name}`, 120),
     link: `/mesaje/${c.id}`,
     dedupeKey: `msg:${c.id}:${recipient}:${window}`,
-    email: {
-      kind: "messages",
-      subject: `Mesaj nou de la ${sender?.name ?? "un utilizator"}`,
-      cta: "Răspunde",
-      blocks: [{ type: "muted", text: truncate(text || `Atașament: ${attachment?.name}`, 400) }],
-    },
+    email: messageNewTemplate({ senderName: sender?.name ?? "un utilizator", text: truncate(text || `Atașament: ${attachment?.name}`, 400) }),
   });
   return msg;
 }

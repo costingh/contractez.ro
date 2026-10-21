@@ -18,8 +18,8 @@ import {
   users,
   verificationTokens,
 } from "../db/schema";
-import { renderEmail, type EmailBlock } from "../email/layout";
 import { queueEmail } from "../email/send";
+import { matchDigestTemplate, projectNoApplicationsTemplate } from "../email/templates";
 import { env } from "../env";
 import { notify } from "../notifications";
 import { expireProjects } from "../projects/service";
@@ -54,25 +54,24 @@ export async function sendMatchDigests(frequency: "daily" | "weekly") {
       .orderBy(sql`${projectMatches.score} DESC`)
       .limit(10);
     if (matches.length === 0) continue;
-    const blocks: EmailBlock[] = [
-      { type: "p", text: `Am găsit ${matches.length} proiecte compatibile cu profilul tău.` },
-      ...matches.map(
-        (m): EmailBlock => ({
-          type: "card",
-          title: m.project.title,
-          href: `${env.APP_URL}/proiecte/${m.project.id}`,
-          meta: `Compatibilitate ${m.match.score}%`,
-          lines: [describeBudget(m.project), truncate(m.project.description.replace(/\s+/g, " "), 160)],
-        }),
-      ),
-      { type: "button", text: "Vezi toate recomandările", href: `${env.APP_URL}/recomandari` },
-    ];
+    const { subject, html, text } = matchDigestTemplate({
+      frequency,
+      allHref: `${env.APP_URL}/recomandari`,
+      matches: matches.map((m) => ({
+        title: m.project.title,
+        href: `${env.APP_URL}/proiecte/${m.project.id}`,
+        score: m.match.score,
+        budget: describeBudget(m.project),
+        excerpt: truncate(m.project.description.replace(/\s+/g, " "), 160),
+      })),
+    });
     await queueEmail({
       to: r.email,
       userId: r.userId,
       template: `digest-${frequency}`,
-      subject: `${matches.length} proiecte noi potrivite pentru tine`,
-      html: renderEmail({ heading: frequency === "daily" ? "Recomandările zilei" : "Recomandările săptămânii", blocks }),
+      subject,
+      html,
+      text,
       dedupeKey: `digest:${frequency}:${r.userId}:${new Date().toISOString().slice(0, 10)}`,
     });
     await db
@@ -110,15 +109,10 @@ export async function nudgeProjectsWithoutApplications() {
       body: "Câteva ajustări pot crește numărul de oferte.",
       link: `/proiectele-mele/${p.id}`,
       dedupeKey: `nudge:${p.id}`,
-      email: {
-        kind: "applications",
-        subject: "Cum poți primi mai multe oferte",
-        cta: "Editează proiectul",
-        blocks: [
-          { type: "p", text: "Proiectul tău nu a primit încă oferte. Recomandările noastre:" },
-          ...(tips.length ? tips : ["Distribuie linkul proiectului în grupurile în care ești activ."]).map((t): EmailBlock => ({ type: "p", text: `• ${t}` })),
-        ],
-      },
+      email: projectNoApplicationsTemplate({
+        projectTitle: p.title,
+        tips: tips.length ? tips : ["Distribuie linkul proiectului în grupurile în care ești activ."],
+      }),
     });
   }
   return rows.length;

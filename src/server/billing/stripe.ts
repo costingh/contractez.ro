@@ -7,6 +7,7 @@ import { stripeEvents, subscriptions, users } from "../db/schema";
 import { env, features } from "../env";
 import { DomainError } from "../errors";
 import { notify } from "../notifications";
+import { planActivatedTemplate } from "../email/templates";
 import { syncPlanPerks } from "./plans";
 
 /*
@@ -230,11 +231,7 @@ async function syncSubscription(sub: Stripe.Subscription) {
       body: `Ai ${plan.monthlyApplications} aplicări pe lună${plan.autoBid ? " și Auto Bid" : ""}.`,
       link: "/abonament",
       dedupeKey: `plan-active:${sub.id}:${plan.id}`,
-      email: {
-        kind: "system",
-        subject: `Planul ${plan.name} este activ`,
-        blocks: [{ type: "p", text: `Mulțumim! Ai acum ${plan.monthlyApplications} aplicări pe lună${plan.autoBid ? ", Auto Bid" : ""} și toate avantajele planului ${plan.name}.` }],
-      },
+      email: planActivatedTemplate({ plan }),
     });
     await track("plan.activated", userId, { planId: plan.id });
   }

@@ -1,11 +1,11 @@
 import { and, count, desc, eq, isNull } from "drizzle-orm";
 import { db } from "../db";
 import { notificationPreferences, notifications, users } from "../db/schema";
-import { env } from "../env";
-import { renderEmail, type EmailBlock } from "../email/layout";
 import { queueEmail } from "../email/send";
+import { absoluteUrl, renderNotificationEmail, type EmailKind, type NotificationEmail } from "../email/templates";
 
-export type EmailKind = "messages" | "applications" | "matches" | "autobid" | "account" | "system";
+export type { EmailKind, NotificationEmail };
+export { absoluteUrl };
 
 export async function getPreferences(userId: string) {
   const [p] = await db.select().from(notificationPreferences).where(eq(notificationPreferences.userId, userId)).limit(1);
@@ -50,7 +50,8 @@ export async function notify(input: {
   link?: string;
   data?: Record<string, unknown>;
   dedupeKey?: string;
-  email?: { kind: EmailKind; subject: string; heading?: string; blocks: EmailBlock[]; cta?: string };
+  /** Conținutul emailului: vezi șabloanele din `src/server/email/templates.ts`. */
+  email?: NotificationEmail;
 }) {
   const [row] = await db
     .insert(notifications)
@@ -77,20 +78,16 @@ export async function notify(input: {
     .limit(1);
   if (!u || u.deletedAt || u.bannedAt) return;
 
-  const blocks = [...input.email.blocks];
-  if (input.link) blocks.push({ type: "button", text: input.email.cta ?? "Vezi detalii", href: absoluteUrl(input.link) });
+  const { subject, html, text } = renderNotificationEmail({ title: input.title, body: input.body, link: input.link, email: input.email });
   await queueEmail({
     to: u.email,
     userId: input.userId,
-    subject: input.email.subject,
+    subject,
     template: input.type,
-    html: renderEmail({ heading: input.email.heading ?? input.title, preheader: input.body, blocks }),
+    html,
+    text,
     dedupeKey: input.dedupeKey ? `email:${input.dedupeKey}` : undefined,
   });
-}
-
-export function absoluteUrl(path: string) {
-  return path.startsWith("http") ? path : `${env.APP_URL}${path}`;
 }
 
 export async function unreadNotificationCount(userId: string) {

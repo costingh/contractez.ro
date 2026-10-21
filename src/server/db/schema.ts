@@ -115,6 +115,18 @@ export const reportReason = pgEnum("report_reason", [
 ]);
 export const reportStatus = pgEnum("report_status", ["open", "resolved", "dismissed"]);
 export const emailStatus = pgEnum("email_status", ["queued", "sent", "logged", "failed"]);
+export const outreachKind = pgEnum("outreach_kind", ["post", "comment"]);
+export const outreachStatus = pgEnum("outreach_status", [
+  "new",
+  "scored",
+  "irrelevant",
+  "contacted",
+  "skipped",
+  "already_contacted",
+  "replied",
+  "signed_up",
+]);
+export const outreachType = pgEnum("outreach_type", ["client", "provider", "irrelevant"]);
 
 export type CompanyVerification = {
   cui: string;
@@ -808,6 +820,8 @@ export const emailLog = pgTable(
     subject: text("subject").notNull(),
     template: text("template").notNull(),
     html: text("html").notNull(),
+    /** Varianta text a emailului (trimisă alături de HTML). */
+    text: text("text"),
     status: emailStatus("status").notNull().default("queued"),
     providerMessageId: text("provider_message_id"),
     error: text("error"),
@@ -939,6 +953,48 @@ export const aiUsage = pgTable(
 );
 
 /* -------------------------------------------------------------------------- */
+/*                              Outreach (Facebook)                           */
+/* -------------------------------------------------------------------------- */
+
+/** Postări/comentarii din grupuri de Facebook trimise de extensia copilot (docs/OUTREACH.md). */
+export const outreachLeads = pgTable(
+  "outreach_leads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    fbItemId: text("fb_item_id").notNull(), // post:<id> | comment:<id>
+    kind: outreachKind("kind").notNull(),
+    parentPostId: text("parent_post_id"),
+    groupId: text("group_id").notNull(),
+    groupName: text("group_name"),
+    authorName: text("author_name"),
+    authorProfileUrl: text("author_profile_url"),
+    authorFbId: text("author_fb_id"),
+    personKey: text("person_key"), // id:<fbId> | u:<username>
+    text: text("text").notNull().default(""),
+    permalink: text("permalink"),
+    postedAtText: text("posted_at_text"),
+    commentCount: integer("comment_count"),
+    status: outreachStatus("status").notNull().default("new"),
+    type: outreachType("type"),
+    categoryId: integer("category_id").references(() => categories.id, { onDelete: "set null" }),
+    locality: text("locality"),
+    score: integer("score"),
+    reason: text("reason"),
+    message: text("message"),
+    contactedAt: timestamp("contacted_at", { withTimezone: true }),
+    notes: text("notes"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    uniqueIndex("outreach_leads_fb_item_uq").on(t.fbItemId),
+    index("outreach_leads_person_idx").on(t.personKey),
+    index("outreach_leads_status_score_idx").on(t.status, t.score),
+    index("outreach_leads_contacted_idx").on(t.contactedAt),
+  ],
+);
+
+/* -------------------------------------------------------------------------- */
 /*                                    Types                                   */
 /* -------------------------------------------------------------------------- */
 
@@ -954,3 +1010,4 @@ export type Subscription = typeof subscriptions.$inferSelect;
 export type Conversation = typeof conversations.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
+export type OutreachLead = typeof outreachLeads.$inferSelect;

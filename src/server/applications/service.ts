@@ -18,6 +18,13 @@ import {
 } from "../db/schema";
 import { DomainError } from "../errors";
 import { notify } from "../notifications";
+import {
+  applicationHiredTemplate,
+  applicationNewTemplate,
+  applicationRefundedTemplate,
+  applicationRejectedTemplate,
+  applicationShortlistedTemplate,
+} from "../email/templates";
 import { systemMessage } from "../chat/service";
 
 export type ApplyInput = {
@@ -155,19 +162,14 @@ export async function applyToProject(input: ApplyInput): Promise<Application> {
     body: `${prov?.name ?? "Un prestator"} a trimis o ofertă.`,
     link: `/proiectele-mele/${result.project.id}`,
     dedupeKey: `application:${result.app.id}`,
-    email: {
-      kind: "applications",
-      subject: `Ai primit o ofertă nouă: ${truncate(result.project.title, 60)}`,
-      cta: "Vezi oferta",
-      blocks: [
-        { type: "p", text: `${prov?.name ?? "Un prestator"} a aplicat la proiectul tău.` },
-        { type: "muted", text: truncate(result.app.message, 300) },
-        {
-          type: "muted",
-          text: `${result.project.applicationsCount + 1} din ${result.project.maxApplications} locuri de aplicare ocupate.`,
-        },
-      ],
-    },
+    email: applicationNewTemplate({
+      providerName: prov?.name ?? "Un prestator",
+      projectTitle: truncate(result.project.title, 60),
+      message: truncate(result.app.message, 300),
+      isAuto: Boolean(result.app.isAuto),
+      used: result.project.applicationsCount + 1,
+      max: result.project.maxApplications,
+    }),
   });
   await track("application.submitted", input.providerId, { projectId: input.projectId, isAuto: Boolean(input.isAuto) });
   return result.app;
@@ -223,7 +225,7 @@ export async function shortlistApplication(applicationId: string, clientId: stri
       body: "Clientul ți-a selectat oferta pentru discuții.",
       link: `/aplicarile-mele`,
       dedupeKey: `application-shortlisted:${applicationId}`,
-      email: { kind: "applications", subject: `Ești pe lista scurtă: ${truncate(project.title, 60)}`, blocks: [{ type: "p", text: "Clientul ți-a selectat oferta. Răspunde rapid în chat pentru a crește șansele." }] },
+      email: applicationShortlistedTemplate({ projectTitle: truncate(project.title, 60) }),
     });
   }
 }
@@ -243,11 +245,7 @@ export async function rejectApplication(applicationId: string, clientId: string,
     body: reason ? `Motiv: ${truncate(reason, 160)}` : undefined,
     link: `/aplicarile-mele`,
     dedupeKey: `application-rejected:${applicationId}`,
-    email: {
-      kind: "applications",
-      subject: `Actualizare pentru oferta ta: ${truncate(project.title, 60)}`,
-      blocks: [{ type: "p", text: "Clientul a ales să nu continue cu această ofertă." }, ...(reason ? [{ type: "muted" as const, text: `Motiv: ${reason}` }] : [])],
-    },
+    email: applicationRejectedTemplate({ projectTitle: truncate(project.title, 60), reason }),
   });
 }
 
@@ -281,12 +279,7 @@ export async function hireApplication(applicationId: string, clientId: string) {
     body: "Confirmă colaborarea ca să puteți lăsa recenzii la final.",
     link: `/colaborari`,
     dedupeKey: `application-hired:${res.app.id}`,
-    email: {
-      kind: "applications",
-      subject: `Ai fost ales: ${truncate(res.project.title, 60)}`,
-      cta: "Confirmă colaborarea",
-      blocks: [{ type: "p", text: "Clientul te-a ales pentru proiect. Confirmă colaborarea pe platformă și stabiliți detaliile în chat." }],
-    },
+    email: applicationHiredTemplate({ projectTitle: truncate(res.project.title, 60) }),
   });
   for (const o of res.others) {
     await notify({
@@ -340,11 +333,7 @@ export async function refundAllForProject(projectId: string, reason: string, act
         body: `${reason} Aplicarea nu se mai socotește în limita planului.`,
         link: "/abonament",
         dedupeKey: `refund:${a.id}`,
-        email: {
-          kind: "system",
-          subject: "Aplicare restituită",
-          blocks: [{ type: "p", text: `Am restituit o aplicare: nu se mai socotește în limita lunară a planului tău. Motiv: ${reason}` }],
-        },
+        email: applicationRefundedTemplate({ reason }),
       });
     }
   }

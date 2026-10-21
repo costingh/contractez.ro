@@ -44,6 +44,11 @@ export default async function AdminEmailsPage({ searchParams }: { searchParams: 
             : "Resend nu este configurat: emailurile sunt doar salvate aici (inclusiv linkurile de confirmare și resetare)."
         }
         className="pt-0"
+        actions={
+          <Button asChild variant="outline">
+            <Link href="/admin/emailuri/previzualizare">Previzualizare șabloane</Link>
+          </Button>
+        }
       />
       <form className="flex gap-2">
         <Input name="q" defaultValue={q} placeholder="Destinatar, subiect sau șablon" className="max-w-sm" />

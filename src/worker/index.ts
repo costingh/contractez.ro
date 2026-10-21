@@ -13,6 +13,8 @@ import {
   sendMatchDigests,
 } from "@/server/jobs/scheduled";
 import { matchOpenProjectsForProvider, runMatchingForProject } from "@/server/matching/run";
+import { classifyPendingLeads } from "@/server/outreach/classify";
+import { sweepPendingLeads } from "@/server/outreach/service";
 import { QUEUES, enqueue, getQueue, type JobMap } from "@/server/queue";
 import { getRedis } from "@/server/redis";
 
@@ -45,6 +47,7 @@ const workers = [
     async (job) => {
       if (job.data.kind === "project-enrich") return enrichProject(job.data.projectId);
       if (job.data.kind === "provider-skills") return enrichProviderSkills(job.data.providerId);
+      if (job.data.kind === "outreach-classify") return classifyPendingLeads();
     },
     2,
   ),
@@ -58,6 +61,8 @@ const workers = [
           return sendMatchDigests("weekly");
         case "unseen-refunds":
           return refundUnseenApplications();
+        case "outreach-sweep":
+          return sweepPendingLeads();
         case "maintenance": {
           const res = await maintenance();
           // Recuperare: proiecte deschise recent fără matching (ex: Redis indisponibil la publicare).
@@ -80,6 +85,7 @@ async function scheduleRepeatables() {
   await q.upsertJobScheduler("digest-daily", { pattern: "0 8 * * *", tz: "Europe/Bucharest" }, { name: "scheduled", data: { kind: "digest-daily" } });
   await q.upsertJobScheduler("digest-weekly", { pattern: "0 8 * * 1", tz: "Europe/Bucharest" }, { name: "scheduled", data: { kind: "digest-weekly" } });
   await q.upsertJobScheduler("maintenance", { every: 15 * 60_000 }, { name: "scheduled", data: { kind: "maintenance" } });
+  await q.upsertJobScheduler("outreach-sweep", { every: 5 * 60_000 }, { name: "scheduled", data: { kind: "outreach-sweep" } });
   await q.upsertJobScheduler("unseen-refunds", { pattern: "30 3 * * *", tz: "Europe/Bucharest" }, { name: "scheduled", data: { kind: "unseen-refunds" } });
 }
 

@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "dist/**",
     "backups/**",
+    // Extensia Chrome (JS de browser, testată separat cu node --test).
+    "tools/**",
   ]),
 ]);
 
