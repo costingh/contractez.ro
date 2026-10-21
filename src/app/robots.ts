@@ -1,5 +1,8 @@
 import type { MetadataRoute } from "next";
 
+// APP_URL vine din mediu la rulare, nu la build.
+export const dynamic = "force-dynamic";
+
 export default function robots(): MetadataRoute.Robots {
   const base = process.env.APP_URL ?? "http://localhost:3000";
   return {
