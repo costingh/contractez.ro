@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Instrument_Sans, Instrument_Serif } from "next/font/google";
 import { Visitrack } from "@/components/analytics/visitrack";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { SupportChat } from "@/components/support/support-chat";
 import { SiteHeader } from "@/components/layout/site-header";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <SiteFooter />
             <Toaster position="top-center" />
             <Visitrack />
+            <SupportChat />
           </TooltipProvider>
         </ThemeProvider>
       </body>

@@ -20,6 +20,38 @@ export function GuideIntro({ guide, name }: { guide: CategoryGuide; name: string
   );
 }
 
+/** Tabelul de prețuri orientative (pagina de categorie și /ghid-preturi). */
+export function PriceTable({ rows, caption }: { rows: NonNullable<CategoryGuide["prices"]>; caption?: string }) {
+  return (
+    <div className="overflow-hidden rounded-2xl border bg-card shadow-xs">
+      <table className="w-full text-left text-sm">
+        {caption && <caption className="sr-only">{caption}</caption>}
+        <thead className="bg-muted/60 text-xs text-muted-foreground">
+          <tr>
+            <th scope="col" className="px-5 py-3 font-medium">
+              Lucrare
+            </th>
+            <th scope="col" className="px-5 py-3 text-right font-medium whitespace-nowrap">
+              Preț orientativ
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y">
+          {rows.map((row) => (
+            <tr key={row.item}>
+              <td className="px-5 py-3.5 align-top">
+                <div className="font-medium">{row.item}</div>
+                {row.note && <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{row.note}</div>}
+              </td>
+              <td className="px-5 py-3.5 text-right align-top font-semibold whitespace-nowrap tabular-nums">{row.range}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function GuidePrices({ guide, name }: { guide: CategoryGuide; name: string }) {
   if (!guide.prices?.length) return null;
   return (
@@ -28,35 +60,15 @@ export function GuidePrices({ guide, name }: { guide: CategoryGuide; name: strin
         <div className="eyebrow">Prețuri orientative</div>
         <h2 className="display-md mt-3">Cât costă: {name}</h2>
       </div>
-      <div className="overflow-hidden rounded-2xl border bg-card shadow-xs">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-muted/60 text-xs text-muted-foreground">
-            <tr>
-              <th scope="col" className="px-5 py-3 font-medium">
-                Lucrare
-              </th>
-              <th scope="col" className="px-5 py-3 text-right font-medium whitespace-nowrap">
-                Preț orientativ
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {guide.prices.map((row) => (
-              <tr key={row.item}>
-                <td className="px-5 py-3.5 align-top">
-                  <div className="font-medium">{row.item}</div>
-                  {row.note && <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{row.note}</div>}
-                </td>
-                <td className="px-5 py-3.5 text-right align-top font-semibold whitespace-nowrap tabular-nums">{row.range}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <PriceTable rows={guide.prices} caption={`Prețuri orientative: ${name}`} />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
           Prețuri orientative pentru România, actualizate în {guidesUpdated}, adunate din oferte publice. Prețul final depinde de proiect și îl
-          stabilești direct cu prestatorul.
+          stabilești direct cu prestatorul. Toate prețurile, pe o pagină:{" "}
+          <Link href="/ghid-preturi" className="underline underline-offset-2 transition-colors hover:text-foreground">
+            Ghid de prețuri 2026
+          </Link>
+          .
         </p>
         <Link
           href="/proiecte/nou"

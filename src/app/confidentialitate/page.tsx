@@ -44,7 +44,7 @@ export default function PrivacyPage() {
         <h2>5. Cui le transmitem</h2>
         <ul>
           <li>Celorlalți utilizatori: profilul public, proiectele publicate (fără date de contact și fără adresă exactă), ofertele și mesajele către destinatar.</li>
-          <li>Furnizorilor noștri: găzduire (VPS), email tranzacțional (Resend), plăți (Stripe), AI (OpenAI), analiza traficului (VisitTrack).</li>
+          <li>Furnizorilor noștri: găzduire (VPS), email tranzacțional (Resend), plăți (Stripe), AI (OpenAI), analiza traficului (VisitTrack), chat de suport (Crisp, doar dacă deschizi chat-ul).</li>
           <li>Autorităților, doar când legea o cere.</li>
         </ul>
       </section>

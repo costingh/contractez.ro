@@ -359,7 +359,8 @@ export function ProviderProfileForm({
             </ul>
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        {/* Ancora „#linkuri” din panou: site-ul și, mai jos, rețelele sociale. */}
+        <div id={context === "profile" ? "linkuri" : undefined} className="grid scroll-mt-28 gap-4 sm:grid-cols-2">
           <Field label="Ani de experiență" htmlFor="yearsExperience" optional>
             <Input id="yearsExperience" name="yearsExperience" type="number" min={0} max={70} defaultValue={initial.yearsExperience ?? ""} />
           </Field>

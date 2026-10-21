@@ -10,7 +10,7 @@ import { cssVars } from "@/components/home/css-vars";
 import { Button } from "@/components/ui/button";
 import { labels } from "@/config/site";
 import { postsForCategory } from "@/content/blog/posts";
-import { getCategoryGuide } from "@/content/category-guides";
+import { getCategoryGuide, guideAnswer } from "@/content/category-guides";
 import { cities, cityServices, isCityPageIndexedByDefault } from "@/content/cities";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { env } from "@/server/env";
@@ -91,7 +91,8 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                 {category.name}
               </h1>
               <p className="enter mt-5 max-w-2xl text-[1.0625rem] leading-relaxed text-white/65" style={cssVars({ i: 2 })}>
-                {category.description ?? root?.description ?? "Servicii profesionale, de la prestatori verificați."}
+                {/* Primul paragraf răspunde direct: ce este serviciul și cât costă orientativ. */}
+                {guide ? guideAnswer(guide) : (category.description ?? root?.description ?? "Servicii profesionale, de la prestatori verificați.")}
               </p>
               <div className="enter mt-8 flex flex-col gap-3 sm:flex-row" style={cssVars({ i: 3 })}>
                 <Link

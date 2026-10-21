@@ -37,6 +37,8 @@ import {
 import { categoryDemand, providerStats } from "@/server/insights";
 import { recommendProjectsForProvider } from "@/server/matching/run";
 import { cssVars } from "@/components/home/css-vars";
+import type { ProfileCompletion } from "@/lib/profile-completion";
+import { ProfileCompletionCard } from "./profile-completion-card";
 import { StatTile } from "./stat-tile";
 
 const statusVariant: Record<string, "secondary" | "brand" | "success"> = {
@@ -48,9 +50,11 @@ const statusVariant: Record<string, "secondary" | "brand" | "success"> = {
 export async function ProviderDashboard({
   userId,
   countyCode,
+  completion,
 }: {
   userId: string;
   countyCode: string | null;
+  completion: ProfileCompletion | null;
 }) {
   const catalog = await getCatalog();
   const [usage, stats, recs, active, proposals, rules, demand, myCats] =
@@ -252,6 +256,8 @@ export async function ProviderDashboard({
         </section>
 
         <aside className="reveal min-w-0 space-y-4" style={cssVars({ i: 1 })}>
+          {completion && <ProfileCompletionCard completion={completion} />}
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">

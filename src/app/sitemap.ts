@@ -36,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .limit(10000),
   ]);
 
-  const staticPages = ["", "/proiecte", "/prestatori", "/preturi", "/cum-functioneaza", "/contact", "/termeni", "/confidentialitate", "/blog", "/orase"].map((p) => ({
+  const staticPages = ["", "/proiecte", "/prestatori", "/preturi", "/cum-functioneaza", "/contact", "/termeni", "/confidentialitate", "/blog", "/orase", "/despre", "/ghid-preturi"].map((p) => ({
     url: `${base}${p}`,
     lastModified: now,
     changeFrequency: (p === "" || p === "/proiecte" ? "daily" : "weekly") as "daily" | "weekly",

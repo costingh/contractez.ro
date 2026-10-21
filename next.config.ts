@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
   cacheComponents: false,
   serverExternalPackages: ["bullmq", "ioredis", "postgres", "qrcode"],
   images: { unoptimized: true },
+  // Variantele markdown ale articolelor citesc sursa .mdx de pe disc (src/content/blog/markdown.ts).
+  outputFileTracingIncludes: {
+    "/llms-full.txt": ["./src/content/blog/*.mdx"],
+    "/blog/*/md": ["./src/content/blog/*.mdx"],
+  },
   experimental: {
     serverActions: { bodySizeLimit: "6mb" },
     authInterrupts: true,

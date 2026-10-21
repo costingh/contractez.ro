@@ -32,6 +32,8 @@ const schema = z.object({
   /** VisitTrack (opțional): id-ul public al site-ului (scriptul de tracking) și cheia API (evenimente de pe server). */
   VISITRACK_SITE_ID: z.string().optional(),
   VISITRACK_API_KEY: z.string().optional(),
+  /** Crisp (opțional): id-ul site-ului din Crisp → Settings → Website Settings. */
+  CRISP_WEBSITE_ID: z.string().optional(),
 });
 
 const parsed = schema.safeParse(

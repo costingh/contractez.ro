@@ -27,6 +27,13 @@ export default function BlogIndexPage() {
           <p className="enter mt-5 max-w-2xl text-[1.0625rem] leading-relaxed text-muted-foreground" style={cssVars({ i: 2 })}>
             Cât costă o lucrare, cum alegi omul potrivit și ce verifici înainte să plătești.
           </p>
+          <p className="enter mt-4 text-sm text-muted-foreground" style={cssVars({ i: 3 })}>
+            Cauți doar cifrele? Toate prețurile orientative sunt pe o singură pagină:{" "}
+            <Link href="/ghid-preturi" className="font-medium text-brand underline-offset-4 hover:underline">
+              Ghid de prețuri 2026
+            </Link>
+            .
+          </p>
         </div>
       </header>
       <div className="container-page mt-10 grid gap-5 md:grid-cols-2">

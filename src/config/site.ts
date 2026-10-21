@@ -9,6 +9,10 @@ export const site = {
   supportEmail: "contact@contractez.ro",
   /** Cine operează platforma (apare în Termeni, Confidențialitate și footer). */
   operator: "Gheorghe Constantin, persoană fizică",
+  /** Numele operatorului (fondator), pentru datele structurate. */
+  founder: "Gheorghe Constantin",
+  /** Lansarea publică a platformei: ISO (pentru JSON-LD) și textul afișat. */
+  launched: { iso: "2026-10", label: "octombrie 2026" },
 } as const;
 
 export const rules = {

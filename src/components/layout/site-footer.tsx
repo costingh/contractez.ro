@@ -12,7 +12,8 @@ const columns: { title: string; links: { href: string; label: string }[] }[] = [
       { href: "/prestatori", label: "Caută prestatori" },
       { href: "/orase", label: "Prestatori pe orașe" },
       { href: "/cum-functioneaza", label: "Cum funcționează" },
-      { href: "/blog", label: "Ghiduri și prețuri" },
+      { href: "/ghid-preturi", label: "Ghid de prețuri 2026" },
+      { href: "/blog", label: "Ghiduri și articole" },
     ],
   },
   {
@@ -24,8 +25,9 @@ const columns: { title: string; links: { href: string; label: string }[] }[] = [
     ],
   },
   {
-    title: "Legal",
+    title: "Platforma",
     links: [
+      { href: "/despre", label: `Despre ${site.name}` },
       { href: "/termeni", label: "Termeni și condiții" },
       { href: "/confidentialitate", label: "Confidențialitate (GDPR)" },
       { href: "/contact", label: "Contact & raportări" },

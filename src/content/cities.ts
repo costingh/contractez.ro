@@ -152,6 +152,11 @@ export function isCityPageIndexedByDefault(categorySlug: string, city: City) {
   return indexedCityPages.has(`${categorySlug}/${city.slug}`);
 }
 
+/** Pagina /orase/[oras] se indexează dacă orașul are cel puțin un serviciu indexat din start. */
+export function isCityHubIndexed(city: City) {
+  return Object.keys(cityServices).some((s) => isCityPageIndexedByDefault(s, city));
+}
+
 /** Servicii pentru care contează distribuitorul de energie (avize, branșamente, PRAM). */
 export const powerRelatedServices = new Set(["instalatii-electrice", "panouri-solare", "aer-conditionat", "instalatii-termice", "renovari-complete"]);
 

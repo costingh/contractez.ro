@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return {
     title: post.title,
     description: post.description,
-    alternates: { canonical: `/blog/${slug}` },
+    alternates: { canonical: `/blog/${slug}`, types: { "text/markdown": `/blog/${slug}/md` } },
     openGraph: { type: "article", title: post.title, description: post.description, publishedTime: post.date, modifiedTime: post.updated ?? post.date },
   };
 }
@@ -39,19 +39,23 @@ export default async function BlogPostPage({ params }: { params: Params }) {
   const more = posts.filter((p) => p.slug !== slug).slice(0, 3);
 
   const url = `${env.APP_URL}/blog/${slug}`;
+  const modified = post.updated ?? post.date;
+  const org = { "@type": "Organization", "@id": `${env.APP_URL}/#org`, name: site.name, url: env.APP_URL };
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "Article",
         headline: post.title,
-        description: post.description,
+        description: post.summary ?? post.description,
         datePublished: post.date,
-        dateModified: post.updated ?? post.date,
+        dateModified: modified,
         mainEntityOfPage: url,
+        url,
         inLanguage: "ro-RO",
-        author: { "@type": "Organization", name: site.name, url: env.APP_URL },
-        publisher: { "@type": "Organization", name: site.name, url: env.APP_URL, logo: { "@type": "ImageObject", url: `${env.APP_URL}/icon-512.png` } },
+        image: `${env.APP_URL}/opengraph-image.png`,
+        author: org,
+        publisher: { ...org, logo: { "@type": "ImageObject", url: `${env.APP_URL}/icon-512.png` } },
       },
       {
         "@type": "BreadcrumbList",
@@ -85,9 +89,20 @@ export default async function BlogPostPage({ params }: { params: Params }) {
             {post.description}
           </p>
           <div className="enter mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground" style={cssVars({ i: 3 })}>
-            <time dateTime={post.updated ?? post.date}>
-              {post.updated ? "Actualizat" : "Publicat"} {dateFmt.format(new Date(post.updated ?? post.date))}
-            </time>
+            <span>
+              Actualizat: <time dateTime={modified}>{dateFmt.format(new Date(modified))}</time>
+            </span>
+            {post.updated && post.updated !== post.date && (
+              <span>
+                Publicat: <time dateTime={post.date}>{dateFmt.format(new Date(post.date))}</time>
+              </span>
+            )}
+            <span>
+              Autor:{" "}
+              <Link href="/despre" className="underline-offset-4 hover:text-foreground hover:underline">
+                {site.name}
+              </Link>
+            </span>
             <span className="inline-flex items-center gap-1.5">
               <Clock className="size-3.5" /> {post.readingMinutes} min de citit
             </span>
@@ -97,6 +112,14 @@ export default async function BlogPostPage({ params }: { params: Params }) {
 
       <div className="container-page mt-4 grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[minmax(0,1fr)_280px]">
         <article className="min-w-0 max-w-[44rem] text-[1.0625rem]">
+          {post.summary && (
+            <section aria-labelledby="pe-scurt" className="mt-8 rounded-2xl border border-brand/25 bg-brand-soft p-5 sm:p-6">
+              <h2 id="pe-scurt" className="eyebrow text-brand">
+                Pe scurt
+              </h2>
+              <p className="mt-2.5 text-[1rem] leading-[1.75] text-foreground">{post.summary}</p>
+            </section>
+          )}
           <Body />
           <div aria-hidden data-vt-scroll="blog_read_end" />
         </article>
