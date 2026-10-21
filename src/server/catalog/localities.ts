@@ -58,3 +58,15 @@ export async function findLocalityByName(name: string, countyCode?: string): Pro
     .limit(1);
   return row ?? null;
 }
+
+/** Localitățile cele mai mari dintr-o rază (fără cea de origine), pentru paginile pe oraș. */
+export async function nearbyLocalities(origin: LocalityOption, radiusKm: number, limit = 10): Promise<string[]> {
+  const point = sql`ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography`;
+  const rows = await db
+    .select({ name: localities.name })
+    .from(localities)
+    .where(and(sql`${localities.id} <> ${origin.id}`, sql`ST_DWithin(${localities.geo}, ${point}, ${radiusKm * 1000})`))
+    .orderBy(desc(localities.population))
+    .limit(limit);
+  return rows.map((r) => r.name);
+}

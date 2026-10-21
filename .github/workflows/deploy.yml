@@ -149,3 +149,19 @@ jobs:
           echo "Aplicația nu a trecut health-check-ul"; dc ps; dc logs --tail 80 web migrate
           exit 1
           EOF
+
+      # Anunță Bing/Yandex (IndexNow) despre paginile din sitemap. Cheia e publică: public/<cheie>.txt.
+      - name: IndexNow
+        continue-on-error: true
+        env:
+          INDEXNOW_KEY: 54fcf48b23440fa6aea0e67371485081
+        run: |
+          curl -fsS https://contractez.ro/sitemap.xml | grep -oE '<loc>[^<]+' | sed 's/<loc>//' > urls.txt
+          python3 - <<'PY' > body.json
+          import json, os
+          urls = [u.strip() for u in open("urls.txt") if u.strip()][:10000]
+          key = os.environ["INDEXNOW_KEY"]
+          print(json.dumps({"host": "contractez.ro", "key": key, "keyLocation": f"https://contractez.ro/{key}.txt", "urlList": urls}))
+          PY
+          curl -sS -o /dev/null -w "IndexNow: HTTP %{http_code} pentru $(wc -l < urls.txt) URL-uri\n" -X POST https://api.indexnow.org/indexnow \
+            -H "Content-Type: application/json; charset=utf-8" --data @body.json

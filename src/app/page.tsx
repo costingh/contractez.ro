@@ -79,8 +79,18 @@ export default async function HomePage() {
   const [catalog, latest, stats, reviews] = await Promise.all([getCatalog(), latestOpenProjects(4), publicStats(), featuredReviews(3)]);
   const lowestPaid = Math.min(...paidPlans.map((p) => p.priceLei));
 
+  const base = process.env.APP_URL ?? "http://localhost:3000";
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      { "@type": "Organization", "@id": `${base}/#org`, name: site.name, url: base, logo: `${base}/icon-512.png`, email: site.supportEmail },
+      { "@type": "WebSite", "@id": `${base}/#website`, name: site.name, url: base, inLanguage: "ro-RO", publisher: { "@id": `${base}/#org` } },
+    ],
+  };
+
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <Hero openProjects={stats?.open_projects ?? 0} />
 
       {/* Categorii în bandă continuă */}

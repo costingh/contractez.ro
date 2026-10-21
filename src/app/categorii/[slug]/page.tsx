@@ -9,7 +9,9 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { cssVars } from "@/components/home/css-vars";
 import { Button } from "@/components/ui/button";
 import { labels } from "@/config/site";
+import { postsForCategory } from "@/content/blog/posts";
 import { getCategoryGuide } from "@/content/category-guides";
+import { cities, cityServices, isCityPageIndexedByDefault } from "@/content/cities";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { env } from "@/server/env";
 import { categoryDemand } from "@/server/insights";
@@ -157,6 +159,23 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           </section>
         )}
 
+        {cityServices[category.slug] && cities.some((c) => isCityPageIndexedByDefault(category.slug, c)) && (
+          <section className="reveal space-y-3">
+            <h2 className="eyebrow">{cityServices[category.slug].noun} în orașul tău</h2>
+            <div className="flex flex-wrap gap-2">
+              {cities.filter((c) => isCityPageIndexedByDefault(category.slug, c)).map((c) => (
+                <Link
+                  key={c.slug}
+                  href={`/categorii/${category.slug}/${c.slug}`}
+                  className="rounded-full border bg-card px-4 py-2 text-sm font-medium shadow-xs transition-colors hover:border-border-strong hover:bg-muted"
+                >
+                  {c.name}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {guide && (
           <>
             <GuideIntro guide={guide} name={category.name} />
@@ -209,6 +228,20 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
             </div>
           )}
         </section>
+
+        {postsForCategory(category.slug).length > 0 && (
+          <section className="reveal space-y-4">
+            <h2 className="eyebrow">Ghiduri utile</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              {postsForCategory(category.slug).map((p) => (
+                <Link key={p.slug} href={`/blog/${p.slug}`} className="rounded-2xl border bg-card p-5 shadow-xs transition-colors hover:border-border-strong">
+                  <p className="font-semibold leading-snug tracking-[-0.01em]">{p.title}</p>
+                  <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{p.description}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {guide && (
           <>

@@ -22,3 +22,6 @@ export function getCategoryGuide(slug: string): CategoryGuide | undefined {
 }
 
 export const categoryGuideSlugs = Object.keys(guides);
+
+/** Luna ultimei actualizări a prețurilor orientative (afișată sub tabele). */
+export const guidesUpdated = "octombrie 2026";

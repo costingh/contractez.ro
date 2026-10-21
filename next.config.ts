@@ -1,3 +1,4 @@
+import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -21,4 +22,12 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Articolele de blog (src/content/blog/*.mdx). Plugin-urile se dau ca nume (șiruri) pentru Turbopack.
+const withMDX = createMDX({
+  options: {
+    remarkPlugins: ["remark-gfm"],
+    rehypePlugins: ["rehype-slug"],
+  },
+});
+
+export default withMDX(nextConfig);

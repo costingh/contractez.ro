@@ -415,7 +415,7 @@ export const buildInstallGuides: CategoryGuides = {
       { item: "Punct nou priză sau întrerupător", range: "80–180 lei/punct", note: "traseu îngropat, manoperă" },
       { item: "Montaj corp de iluminat", range: "50–150 lei/buc", note: "în funcție de tip" },
       { item: "Montaj tablou electric apartament", range: "600–1.500 lei", note: "manoperă, fără aparataj" },
-      { item: "Instalație electrică nouă apartament 2 camere", range: "6.000–12.000 lei", note: "manoperă, fără materiale" },
+      { item: "Refacere instalație electrică apartament 2 camere", range: "5.000–9.000 lei", note: "manoperă și materiale standard, fără refacerea finisajelor" },
       { item: "Instalație de împământare", range: "800–1.800 lei", note: "manoperă" },
       { item: "Intervenție la defect", range: "150–350 lei", note: "deplasare și diagnostic incluse" },
     ],
@@ -443,7 +443,7 @@ export const buildInstallGuides: CategoryGuides = {
       },
       {
         q: "Cât costă refacerea instalației electrice într-un apartament?",
-        a: "Pentru un apartament cu 2 camere, manopera la o instalație electrică nouă este în general între 6.000 și 12.000 lei, în funcție de numărul de puncte și de tipul pereților. Cablurile, dozele, aparatajul și tabloul se adaugă separat. Cere un deviz detaliat pe circuite.",
+        a: "Pentru un apartament cu 2 camere, refacerea completă costă orientativ între 5.000 și 9.000 lei, cu manoperă și materiale standard, în funcție de numărul de puncte, de tabloul ales și de tipul pereților. Refacerea tencuielii și zugrăvitul după șlițuire se plătesc separat. Cere un deviz detaliat pe circuite.",
       },
       {
         q: "Cât durează refacerea instalației electrice?",

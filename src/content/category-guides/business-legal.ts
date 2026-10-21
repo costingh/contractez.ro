@@ -660,7 +660,7 @@ export const businessLegalGuides: CategoryGuides = {
       },
       {
         q: "Cât durează cadastrul și intabularea?",
-        a: "Măsurătorile și documentația se fac de obicei în câteva zile. Soluționarea la OCPI durează câteva săptămâni în regim normal, iar în regim de urgență termenul este mai scurt, cu un tarif mai mare.",
+        a: "Măsurătorile și documentația se fac de obicei în una–trei săptămâni. La OCPI, prima înregistrare durează în jur de 15 zile lucrătoare, iar intabularea în baza unui act are termene mai scurte și poate fi cerută și în regim de urgență, cu tarif mai mare. Verifică termenul exact la OCPI-ul din județ.",
       },
       {
         q: "De ce acte am nevoie pentru cadastru?",

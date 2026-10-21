@@ -1,7 +1,7 @@
 import { ArrowRight, CircleCheck, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import { Faq } from "@/components/marketing/faq";
-import type { CategoryGuide } from "@/content/category-guides";
+import { guidesUpdated, type CategoryGuide } from "@/content/category-guides";
 
 /** Ce este serviciul și cum funcționează pe platformă. */
 export function GuideIntro({ guide, name }: { guide: CategoryGuide; name: string }) {
@@ -55,8 +55,8 @@ export function GuidePrices({ guide, name }: { guide: CategoryGuide; name: strin
       </div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
-          Prețuri orientative pentru România, adunate din oferte publice. Prețul final depinde de proiect și îl stabilești direct cu
-          prestatorul.
+          Prețuri orientative pentru România, actualizate în {guidesUpdated}, adunate din oferte publice. Prețul final depinde de proiect și îl
+          stabilești direct cu prestatorul.
         </p>
         <Link
           href="/proiecte/nou"
