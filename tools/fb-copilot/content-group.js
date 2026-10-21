@@ -17,8 +17,32 @@
 (function () {
   'use strict';
 
-  if (window.__contractezGroupCopilot) return; // protecție la injectare dublă
+  /*
+   * Protecție la injectare dublă, cu „puls”: o instanță vie scrie în DOM un timestamp la 2 s. După ce extensia e
+   * reîncărcată, instanța veche își pierde contextul (chrome.runtime.id dispare) și nu mai pulsează, așa că
+   * noua injectare (la instalare/actualizare sau la F5) poate porni chiar dacă flag-ul vechi a rămas setat.
+   */
+  const BEAT = 'czGroupBeat';
+  const runtimeAlive = () => {
+    try {
+      return Boolean(chrome.runtime && chrome.runtime.id);
+    } catch {
+      return false;
+    }
+  };
+  if (window.__contractezGroupCopilot && Date.now() - Number(document.documentElement.dataset[BEAT] || 0) < 5000) return;
   window.__contractezGroupCopilot = true;
+  document.documentElement.dataset[BEAT] = String(Date.now());
+  const beatTimer = setInterval(() => {
+    if (!runtimeAlive()) {
+      clearInterval(beatTimer);
+      onRuntimeLost();
+      return;
+    }
+    document.documentElement.dataset[BEAT] = String(Date.now());
+  }, 2000);
+  // Resturile unei instanțe vechi (panou, chip-uri) — le recreăm noi.
+  document.querySelectorAll('contractez-panel, contractez-chip').forEach((n) => n.remove());
 
   const X = globalThis.ContractezExtract;
   if (!X) return;
@@ -726,6 +750,13 @@
       pollStatus();
     }
   });
+
+  /** Extensia a fost reîncărcată: instanța asta se oprește (noua injectare preia pagina). */
+  function onRuntimeLost() {
+    state.dead = true;
+    deactivate();
+    if (panelHost) panelHost.remove();
+  }
 
   async function init() {
     try {

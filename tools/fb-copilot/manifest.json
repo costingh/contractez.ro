@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Contractez Copilot",
   "short_name": "Contractez",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Asistent local pentru outreach în grupurile de Facebook: citește doar ce ai derulat deja pe ecran. Nu dă click, nu navighează, nu trimite mesaje.",
   "minimum_chrome_version": "116",
   "permissions": [
