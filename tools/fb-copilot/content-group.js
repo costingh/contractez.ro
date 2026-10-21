@@ -458,8 +458,12 @@
     ensureChip(rec);
   }
 
-  chrome.runtime.onMessage.addListener((msg) => {
+  chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (!msg || !msg.type) return;
+    if (msg.type === 'ping') {
+      sendResponse({ ok: true, script: 'group', active: state.active, counters: state.counters });
+      return;
+    }
     if (msg.type === 'ingestResult') {
       state.counters.sentNew += msg.accepted || 0;
       state.counters.duplicates += msg.duplicates || 0;

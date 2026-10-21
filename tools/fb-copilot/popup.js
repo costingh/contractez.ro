@@ -25,7 +25,27 @@ function renderState(s) {
   }
 }
 
+/** Rulează extensia pe tab-ul curent? (Chrome o pune doar în paginile încărcate după instalare.) */
+async function checkTab() {
+  const el = $('tabState');
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const url = (tab && tab.url) || '';
+    if (!/^https:\/\/www\.facebook\.com\//.test(url)) {
+      el.textContent = 'Deschide un grup Facebook ca să înceapă citirea.';
+      return;
+    }
+    const r = await chrome.tabs.sendMessage(tab.id, { type: 'ping' }).catch(() => null);
+    if (!r) el.textContent = '⚠ Extensia nu rulează pe acest tab — apasă F5 pe pagina Facebook.';
+    else if (r.active) el.textContent = `Activ pe acest grup · citite ${r.counters?.read ?? 0}, noi ${r.counters?.sentNew ?? 0}`;
+    else el.textContent = /\/messages\//.test(url) ? 'Messenger: verific istoricul conversației.' : 'Rulează — intră într-un grup ca să înceapă citirea.';
+  } catch {
+    el.textContent = '';
+  }
+}
+
 async function refresh() {
+  checkTab();
   const s = await send({ type: 'getState' });
   if (s && s.stats) renderState(s);
 

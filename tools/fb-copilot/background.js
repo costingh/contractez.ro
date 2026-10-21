@@ -415,7 +415,8 @@ async function getState() {
 
 function senderKind(sender) {
   if (sender.id !== chrome.runtime.id) return null;
-  const url = sender.url || (sender.tab && sender.tab.url) || '';
+  // FB e SPA: URL-ul tab-ului reflectă navigarea internă (pushState), URL-ul documentului nu întotdeauna.
+  const url = (sender.tab && sender.tab.url) || sender.url || '';
   if (url.startsWith(chrome.runtime.getURL(''))) return 'extension';
   if (!sender.tab) return null;
   if (GROUP_PAGE.test(url)) return 'group';
@@ -484,7 +485,26 @@ chrome.storage.onChanged.addListener((changes, area) => {
 chrome.runtime.onInstalled.addListener((details) => {
   refreshBadge();
   if (details.reason === 'install') chrome.runtime.openOptionsPage();
+  injectIntoOpenTabs();
 });
+
+/**
+ * Chrome pune content script-urile doar în paginile încărcate după instalare. La instalare/actualizare le
+ * injectăm și în tab-urile Facebook deja deschise (scripturile au protecție la injectare dublă).
+ */
+async function injectIntoOpenTabs() {
+  try {
+    const tabs = await chrome.tabs.query({ url: 'https://www.facebook.com/*' });
+    for (const tab of tabs) {
+      if (!tab.id) continue;
+      for (const files of [['extract.js', 'content-group.js'], ['extract.js', 'content-messenger.js']]) {
+        await chrome.scripting.executeScript({ target: { tabId: tab.id }, files }).catch(() => {});
+      }
+    }
+  } catch {
+    // fără tab-uri sau fără permisiune: utilizatorul poate apăsa F5
+  }
+}
 
 chrome.runtime.onStartup.addListener(() => {
   refreshBadge();

@@ -14,11 +14,13 @@ test('manifest.json e JSON valid, MV3, cu permisiunile cerute', () => {
   const m = JSON.parse(read('manifest.json'));
   assert.equal(m.manifest_version, 3);
   assert.equal(m.name, 'Contractez Copilot');
-  assert.deepEqual(m.permissions, ['storage']);
+  // scripting: injectare în tab-urile deja deschise la instalare (doar fișierele extensiei).
+  assert.deepEqual(m.permissions, ['storage', 'scripting']);
   assert.deepEqual(m.host_permissions.sort(), ['http://localhost:3000/*', 'https://contractez.ro/*', 'https://www.facebook.com/*']);
   assert.equal(m.background.service_worker, 'background.js');
   const matches = m.content_scripts.flatMap((c) => c.matches).sort();
-  assert.deepEqual(matches, ['https://www.facebook.com/groups/*', 'https://www.facebook.com/messages/*']);
+  // FB e SPA: scripturile se încarcă pe tot domeniul și se activează singure doar pe grupuri / conversații.
+  assert.deepEqual(matches, ['https://www.facebook.com/*', 'https://www.facebook.com/*']);
   for (const cs of m.content_scripts) assert.equal(cs.js[0], 'extract.js', 'extract.js trebuie încărcat primul');
 });
 
