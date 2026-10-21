@@ -7,6 +7,8 @@ export const site = {
   description:
     "Marketplace românesc pentru servicii: publici gratuit un proiect, primești oferte de la prestatori verificați, compatibili cu cerințele tale.",
   supportEmail: "contact@contractez.ro",
+  /** Cine operează platforma (apare în Termeni, Confidențialitate și footer). */
+  operator: "Gheorghe Constantin, persoană fizică",
 } as const;
 
 export const rules = {

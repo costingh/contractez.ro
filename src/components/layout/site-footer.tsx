@@ -55,9 +55,22 @@ export function SiteFooter() {
       </div>
       <div className="border-t">
         <div className="container-page flex flex-col gap-4 py-5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-2xl leading-relaxed">
-            © {new Date().getFullYear()} {site.name}. Platforma nu intermediază plata lucrărilor; clientul și prestatorul stabilesc direct condițiile.
-          </p>
+          <div className="max-w-2xl space-y-1.5 leading-relaxed">
+            <p>
+              © {new Date().getFullYear()} {site.name} · operat de {site.operator}. Platforma nu intermediază plata lucrărilor; clientul și prestatorul
+              stabilesc direct condițiile.
+            </p>
+            <p>
+              <a
+                href="https://anpc.ro/ce-este-sal/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline-offset-2 transition-colors hover:text-foreground hover:underline"
+              >
+                ANPC – Soluționarea alternativă a litigiilor (SAL)
+              </a>
+            </p>
+          </div>
           <ThemeToggle className="self-start sm:self-auto" />
         </div>
       </div>

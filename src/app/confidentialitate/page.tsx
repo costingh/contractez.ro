@@ -10,8 +10,7 @@ export default function PrivacyPage() {
       <section>
         <h2>1. Cine prelucrează datele</h2>
         <p>
-          Operatorul datelor este administratorul platformei {site.name} (datele de identificare ale operatorului vor fi completate la
-          înregistrarea entității juridice). Ne poți contacta la {site.supportEmail}.
+          Operatorul datelor este {site.operator}, administratorul platformei {site.name}. Ne poți contacta la {site.supportEmail}.
         </p>
       </section>
       <section>

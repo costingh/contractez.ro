@@ -16,6 +16,7 @@ export default function TermsPage() {
           care prestează servicii („Prestatori”). Platforma nu este parte în contractul dintre Client și Prestator și nu intermediază plata
           lucrărilor.
         </p>
+        <p>Platforma este operată de {site.operator} („noi”), contact: {site.supportEmail}.</p>
       </section>
       <section>
         <h2>2. Contul</h2>
@@ -88,7 +89,12 @@ export default function TermsPage() {
         <h2>9. Contact</h2>
         <p>
           Pentru întrebări sau sesizări scrie-ne la {site.supportEmail} sau folosește pagina de{" "}
-          <Link href="/contact">contact</Link>.
+          <Link href="/contact">contact</Link>. Consumatorii se pot adresa și Autorității Naționale pentru Protecția Consumatorilor, inclusiv
+          pentru{" "}
+          <a href="https://anpc.ro/ce-este-sal/" target="_blank" rel="noopener noreferrer">
+            soluționarea alternativă a litigiilor (SAL)
+          </a>
+          .
         </p>
       </section>
     </LegalPage>
