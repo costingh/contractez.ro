@@ -9,6 +9,8 @@ export const site = {
   supportEmail: "contact@contractez.ro",
   /** Cine operează platforma (apare în Termeni, Confidențialitate și footer). */
   operator: "Gheorghe Constantin, persoană fizică",
+  /** Platforma ANPC de soluționare alternativă a litigiilor (Ordinul ANPC 449/2022, modificat prin Ordinul 270/2026). */
+  anpcSalUrl: "https://reclamatiisal.anpc.ro/",
   /** Numele operatorului (fondator), pentru datele structurate. */
   founder: "Gheorghe Constantin",
   /** Lansarea publică a platformei: ISO (pentru JSON-LD) și textul afișat. */

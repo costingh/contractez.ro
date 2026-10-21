@@ -91,7 +91,7 @@ export default function TermsPage() {
           Pentru întrebări sau sesizări scrie-ne la {site.supportEmail} sau folosește pagina de{" "}
           <Link href="/contact">contact</Link>. Consumatorii se pot adresa și Autorității Naționale pentru Protecția Consumatorilor, inclusiv
           pentru{" "}
-          <a href="https://anpc.ro/ce-este-sal/" target="_blank" rel="noopener noreferrer">
+          <a href={site.anpcSalUrl} target="_blank" rel="noopener noreferrer">
             soluționarea alternativă a litigiilor (SAL)
           </a>
           .

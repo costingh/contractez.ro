@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { CookieSettingsLink } from "@/components/consent/cookie-banner";
@@ -66,19 +67,16 @@ export function SiteFooter() {
               stabilesc direct condițiile.
             </p>
             <p>
-              <a
-                href="https://anpc.ro/ce-este-sal/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline-offset-2 transition-colors hover:text-foreground hover:underline"
-              >
-                ANPC – Soluționarea alternativă a litigiilor (SAL)
-              </a>
-              <span className="mx-2 text-border-strong">·</span>
               <CookieSettingsLink className="underline-offset-2 transition-colors hover:text-foreground hover:underline" />
             </p>
           </div>
-          <ThemeToggle className="self-start sm:self-auto" />
+          <div className="flex items-center gap-4 self-start sm:self-auto">
+            {/* Pictograma oficială ANPC (www.anpc.ro/sal), cu link spre platforma SAL. */}
+            <a href={site.anpcSalUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 rounded-md bg-white">
+              <Image src="/legal/anpc-sal.png" alt="ANPC – Soluționarea alternativă a litigiilor (SAL)" width={201} height={50} />
+            </a>
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </footer>
