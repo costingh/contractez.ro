@@ -62,7 +62,7 @@ export async function sendMatchDigests(frequency: "daily" | "weekly") {
           title: m.project.title,
           href: `${env.APP_URL}/proiecte/${m.project.id}`,
           meta: `Compatibilitate ${m.match.score}%`,
-          lines: [describeBudget(m.project), truncate(m.project.aiSummary ?? m.project.description, 160)],
+          lines: [describeBudget(m.project), truncate(m.project.description.replace(/\s+/g, " "), 160)],
         }),
       ),
       { type: "button", text: "Vezi toate recomandările", href: `${env.APP_URL}/recomandari` },

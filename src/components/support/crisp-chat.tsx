@@ -1,6 +1,7 @@
 "use client";
 
 import { MessageCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,7 @@ declare global {
  * și nu pune cookie-uri Crisp decât dacă omul cere el chat-ul.
  */
 export function CrispChat({ websiteId, user }: { websiteId: string; user: { email: string; name: string; role: string; plan: string } | null }) {
+  const router = useRouter();
   const [state, setState] = useState<"idle" | "loading" | "loaded">("idle");
 
   const open = () => {
@@ -42,12 +44,14 @@ export function CrispChat({ websiteId, user }: { websiteId: string; user: { emai
     s.async = true;
     // Blocat (ad-blocker, rețea)? După 10 secunde trimitem omul la pagina de contact.
     const fallback = window.setTimeout(() => {
-      window.location.href = "/contact";
+      setState("idle");
+      router.push("/contact");
     }, 10_000);
     window.$crisp.push(["on", "session:loaded", () => window.clearTimeout(fallback)]);
     s.onerror = () => {
       window.clearTimeout(fallback);
-      window.location.href = "/contact";
+      setState("idle");
+      router.push("/contact");
     };
     document.head.appendChild(s);
   };

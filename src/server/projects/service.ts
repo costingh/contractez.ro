@@ -317,7 +317,7 @@ export async function getOrCreateShareText(projectId: string, userId: string) {
   const text = await generateShareText(
     {
       title: p.title,
-      summary: p.aiSummary ?? p.description,
+      summary: p.description,
       categoryName: catalog.byId.get(p.categoryId)?.name ?? "prestator",
       workMode: p.workMode,
       localityName: loc?.name ?? null,

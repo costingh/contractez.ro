@@ -138,7 +138,11 @@ const qualitySchema = z.object({
   missing: z.array(z.string()),
   questions: z.array(z.string()).describe("Max 3 întrebări scurte"),
   budgetInsight: z.string().nullable(),
-  summary: z.string().describe("Rezumat de 1-2 propoziții pentru prestatori"),
+  summary: z
+    .string()
+    .describe(
+      "Rezumat neutru, 1-2 propoziții, despre CE cere clientul (serviciul, scopul, ce trebuie livrat), ca într-un anunț. Fără evaluări ale cererii, fără ce lipsește, fără comentarii despre buget.",
+    ),
 });
 
 export type QualityResult = z.infer<typeof qualitySchema> & { source: "ai" | "rules" };

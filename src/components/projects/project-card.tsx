@@ -66,7 +66,7 @@ export function ProjectCard({ data }: { data: ProjectCardData }) {
         )}
       </div>
       <h3 className="mt-2 text-[1.0625rem] leading-snug font-semibold tracking-[-0.012em] text-balance">{p.title}</h3>
-      <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{truncate(p.aiSummary ?? p.description, 220)}</p>
+      <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{truncate(p.description.replace(/\s+/g, " "), 220)}</p>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
         <span className="font-semibold tabular-nums">{describeBudget(p)}</span>

@@ -78,7 +78,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const row = await loadProject(id);
   if (!row || !PUBLIC_STATUSES.has(row.project.status)) return { title: "Proiect" };
-  const desc = truncate(row.project.aiSummary ?? row.project.description, 160);
+  const desc = truncate(row.project.description.replace(/\s+/g, " "), 160);
   return {
     title: row.project.title,
     description: desc,

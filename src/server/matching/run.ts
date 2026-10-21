@@ -1,6 +1,6 @@
 import { and, eq, gte, inArray, isNull, sql } from "drizzle-orm";
 import { rules } from "@/config/site";
-import { normalizeText } from "@/lib/text";
+import { normalizeText, truncate } from "@/lib/text";
 import { describeBudget } from "../ai/features";
 import { categoryPath, getCatalog, rootOf } from "../catalog/taxonomy";
 import { db } from "../db";
@@ -187,7 +187,7 @@ export async function runMatchingForProject(projectId: string) {
                   title: project.title,
                   lines: [`Buget: ${describeBudget(project)}`, `Compatibilitate: ${s.score}%`, ...top],
                 },
-                { type: "muted", text: project.aiSummary ?? project.description.slice(0, 240) },
+                { type: "muted", text: truncate(project.description.replace(/\s+/g, " "), 240) },
               ],
             }
           : undefined,
