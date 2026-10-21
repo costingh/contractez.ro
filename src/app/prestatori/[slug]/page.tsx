@@ -88,7 +88,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!row || !isVisible(row)) return { title: "Prestator" };
   const title = `${row.user.name} — ${row.profile.headline}`;
   const description = truncate(row.profile.bio, 160);
-  return { title, description, openGraph: { title, description, type: "profile" } };
+  return { title, description, alternates: { canonical: `/prestatori/${slug}` }, openGraph: { title, description, type: "profile" } };
 }
 
 function Stars({ value }: { value: number }) {

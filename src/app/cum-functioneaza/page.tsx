@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { freePlan, rules, site } from "@/config/site";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/cum-functioneaza" },
   title: "Cum funcționează",
   description: `Cum găsești un prestator sau următorul proiect pe ${site.name}: publicare gratuită, matching inteligent, maximum ${rules.defaultMaxApplications} oferte per proiect.`,
 };

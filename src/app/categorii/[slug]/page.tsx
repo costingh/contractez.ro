@@ -2,13 +2,16 @@ import { ArrowRight, TrendingUp } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { GuideAdvice, GuideFaq, GuideIntro, GuideJsonLd, GuidePrices } from "@/components/categories/category-guide";
 import { ProjectCard } from "@/components/projects/project-card";
 import { ProviderCard } from "@/components/providers/provider-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { cssVars } from "@/components/home/css-vars";
 import { Button } from "@/components/ui/button";
 import { labels } from "@/config/site";
+import { getCategoryGuide } from "@/content/category-guides";
 import { getCatalog } from "@/server/catalog/taxonomy";
+import { env } from "@/server/env";
 import { categoryDemand } from "@/server/insights";
 import { projectFiltersSchema, searchProjects } from "@/server/search/projects";
 import { providerFiltersSchema, searchProviders } from "@/server/search/providers";
@@ -25,9 +28,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const r = await resolve(slug);
   if (!r) return { title: "Categorie" };
+  const guide = getCategoryGuide(slug);
+  const title = guide?.seoTitle ?? `${r.category.name} — prestatori și proiecte`;
+  const description =
+    guide?.metaDescription ??
+    r.category.description ??
+    `Găsește prestatori pentru ${r.category.name.toLowerCase()} sau proiecte deschise în această categorie.`;
   return {
-    title: `${r.category.name} — prestatori și proiecte`,
-    description: r.category.description ?? `Găsește prestatori pentru ${r.category.name.toLowerCase()} sau proiecte deschise în această categorie.`,
+    title,
+    description,
+    alternates: { canonical: `/categorii/${slug}` },
+    openGraph: { title, description, url: `/categorii/${slug}` },
   };
 }
 
@@ -37,6 +48,12 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   if (!r) notFound();
   const { category, root } = r;
   const isRoot = !category.parentId;
+  const guide = getCategoryGuide(category.slug);
+  const crumbs = [
+    { name: "Acasă", path: "/" },
+    ...(!isRoot && root ? [{ name: root.name, path: `/categorii/${root.slug}` }] : []),
+    { name: category.name, path: `/categorii/${category.slug}` },
+  ];
 
   const [projects, providers, demand] = await Promise.all([
     searchProjects(projectFiltersSchema.parse({ cat: String(category.id) })),
@@ -48,6 +65,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="pb-16">
+      <GuideJsonLd guide={guide} baseUrl={env.APP_URL} crumbs={crumbs} />
       <section className="px-2 pt-2 sm:px-3 sm:pt-3">
         <div className="ink-panel rounded-[1.75rem] sm:rounded-[2.25rem]">
           <div aria-hidden className="aurora aurora-a -top-48 -left-24 size-[560px]" />
@@ -139,6 +157,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           </section>
         )}
 
+        {guide && (
+          <>
+            <GuideIntro guide={guide} name={category.name} />
+            <GuidePrices guide={guide} name={category.name} />
+          </>
+        )}
+
         <section className="space-y-5">
           <div className="reveal flex items-end justify-between gap-2">
             <h2 className="display-md">Proiecte deschise</h2>
@@ -184,6 +209,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
             </div>
           )}
         </section>
+
+        {guide && (
+          <>
+            <GuideAdvice guide={guide} />
+            <GuideFaq guide={guide} name={category.name} />
+          </>
+        )}
       </div>
     </div>
   );

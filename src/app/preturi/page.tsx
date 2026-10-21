@@ -12,6 +12,7 @@ import { features } from "@/server/env";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/preturi" },
   title: "Prețuri",
   description: "Publicarea proiectelor este gratuită. Prestatorii încep gratuit și aleg un abonament doar dacă au nevoie de mai multe aplicări.",
 };
@@ -183,11 +184,11 @@ export default function PricingPage() {
             },
             {
               q: "Când nu se socotește o aplicare?",
-              a: `Dacă proiectul este eliminat ca fraudulos, fals sau duplicat, aplicările tuturor celor care au aplicat nu se mai socotesc în limită. În beta testăm și restituirea aplicării dacă clientul nu deschide oferta în ${rules.unseenRefundDays} zile.`,
+              a: `Dacă proiectul este eliminat ca fraudulos, fals sau duplicat, aplicările tuturor celor care au aplicat nu se mai socotesc în limită. La fel, dacă clientul nu deschide oferta ta în ${rules.unseenRefundDays} zile, aplicarea îți este returnată.`,
             },
             { q: "Pot anula abonamentul?", a: "Da, oricând, din pagina Abonament. Planul rămâne activ până la finalul perioadei plătite, apoi treci automat pe Gratuit." },
             { q: "Platforma ia comision din lucrare?", a: "Nu. Nu intermediem plata lucrării: clientul și prestatorul stabilesc direct prețul și modul de plată." },
-            { q: "Primesc factură?", a: "Da. Fiecare plată vine automat cu chitanță și factură pe email. În beta nu se încasează bani reali." },
+            { q: "Primesc factură?", a: "Da. Fiecare plată vine automat cu chitanță și factură pe email, emise de Link (Stripe), vânzătorul abonamentelor." },
             { q: "Cât costă pentru clienți?", a: "Nimic. Publicarea, ofertele, chat-ul și compararea ofertelor sunt gratuite pentru clienți." },
           ]}
           />

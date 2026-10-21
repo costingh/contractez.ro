@@ -23,6 +23,7 @@ import {
   Wrench,
   type LucideIcon,
 } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Bento } from "@/components/home/bento";
@@ -35,6 +36,8 @@ import { getCurrentUser } from "@/server/auth/session";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { featuredReviews, publicStats } from "@/server/insights";
 import { latestOpenProjects } from "@/server/search/projects";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const ICONS: Record<string, LucideIcon> = {
   code: Code,

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/shared/page-header";
 import { site } from "@/config/site";
 
-export const metadata: Metadata = { title: "Contact" };
+export const metadata: Metadata = { title: "Contact", alternates: { canonical: "/contact" } };
 
 export default function ContactPage() {
   return (

@@ -138,7 +138,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
         </div>
         <div>
           <div className="font-semibold">Ofertă nedeschisă</div>
-          <p className="mt-1 leading-relaxed text-muted-foreground">Dacă clientul nu deschide oferta în {rules.unseenRefundDays} zile, îți returnăm aplicarea (politică de test).</p>
+          <p className="mt-1 leading-relaxed text-muted-foreground">Dacă clientul nu deschide oferta în {rules.unseenRefundDays} zile, îți returnăm aplicarea.</p>
         </div>
         <div>
           <div className="font-semibold">Schimbi planul oricând</div>

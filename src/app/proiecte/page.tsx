@@ -23,6 +23,7 @@ import { getCatalog } from "@/server/catalog/taxonomy";
 import { parseProjectFilters, searchProjects, type ProjectFilters } from "@/server/search/projects";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/proiecte" },
   title: "Proiecte deschise",
   description: "Proiecte și cereri de servicii publicate de clienți din toată România. Filtrează după domeniu, buget, localitate și factură.",
 };

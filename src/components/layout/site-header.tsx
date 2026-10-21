@@ -93,10 +93,10 @@ export async function SiteHeader() {
             </>
           ) : (
             <>
-              <Button asChild variant="ghost" size="sm">
+              <Button asChild variant="ghost" size="sm" className="px-2 sm:px-3">
                 <Link href="/autentificare">Intră în cont</Link>
               </Button>
-              <Button asChild size="sm">
+              <Button asChild size="sm" className="px-2.5 sm:px-3">
                 <Link href="/inregistrare">Creează cont</Link>
               </Button>
             </>

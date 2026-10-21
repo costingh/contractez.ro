@@ -21,6 +21,7 @@ import { getCatalog } from "@/server/catalog/taxonomy";
 import { parseProviderFilters, searchProviders, suggestRelaxations, type ProviderFilters } from "@/server/search/providers";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/prestatori" },
   title: "Prestatori",
   description: "Găsește prestatori verificați din toată România: meseriași, programatori, designeri, contabili și mulți alții. Filtrează după zonă, factură, tarif și rating.",
 };
