@@ -2,9 +2,16 @@ import { BadgeCheck, LockKeyhole, MessagesSquare, Star } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { cssVars } from "@/components/home/css-vars";
 import { rules } from "@/config/site";
+import { features } from "@/server/features";
 
 const trust = [
-  { icon: BadgeCheck, title: "Prestatori verificați", text: "Firmă confirmată în registrul ANAF, email și telefon verificate." },
+  {
+    icon: BadgeCheck,
+    title: "Prestatori verificați",
+    text: features.phoneVerification
+      ? "Firmă confirmată în registrul ANAF, email și telefon verificate."
+      : "Firmă confirmată în registrul ANAF și email verificat.",
+  },
   { icon: MessagesSquare, title: "Oferte relevante, fără spam", text: `Maximum ${rules.defaultMaxApplications} oferte per proiect, doar de la prestatori compatibili.` },
   { icon: Star, title: "Recenzii reale", text: "Se pot lăsa doar după o colaborare confirmată de ambele părți." },
 ];

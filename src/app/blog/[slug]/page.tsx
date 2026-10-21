@@ -98,6 +98,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
       <div className="container-page mt-4 grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[minmax(0,1fr)_280px]">
         <article className="min-w-0 max-w-[44rem] text-[1.0625rem]">
           <Body />
+          <div aria-hidden data-vt-scroll="blog_read_end" />
         </article>
 
         <aside className="space-y-4 lg:sticky lg:top-24 lg:mt-10 lg:self-start">

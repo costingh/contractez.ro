@@ -44,7 +44,7 @@ export default function PrivacyPage() {
         <h2>5. Cui le transmitem</h2>
         <ul>
           <li>Celorlalți utilizatori: profilul public, proiectele publicate (fără date de contact și fără adresă exactă), ofertele și mesajele către destinatar.</li>
-          <li>Furnizorilor noștri: găzduire (VPS), email tranzacțional (Resend), plăți (Stripe), AI (OpenAI).</li>
+          <li>Furnizorilor noștri: găzduire (VPS), email tranzacțional (Resend), plăți (Stripe), AI (OpenAI), analiza traficului (VisitTrack).</li>
           <li>Autorităților, doar când legea o cere.</li>
         </ul>
       </section>
@@ -64,9 +64,23 @@ export default function PrivacyPage() {
         </ul>
         <p>Pentru exercitarea drepturilor scrie-ne la {site.supportEmail}.</p>
       </section>
-      <section>
-        <h2>8. Cookie-uri</h2>
-        <p>Folosim doar cookie-uri strict necesare pentru autentificare și securitate. Nu folosim cookie-uri de publicitate.</p>
+      <section id="cookie-uri" className="scroll-mt-24">
+        <h2>8. Cookie-uri și analiza traficului</h2>
+        <ul>
+          <li>
+            <strong>Strict necesare</strong> (fără acord, pentru că fără ele site-ul nu funcționează): sesiunea de autentificare, protecția
+            formularelor și alegerea ta privind cookie-urile (<code>cz_consent</code>, 6 luni).
+          </li>
+          <li>
+            <strong>Analiză (VisitTrack)</strong>: vedem câți vizitatori avem, de unde vin, ce pagini citesc și unde se blochează în procesul de
+            publicare sau înscriere. Fără acordul tău, analiza rulează fără cookie-uri: nu salvăm nimic în browserul tău, iar vizitele din zile
+            diferite nu sunt legate între ele. Dacă apeși „Accept”, salvăm un identificator anonim (<code>_vt_vid</code>, 2 ani), ca să
+            recunoaștem vizitele repetate, iar pentru conturile logate legăm vizitele de cont (fără email sau nume), pentru statistici despre
+            înscrieri, proiecte și abonamente. Temeiul este consimțământul (art. 6(1)(a) GDPR), pe care îl poți retrage oricând din „Setări
+            cookie-uri”, în subsolul paginii.
+          </li>
+          <li>Nu folosim cookie-uri de publicitate și nu vindem date.</li>
+        </ul>
       </section>
     </LegalPage>
   );

@@ -2,6 +2,7 @@ import { Bell, Gift, Lock, ShieldCheck, UserRoundCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { cssVars } from "@/components/home/css-vars";
 import { EmailStatus } from "@/components/profile/email-status";
+import { ContactPhoneForm } from "@/components/profile/contact-phone-form";
 import { CopyField } from "@/components/profile/copy-field";
 import { PasswordForm } from "@/components/profile/password-form";
 import { PhoneVerification } from "@/components/profile/phone-verification";
@@ -20,10 +21,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { rules } from "@/config/site";
+import { CONTACT_PHONE_HINT } from "@/lib/phone";
 import { ensureReferralCode, referralStats } from "@/server/account";
 import { requireUser } from "@/server/auth/guards";
 import { smsConfigured } from "@/server/auth/sms";
 import { env } from "@/server/env";
+import { features } from "@/server/features";
 import { getPreferences } from "@/server/notifications";
 
 export const metadata: Metadata = { title: "Setări" };
@@ -35,7 +38,6 @@ export default async function SettingsPage() {
     ensureReferralCode(user.id),
     referralStats(user.id),
   ]);
-  const showPhone = smsConfigured || env.NODE_ENV !== "production";
   const referralUrl = `${env.APP_URL}/inregistrare?rol=prestator&ref=${code}`;
 
   return (
@@ -83,8 +85,10 @@ export default async function SettingsPage() {
             Verificare cont
           </CardTitle>
           <CardDescription>
-            Emailul confirmat e necesar pentru a publica și a aplica. Telefonul
-            verificat îți aduce insigna „verificat”.
+            Emailul confirmat e necesar pentru a publica și a aplica.
+            {features.phoneVerification
+              ? " Telefonul verificat îți aduce insigna „verificat”."
+              : " Numărul de telefon este opțional și servește doar pentru contact."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -92,16 +96,22 @@ export default async function SettingsPage() {
             email={user.email}
             verified={Boolean(user.emailVerifiedAt)}
           />
-          {showPhone ? (
-            <PhoneVerification
-              verifiedPhone={user.phoneVerifiedAt ? user.phone : null}
-              devHint={!smsConfigured}
-            />
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Verificarea telefonului va fi disponibilă în curând.
-            </p>
-          )}
+          <div className="space-y-2">
+            <div className="text-sm font-medium">Telefon de contact</div>
+            {features.phoneVerification ? (
+              <>
+                <PhoneVerification
+                  verifiedPhone={user.phoneVerifiedAt ? user.phone : null}
+                  devHint={!smsConfigured}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {CONTACT_PHONE_HINT}
+                </p>
+              </>
+            ) : (
+              <ContactPhoneForm phone={user.phone} />
+            )}
+          </div>
         </CardContent>
       </Card>
 

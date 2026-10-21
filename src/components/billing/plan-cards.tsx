@@ -70,6 +70,7 @@ export function PlanCards({ currentPlanId, actions }: { currentPlanId?: PlanId |
             </ul>
             {actions[p.id] && (
               <div
+                data-vt-goal={`plan_click_${p.id}`}
                 className={cn(
                   "mt-7",
                   // Pe panoul ink, orice buton din acțiuni devine alb cu text ink (contrast maxim, în ambele teme).

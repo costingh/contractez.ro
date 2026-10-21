@@ -1,7 +1,15 @@
-import { and, asc, eq, gte } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "./db";
-import { events, users } from "./db/schema";
+import { users } from "./db/schema";
 import { env } from "./env";
+
+/** Cookie-ul prin care evenimentele din acțiunile utilizatorului ajung în browser (vezi analytics.track). */
+export const RELAY_COOKIE = "vt_ev";
+
+/** Numele din VisitTrack: „user.signed_up” → „signup”, restul cu „_” în loc de „.”. */
+export function visitrackEventName(name: string) {
+  return name === "user.signed_up" ? "signup" : name.replace(/\./g, "_");
+}
 
 /** Id-urile de vizitator VisitTrack (și ce acceptă Stripe în client_reference_id): litere, cifre, - și _. */
 const VISITOR_ID_RE = /^[A-Za-z0-9_-]{1,200}$/;
@@ -32,30 +40,13 @@ async function send(visitorId: string, name: string, props?: Record<string, unkn
   await fetch("https://visitrack.app/api/track", {
     method: "POST",
     headers: { Authorization: `Bearer ${env.VISITRACK_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ type: "event", visitorId, name: name.replace(/\./g, "_"), props: props ?? undefined }),
+    body: JSON.stringify({ type: "event", visitorId, name: visitrackEventName(name), props: props ?? undefined }),
     signal: AbortSignal.timeout(5000),
   });
 }
 
-/**
- * Leagă contul de vizitatorul din browser. Prima dată (ex. imediat după înregistrare) retrimite și
- * evenimentele contului din ultima jumătate de oră, care s-au produs înainte ca browserul să trimită id-ul.
- */
+/** Leagă contul de vizitatorul din browser (pentru evenimentele trimise de pe server și atribuirea plăților Stripe). */
 export async function linkVisitor(userId: string, visitorId: string, previous: string | null) {
   if (previous === visitorId) return;
   await db.update(users).set({ vtVisitorId: visitorId }).where(eq(users.id, userId));
-  if (previous || !env.VISITRACK_API_KEY) return;
-  const recent = await db
-    .select({ name: events.name, props: events.props })
-    .from(events)
-    .where(and(eq(events.userId, userId), gte(events.createdAt, new Date(Date.now() - 30 * 60_000))))
-    .orderBy(asc(events.createdAt))
-    .limit(20);
-  for (const e of recent) {
-    try {
-      await send(visitorId, e.name, e.props);
-    } catch (err) {
-      console.error(`[visitrack] ${e.name}:`, (err as Error).message);
-    }
-  }
 }

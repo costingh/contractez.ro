@@ -87,7 +87,7 @@ export const buildInstallGuides: CategoryGuides = {
       "Zugrav, glet, rigips, tencuieli sau parchet. Postezi gratuit lucrarea și primești oferte de la meseriași verificați, cu prețuri pe mp.",
     intro: [
       "Finisajele sunt lucrările care dau aspectul final unei încăperi: tencuieli, glet, zugrăveli, pereți și tavane din rigips, șape și montaj de parchet. Ai nevoie de ele după o renovare, înainte de mutare, când pereții au fisuri sau pete ori când vrei să schimbi rapid aspectul unei camere.",
-      "Pe Contractez scrii ce ai de făcut, iar platforma te ajută să structurezi cererea, de exemplu suprafața și tipul lucrării. Postarea e gratuită și primești cel mult 5 oferte de la meseriași compatibili. Prestatorii sunt verificați prin email, telefon și, pentru firme, în registrul ANAF.",
+      "Pe Contractez scrii ce ai de făcut, iar platforma te ajută să structurezi cererea, de exemplu suprafața și tipul lucrării. Postarea e gratuită și primești cel mult 5 oferte de la meseriași compatibili. Prestatorii sunt verificați prin email și, pentru firme, în registrul ANAF.",
     ],
     prices: [
       { item: "Zugrăveli lavabile, 2 straturi", range: "12–25 lei/mp", note: "manoperă, fără vopsea" },
@@ -282,7 +282,7 @@ export const buildInstallGuides: CategoryGuides = {
       "Termoizolații cu polistiren sau vată minerală și tencuială decorativă. Postezi gratuit lucrarea și primești oferte de la echipe verificate.",
     intro: [
       "Termoizolațiile reduc pierderile de căldură prin pereți, acoperiș sau planșee. Lucrarea include de obicei lipirea plăcilor de polistiren sau vată minerală, diblurile, plasa din fibră de sticlă, masa de șpaclu și tencuiala decorativă. Ai nevoie de ea când facturile la încălzire sunt mari, când apar mucegai și condens sau când finalizezi o casă nouă.",
-      "Pe Contractez descrii lucrarea, de exemplu suprafața fațadei și tipul izolației, iar platforma te ajută să o structurezi. Postarea e gratuită și primești cel mult 5 oferte de la echipe compatibile. Prestatorii sunt verificați prin email, telefon și, pentru firme, în registrul ANAF.",
+      "Pe Contractez descrii lucrarea, de exemplu suprafața fațadei și tipul izolației, iar platforma te ajută să o structurezi. Postarea e gratuită și primești cel mult 5 oferte de la echipe compatibile. Prestatorii sunt verificați prin email și, pentru firme, în registrul ANAF.",
     ],
     prices: [
       { item: "Termosistem polistiren EPS 10 cm", range: "60–110 lei/mp", note: "manoperă, fără materiale și schelă" },
@@ -458,7 +458,7 @@ export const buildInstallGuides: CategoryGuides = {
       "Montaj centrale termice, calorifere, încălzire în pardoseală și pompe de căldură. Postezi gratuit și primești oferte de la instalatori verificați.",
     intro: [
       "Instalațiile termice includ centralele pe gaz, caloriferele, încălzirea în pardoseală, pompele de căldură și traseele care le leagă. Ai nevoie de un instalator când îți schimbi centrala veche, când te debranșezi de la termoficare, când renovezi sau când vrei un sistem de încălzire mai eficient.",
-      "Pe Contractez descrii situația, de exemplu tipul locuinței și ce vrei să montezi, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte de la instalatori compatibili. Prestatorii sunt verificați prin email, telefon și, pentru firme, în registrul ANAF.",
+      "Pe Contractez descrii situația, de exemplu tipul locuinței și ce vrei să montezi, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte de la instalatori compatibili. Prestatorii sunt verificați prin email și, pentru firme, în registrul ANAF.",
     ],
     prices: [
       { item: "Montaj centrală termică pe gaz (înlocuire)", range: "800–1.800 lei", note: "manoperă, fără punerea în funcțiune" },
@@ -604,7 +604,7 @@ export const buildInstallGuides: CategoryGuides = {
       "Montaj camere video, alarme, interfoane și automatizări pentru casă. Postezi gratuit și primești oferte de la instalatori verificați.",
     intro: [
       "Serviciile de smart home și securitate includ camere de supraveghere, sisteme de alarmă, interfoane și videointerfoane, automatizări pentru porți și dispozitive inteligente: prize, termostate sau iluminat controlat din telefon. Ai nevoie de ele când te muți într-o casă nouă, după o tentativă de efracție sau când vrei să vezi ce se întâmplă acasă când lipsești.",
-      "Pe Contractez descrii ce vrei să montezi și unde, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte de la instalatori compatibili. Prestatorii sunt verificați prin email, telefon și, pentru firme, în registrul ANAF, iar contactul tău rămâne ascuns până alegi.",
+      "Pe Contractez descrii ce vrei să montezi și unde, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte de la instalatori compatibili. Prestatorii sunt verificați prin email și, pentru firme, în registrul ANAF, iar contactul tău rămâne ascuns până alegi.",
     ],
     prices: [
       { item: "Montaj cameră de supraveghere", range: "150–400 lei/cameră", note: "montaj, cablare și configurare" },

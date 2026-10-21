@@ -14,6 +14,7 @@ import { getPlanUsage } from "@/server/billing/plans";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { db } from "@/server/db";
 import { localities, projectMatches, providerCategories, users } from "@/server/db/schema";
+import { isPhoneVerified } from "@/server/features";
 import { recommendProjectsForProvider, type RecommendedProject } from "@/server/matching/run";
 import { DismissButton, RestoreButton } from "./dismiss-button";
 
@@ -83,7 +84,7 @@ export default async function RecommendationsPage({ searchParams }: { searchPara
             categoryName: catalog.byId.get(r.project.categoryId)?.name ?? "",
             localityName: loc?.name ?? null,
             countyCode: loc?.countyCode ?? null,
-            clientPhoneVerified: Boolean(client?.phoneVerifiedAt),
+            clientPhoneVerified: isPhoneVerified(client?.phoneVerifiedAt),
             clientEmailVerified: Boolean(client?.emailVerifiedAt),
             distanceKm: r.distanceKm,
             score: r.score,

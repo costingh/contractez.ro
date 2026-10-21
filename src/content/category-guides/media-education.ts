@@ -7,7 +7,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Găsește specialiști în SEO, reclame online, social media și vânzări. Publici gratuit proiectul și primești oferte de la prestatori verificați.",
     intro: [
       "Marketingul și vânzările acoperă tot ce te ajută să fii găsit și ales de clienți: optimizarea site-ului pentru Google, campanii plătite pe Google, Facebook sau TikTok, administrarea paginilor de social media, newslettere, strategie și prospectare B2B. Ai nevoie de astfel de servicii când lansezi o afacere, când vânzările stagnează sau când nu mai ai timp să le faci singur.",
-      "Pe Contractez descrii cu cuvintele tale ce vrei să obții, iar platforma te ajută să structurezi cererea. Publicarea e gratuită și nu plătești nimic platformei. Primești cel mult 5 oferte, implicit, doar de la prestatori compatibili cu proiectul, verificați prin email, telefon și, când au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu cel pe care îl alegi.",
+      "Pe Contractez descrii cu cuvintele tale ce vrei să obții, iar platforma te ajută să structurezi cererea. Publicarea e gratuită și nu plătești nimic platformei. Primești cel mult 5 oferte, implicit, doar de la prestatori compatibili cu proiectul, verificați prin email și, când au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu cel pe care îl alegi.",
     ],
     prices: [
       { item: "Audit SEO pentru un site mic sau mediu", range: "1.500–6.000 lei", note: "plată unică" },
@@ -38,7 +38,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Specialiști SEO pentru audit, optimizare on-page, SEO tehnic și local. Publici gratuit proiectul și primești oferte de la prestatori verificați.",
     intro: [
       "SEO înseamnă optimizarea site-ului ca să apară mai sus în rezultatele Google pentru căutările clienților tăi. Include auditul tehnic, structura paginilor, textele, viteza, link building-ul și SEO local pentru afacerile cu sediu fizic. Ai nevoie de el când site-ul nou nu aduce vizite, când traficul a scăzut brusc sau când vrei să depinzi mai puțin de reclame plătite.",
-      "Pe Contractez scrii ce site ai și ce vrei să obții, iar platforma te ajută să transformi descrierea într-o cerere clară. Postarea e gratuită. Primești implicit cel mult 5 oferte, doar de la specialiști SEO potriviți pentru proiect, verificați prin email, telefon și, dacă au firmă, în registrul ANAF. Datele tale de contact rămân ascunse până alegi tu.",
+      "Pe Contractez scrii ce site ai și ce vrei să obții, iar platforma te ajută să transformi descrierea într-o cerere clară. Postarea e gratuită. Primești implicit cel mult 5 oferte, doar de la specialiști SEO potriviți pentru proiect, verificați prin email și, dacă au firmă, în registrul ANAF. Datele tale de contact rămân ascunse până alegi tu.",
     ],
     prices: [
       { item: "Audit SEO tehnic și de conținut", range: "1.500–6.000 lei", note: "depinde de numărul de pagini" },
@@ -87,7 +87,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Specialiști în Google Ads, Facebook, TikTok și LinkedIn Ads. Publici gratuit proiectul și primești oferte de la prestatori verificați.",
     intro: [
       "Reclamele online înseamnă campanii plătite pe Google, Facebook, Instagram, TikTok sau LinkedIn, plus măsurarea corectă a rezultatelor în Google Analytics. Specialistul alege publicul, scrie anunțurile, setează bugetele și optimizează campaniile ca să plătești cât mai puțin pe client. Ai nevoie de el când lansezi un produs, vrei comenzi rapid sau campaniile făcute singur consumă bani fără rezultate.",
-      "Pe Contractez descrii ce vinzi, cui și ce buget ai, iar platforma te ajută să structurezi cererea. Publici gratuit și nu plătești nimic platformei. Ofertele vin doar de la specialiști compatibili, cel mult 5 implicit, iar tu poți extinde selecția. Prestatorii sunt verificați prin email, telefon și, când au firmă, în registrul ANAF.",
+      "Pe Contractez descrii ce vinzi, cui și ce buget ai, iar platforma te ajută să structurezi cererea. Publici gratuit și nu plătești nimic platformei. Ofertele vin doar de la specialiști compatibili, cel mult 5 implicit, iar tu poți extinde selecția. Prestatorii sunt verificați prin email și, când au firmă, în registrul ANAF.",
     ],
     prices: [
       { item: "Configurare cont și primă campanie Google Ads", range: "800–2.500 lei", note: "plată unică" },
@@ -135,7 +135,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Administrare pagini Facebook, Instagram și TikTok și creare de conținut. Publici gratuit proiectul și primești oferte de la prestatori verificați.",
     intro: [
       "Administrarea social media acoperă planificarea și publicarea postărilor, crearea de imagini și clipuri scurte, răspunsul la comentarii și mesaje și urmărirea rezultatelor pe Facebook, Instagram sau TikTok. Ai nevoie de ea când ai pagini inactive, când nu ai timp să postezi constant sau când vrei un stil vizual unitar pentru brandul tău.",
-      "Pe Contractez explici ce platforme ai, cât de des vrei să postezi și ce fel de conținut îți imaginezi, iar platforma te ajută să pui cererea în ordine. Postarea e gratuită. Primești cel mult 5 oferte, implicit, de la prestatori potriviți, verificați prin email, telefon și registrul ANAF când au firmă. Recenziile vin doar după colaborări confirmate.",
+      "Pe Contractez explici ce platforme ai, cât de des vrei să postezi și ce fel de conținut îți imaginezi, iar platforma te ajută să pui cererea în ordine. Postarea e gratuită. Primești cel mult 5 oferte, implicit, de la prestatori potriviți, verificați prin email și registrul ANAF când au firmă. Recenziile vin doar după colaborări confirmate.",
     ],
     prices: [
       { item: "Administrare o platformă, 8–12 postări pe lună", range: "800–2.000 lei/lună" },
@@ -183,7 +183,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Specialiști în newslettere, Mailchimp și automatizări email. Publici gratuit proiectul și primești oferte de la prestatori verificați.",
     intro: [
       "Email marketingul înseamnă newslettere trimise periodic și emailuri automate, de exemplu mesaj de bun venit, coș abandonat sau reamintire după o achiziție. Specialistul configurează platforma, de exemplu Mailchimp, creează șabloane, scrie textele și urmărește rezultatele. Ai nevoie de el când ai o listă de abonați nefolosită, un magazin online sau vrei să vinzi din nou clienților existenți.",
-      "Pe Contractez descrii ce platformă folosești, câți abonați ai și ce vrei să automatizezi, iar platforma te ajută să structurezi cererea. Publicarea e gratuită. Primești implicit maximum 5 oferte, doar de la prestatori compatibili, verificați prin email, telefon și, când au firmă, în registrul ANAF. Prețul și plata le agreezi direct cu prestatorul.",
+      "Pe Contractez descrii ce platformă folosești, câți abonați ai și ce vrei să automatizezi, iar platforma te ajută să structurezi cererea. Publicarea e gratuită. Primești implicit maximum 5 oferte, doar de la prestatori compatibili, verificați prin email și, când au firmă, în registrul ANAF. Prețul și plata le agreezi direct cu prestatorul.",
     ],
     prices: [
       { item: "Configurare cont și șablon de newsletter", range: "500–1.500 lei" },
@@ -230,7 +230,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Consultanți pentru plan de marketing, cercetare de piață, branding și growth. Publici gratuit proiectul și primești oferte de la prestatori verificați.",
     intro: [
       "Consultanța de marketing te ajută să decizi ce faci înainte să cheltuiești bani pe execuție: cui vinzi, cum te poziționezi, pe ce canale și cu ce buget. Include planuri de marketing, cercetare de piață, branding și strategii de creștere. Ai nevoie de ea când lansezi o afacere, intri pe o piață nouă sau ai încercat mai multe canale fără o direcție clară.",
-      "Pe Contractez descrii situația afacerii cu cuvintele tale, iar platforma te ajută să o transformi într-o cerere structurată. Publicarea e gratuită și nu datorezi nimic platformei. Primești implicit cel mult 5 oferte, de la consultanți potriviți, verificați prin email, telefon și registrul ANAF când au firmă. Contactul tău rămâne ascuns până alegi.",
+      "Pe Contractez descrii situația afacerii cu cuvintele tale, iar platforma te ajută să o transformi într-o cerere structurată. Publicarea e gratuită și nu datorezi nimic platformei. Primești implicit cel mult 5 oferte, de la consultanți potriviți, verificați prin email și registrul ANAF când au firmă. Contactul tău rămâne ascuns până alegi.",
     ],
     prices: [
       { item: "Sesiune de consultanță", range: "200–600 lei/oră" },
@@ -278,7 +278,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Servicii de cold calling, prospectare B2B, telesales și configurare CRM. Publici gratuit proiectul și primești oferte de la prestatori verificați.",
     intro: [
       "Serviciile de vânzări și lead generation te ajută să găsești clienți noi: liste de firme potrivite, emailuri și apeluri de prospectare, programări de întâlniri, telesales și configurarea unui CRM în care să urmărești fiecare oportunitate. Ai nevoie de ele când vinzi către firme, când echipa nu are timp de prospectare sau când vrei să testezi o piață nouă.",
-      "Pe Contractez descrii ce vinzi, cui și cum arată un client bun pentru tine, iar platforma te ajută să structurezi cererea. Postarea e gratuită. Primești cel mult 5 oferte, implicit, doar de la prestatori compatibili, pe care îi poți extinde. Prestatorii sunt verificați prin email, telefon și, dacă au firmă, în registrul ANAF.",
+      "Pe Contractez descrii ce vinzi, cui și cum arată un client bun pentru tine, iar platforma te ajută să structurezi cererea. Postarea e gratuită. Primești cel mult 5 oferte, implicit, doar de la prestatori compatibili, pe care îi poți extinde. Prestatorii sunt verificați prin email și, dacă au firmă, în registrul ANAF.",
     ],
     prices: [
       { item: "Listă de firme țintă cu date de contact", range: "500–2.500 lei", note: "în funcție de volum și criterii" },
@@ -326,7 +326,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Găsește fotografi, videografi, editori video și animatori. Publici gratuit proiectul și primești oferte de la prestatori verificați.",
     intro: [
       "Categoria Foto & Video acoperă fotografia de eveniment, produs și imobiliare, filmările de nuntă, de prezentare sau cu drona, editarea video pentru YouTube, Reels și TikTok, plus animație și explainer video. Ai nevoie de astfel de servicii pentru un eveniment important, pentru un magazin online, pentru promovarea unei afaceri sau pentru conținut constant pe social media.",
-      "Pe Contractez descrii evenimentul sau proiectul cu cuvintele tale, iar platforma te ajută să îl structurezi. Publicarea e gratuită și nu plătești nimic platformei. Primești implicit cel mult 5 oferte, doar de la prestatori compatibili, verificați prin email, telefon și, când au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu cel ales.",
+      "Pe Contractez descrii evenimentul sau proiectul cu cuvintele tale, iar platforma te ajută să îl structurezi. Publicarea e gratuită și nu plătești nimic platformei. Primești implicit cel mult 5 oferte, doar de la prestatori compatibili, verificați prin email și, când au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu cel ales.",
     ],
     prices: [
       { item: "Fotograf nuntă, pachet de o zi", range: "2.500–7.500 lei" },
@@ -357,7 +357,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Fotografi pentru nunți, botezuri, ședințe foto, produse și imobiliare. Publici gratuit cererea și primești oferte de la fotografi verificați.",
     intro: [
       "Un fotograf profesionist acoperă evenimente precum nunți și botezuri, ședințe foto individuale sau de familie, fotografii de produs pentru magazine online și fotografii de imobiliare pentru anunțuri de vânzare sau închiriere. Serviciul include de obicei fotografierea, selecția și editarea imaginilor, apoi livrarea lor într-o galerie online.",
-      "Pe Contractez scrii data, locul și ce vrei să fie fotografiat, iar platforma te ajută să pui cererea în ordine. Postarea e gratuită. Primești cel mult 5 oferte, implicit, doar de la fotografi potriviți, verificați prin email, telefon și registrul ANAF când au firmă. Datele tale rămân ascunse până alegi. Recenziile vin doar după colaborări confirmate.",
+      "Pe Contractez scrii data, locul și ce vrei să fie fotografiat, iar platforma te ajută să pui cererea în ordine. Postarea e gratuită. Primești cel mult 5 oferte, implicit, doar de la fotografi potriviți, verificați prin email și registrul ANAF când au firmă. Datele tale rămân ascunse până alegi. Recenziile vin doar după colaborări confirmate.",
     ],
     prices: [
       { item: "Fotograf nuntă, pachet de o zi", range: "2.500–7.500 lei", note: "pregătiri, ceremonie, petrecere" },
@@ -406,7 +406,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Videografi pentru nunți, evenimente, filmări cu drona și clipuri de prezentare. Publici gratuit cererea și primești oferte verificate.",
     intro: [
       "Filmarea profesională acoperă nunți, botezuri, conferințe și alte evenimente, filmări aeriene cu drona și videoclipuri de prezentare pentru firme, produse sau proprietăți. De obicei include filmarea, montajul, sunetul și corecția de culoare, cu livrare a unui film lung și a unui clip scurt de tip rezumat.",
-      "Pe Contractez descrii evenimentul sau clipul dorit, data și locul, iar platforma te ajută să structurezi cererea. Publicarea e gratuită. Primești cel mult 5 oferte, implicit, doar de la videografi compatibili, iar selecția se poate extinde. Prestatorii sunt verificați prin email, telefon și, când au firmă, în registrul ANAF. Prețul și plata le agreezi direct.",
+      "Pe Contractez descrii evenimentul sau clipul dorit, data și locul, iar platforma te ajută să structurezi cererea. Publicarea e gratuită. Primești cel mult 5 oferte, implicit, doar de la videografi compatibili, iar selecția se poate extinde. Prestatorii sunt verificați prin email și, când au firmă, în registrul ANAF. Prețul și plata le agreezi direct.",
     ],
     prices: [
       { item: "Filmare nuntă, un videograf", range: "2.500–5.000 lei", note: "film complet și clip rezumat" },
@@ -455,7 +455,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Editori video pentru YouTube, Reels, TikTok, subtitrare și montaj. Publici gratuit proiectul și primești oferte de la editori verificați.",
     intro: [
       "Editarea video transformă materialele filmate într-un clip finit: tăieturi, ritm, muzică, sunet curățat, corecție de culoare, titluri și subtitrare. Editorii lucrează în programe precum Premiere Pro sau DaVinci Resolve. Ai nevoie de ei când ai clipuri pentru YouTube, Reels sau TikTok, filmări de la un eveniment ori un podcast video care trebuie montat regulat.",
-      "Pe Contractez descrii ce materiale ai, cât de lung vrei clipul și ce stil îți place, iar platforma te ajută să structurezi cererea. Postarea e gratuită. Primești implicit cel mult 5 oferte de la editori compatibili, verificați prin email, telefon și registrul ANAF când au firmă. Datele tale de contact rămân ascunse până alegi.",
+      "Pe Contractez descrii ce materiale ai, cât de lung vrei clipul și ce stil îți place, iar platforma te ajută să structurezi cererea. Postarea e gratuită. Primești implicit cel mult 5 oferte de la editori compatibili, verificați prin email și registrul ANAF când au firmă. Datele tale de contact rămân ascunse până alegi.",
     ],
     prices: [
       { item: "Clip scurt pentru Reels, TikTok sau Shorts", range: "100–400 lei/clip", note: "sub 60 de secunde, cu subtitrare" },
@@ -504,7 +504,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Animatori pentru explainer video, animație 2D și motion graphics. Publici gratuit proiectul și primești oferte de la prestatori verificați.",
     intro: [
       "Animația și motion graphics înseamnă clipuri în care textul, ilustrațiile și logo-urile prind viață: explainer video pentru un produs sau o aplicație, animație 2D cu personaje, logo animat, intro pentru YouTube sau infografice animate. Se lucrează des în After Effects. Ai nevoie de ele când vrei să explici simplu un serviciu complicat sau când nu ai ce filma.",
-      "Pe Contractez descrii ce vrei să explici, durata dorită și stilul care îți place, iar platforma te ajută să transformi ideea într-o cerere clară. Publicarea e gratuită. Primești cel mult 5 oferte, implicit, doar de la animatori compatibili, verificați prin email, telefon și registrul ANAF când au firmă. Prețul și plata le stabilești direct.",
+      "Pe Contractez descrii ce vrei să explici, durata dorită și stilul care îți place, iar platforma te ajută să transformi ideea într-o cerere clară. Publicarea e gratuită. Primești cel mult 5 oferte, implicit, doar de la animatori compatibili, verificați prin email și registrul ANAF când au firmă. Prețul și plata le stabilești direct.",
     ],
     prices: [
       { item: "Logo animat", range: "300–1.500 lei" },
@@ -551,7 +551,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Găsește profesori pentru meditații, limbi străine, cursuri profesionale și muzică. Publici gratuit cererea și primești oferte verificate.",
     intro: [
       "Categoria Educație & Meditații acoperă pregătirea pentru școală, Evaluare Națională și Bacalaureat, lecții de limbi străine și examene internaționale, cursuri profesionale de programare, Excel sau contabilitate, plus lecții de pian, chitară, canto și desen. Lecțiile se pot face la domiciliu, la profesor sau online, individual ori în grupuri mici.",
-      "Pe Contractez descrii ce vrei să înveți sau la ce materie are nevoie copilul, iar platforma te ajută să structurezi cererea. Postarea e gratuită și nu plătești nimic platformei. Primești implicit cel mult 5 oferte, doar de la profesori compatibili, verificați prin email, telefon și, când au firmă, în registrul ANAF. Tariful și plata le agreezi direct cu profesorul.",
+      "Pe Contractez descrii ce vrei să înveți sau la ce materie are nevoie copilul, iar platforma te ajută să structurezi cererea. Postarea e gratuită și nu plătești nimic platformei. Primești implicit cel mult 5 oferte, doar de la profesori compatibili, verificați prin email și, când au firmă, în registrul ANAF. Tariful și plata le agreezi direct cu profesorul.",
     ],
     prices: [
       { item: "Meditații gimnaziu sau liceu", range: "70–200 lei/oră" },
@@ -581,7 +581,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Meditații la matematică, română, fizică, chimie, informatică, pentru BAC și Evaluare Națională. Publici gratuit și primești oferte verificate.",
     intro: [
       "Meditațiile sunt lecții individuale sau în grupuri mici la materii precum matematică, română, fizică, chimie sau informatică. Le cauți când copilul are lacune, note în scădere, vrea să intre la un liceu bun sau se pregătește pentru Evaluarea Națională ori Bacalaureat. Se pot face acasă, la profesor sau online.",
-      "Pe Contractez scrii materia, clasa, obiectivul și programul potrivit, iar platforma te ajută să structurezi cererea. Postarea e gratuită. Primești cel mult 5 oferte, implicit, doar de la profesori compatibili, verificați prin email, telefon și registrul ANAF când au firmă. Datele tale de contact rămân ascunse până alegi. Recenziile se lasă doar după colaborări confirmate.",
+      "Pe Contractez scrii materia, clasa, obiectivul și programul potrivit, iar platforma te ajută să structurezi cererea. Postarea e gratuită. Primești cel mult 5 oferte, implicit, doar de la profesori compatibili, verificați prin email și registrul ANAF când au firmă. Datele tale de contact rămân ascunse până alegi. Recenziile se lasă doar după colaborări confirmate.",
     ],
     prices: [
       { item: "Meditații școala primară", range: "50–120 lei/oră" },
@@ -630,7 +630,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Lecții de engleză, germană, franceză, spaniolă, italiană și pregătire IELTS sau Cambridge. Publici gratuit și primești oferte verificate.",
     intro: [
       "Lecțiile de limbi străine te ajută să vorbești mai sigur la muncă sau în călătorii, să te pregătești de o mutare în altă țară sau să iei un examen precum IELTS sau Cambridge. Se fac individual sau în grupuri mici, online sau față în față, pentru copii, adolescenți și adulți, de la nivel de începător până la avansat.",
-      "Pe Contractez scrii limba, nivelul tău și ce vrei să obții, iar platforma te ajută să structurezi cererea. Publicarea e gratuită și nu plătești nimic platformei. Primești implicit cel mult 5 oferte, doar de la profesori compatibili, verificați prin email, telefon și, când au firmă, în registrul ANAF. Tariful îl stabilești direct cu profesorul.",
+      "Pe Contractez scrii limba, nivelul tău și ce vrei să obții, iar platforma te ajută să structurezi cererea. Publicarea e gratuită și nu plătești nimic platformei. Primești implicit cel mult 5 oferte, doar de la profesori compatibili, verificați prin email și, când au firmă, în registrul ANAF. Tariful îl stabilești direct cu profesorul.",
     ],
     prices: [
       { item: "Lecție individuală de engleză", range: "60–150 lei/oră" },
@@ -679,7 +679,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Cursuri profesionale de programare, Excel, contabilitate și design grafic, individual sau pentru echipe. Publici gratuit și primești oferte verificate.",
     intro: [
       "Cursurile profesionale te ajută să înveți abilități folosite direct la muncă: programare, Excel de la formule la tabele pivot, contabilitate practică sau design grafic. Pot fi lecții individuale, cursuri pentru o echipă la sediul firmei sau sesiuni online. Ai nevoie de ele când schimbi domeniul, primești responsabilități noi sau vrei ca echipa să lucreze mai eficient.",
-      "Pe Contractez scrii ce vrei să înveți, pentru câte persoane și în ce format, iar platforma te ajută să structurezi cererea. Postarea e gratuită. Primești cel mult 5 oferte, implicit, de la traineri compatibili, verificați prin email, telefon și registrul ANAF când au firmă. Prețul și plata le stabilești direct cu trainerul ales.",
+      "Pe Contractez scrii ce vrei să înveți, pentru câte persoane și în ce format, iar platforma te ajută să structurezi cererea. Postarea e gratuită. Primești cel mult 5 oferte, implicit, de la traineri compatibili, verificați prin email și registrul ANAF când au firmă. Prețul și plata le stabilești direct cu trainerul ales.",
     ],
     prices: [
       { item: "Lecții individuale Excel", range: "80–200 lei/oră" },
@@ -727,7 +727,7 @@ export const mediaEducationGuides: CategoryGuides = {
       "Profesori de pian, chitară, canto și desen pentru copii și adulți. Publici gratuit cererea și primești oferte de la profesori verificați.",
     intro: [
       "Lecțiile de muzică și arte includ pian, chitară, canto și desen, pentru copii și adulți, de la începători până la pregătire pentru admitere la liceu de artă sau conservator. Lecțiile se țin la profesor, la domiciliu sau online. Le cauți când copilul vrea să învețe un instrument, când reiei o pasiune veche sau ai nevoie de pregătire pentru o audiție.",
-      "Pe Contractez scrii instrumentul sau disciplina, vârsta elevului și nivelul, iar platforma te ajută să structurezi cererea. Publicarea e gratuită. Primești implicit cel mult 5 oferte, doar de la profesori compatibili, verificați prin email, telefon și, când au firmă, în registrul ANAF. Datele tale rămân ascunse până alegi profesorul.",
+      "Pe Contractez scrii instrumentul sau disciplina, vârsta elevului și nivelul, iar platforma te ajută să structurezi cererea. Publicarea e gratuită. Primești implicit cel mult 5 oferte, doar de la profesori compatibili, verificați prin email și, când au firmă, în registrul ANAF. Datele tale rămân ascunse până alegi profesorul.",
     ],
     prices: [
       { item: "Lecție de pian", range: "70–200 lei/lecție", note: "45–60 de minute" },

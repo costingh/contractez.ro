@@ -23,7 +23,7 @@ export function GuideIntro({ guide, name }: { guide: CategoryGuide; name: string
 export function GuidePrices({ guide, name }: { guide: CategoryGuide; name: string }) {
   if (!guide.prices?.length) return null;
   return (
-    <section className="reveal space-y-5">
+    <section className="reveal space-y-5" data-vt-scroll="price_table_seen">
       <div>
         <div className="eyebrow">Prețuri orientative</div>
         <h2 className="display-md mt-3">Cât costă: {name}</h2>

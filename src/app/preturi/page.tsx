@@ -75,7 +75,7 @@ export default function PricingPage() {
       </section>
 
       <div className="container-page">
-        <section id="planuri" className="relative -mt-28 scroll-mt-20 sm:-mt-32">
+        <section id="planuri" data-vt-scroll="pricing_plans_seen" className="relative -mt-28 scroll-mt-20 sm:-mt-32">
           <PlanCards
             actions={Object.fromEntries(
               plans.map((p) => [

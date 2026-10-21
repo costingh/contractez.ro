@@ -1,5 +1,6 @@
 import { ArrowRight, Sparkles, UserSearch } from "lucide-react";
 import type { Metadata } from "next";
+import { TrackOnMount } from "@/components/analytics/track-on-mount";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ProviderCard } from "@/components/providers/provider-card";
@@ -125,6 +126,12 @@ export default async function ProvidersPage({ searchParams }: { searchParams: Pr
 
   return (
     <div className="pb-16">
+      {(filters.q || filters.cat || filters.loc) && (
+        <TrackOnMount
+          name="search_providers"
+          props={{ q: filters.q, category: filters.cat ? catalog.byId.get(filters.cat)?.slug : undefined, locality: loc?.name, results: results.total }}
+        />
+      )}
       <SearchHero
         eyebrow="Pentru clienți"
         title={

@@ -7,7 +7,7 @@ export const autoEventsBeautyGuides: CategoryGuides = {
       "Găsește mecanici, tinichigii, detaileri și electricieni auto. Postezi gratuit ce are mașina și primești oferte de la prestatori verificați.",
     intro: [
       "Categoria Auto & Moto acoperă tot ce ține de întreținerea și repararea mașinii: revizii și reparații mecanice, tinichigerie și vopsitorie după un accident, detailing pentru interior și caroserie, plus diagnoză computerizată și electrică auto. Ai nevoie de ea când se aprinde un martor în bord, când se apropie ITP-ul, după o zgârietură sau când vrei să pregătești mașina pentru vânzare.",
-      "Pe Contractez descrii problema cu cuvintele tale, iar platforma te ajută să o structurezi. Postarea e gratuită și primești cel mult 5 oferte, doar de la service-uri și meseriași potriviți cererii tale. Prestatorii sunt verificați prin email, telefon și, când au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu cel pe care îl alegi.",
+      "Pe Contractez descrii problema cu cuvintele tale, iar platforma te ajută să o structurezi. Postarea e gratuită și primești cel mult 5 oferte, doar de la service-uri și meseriași potriviți cererii tale. Prestatorii sunt verificați prin email și, când au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu cel pe care îl alegi.",
     ],
     prices: [
       { item: "Schimb ulei și filtre", range: "250–600 lei", note: "cu materiale, autoturism obișnuit" },
@@ -87,7 +87,7 @@ export const autoEventsBeautyGuides: CategoryGuides = {
       "Repari o lovitură sau vopsești un element de caroserie? Postezi gratuit și primești oferte de la tinichigii și vopsitori verificați.",
     intro: [
       "Tinichigeria și vopsitoria auto înseamnă îndreptarea tablei după lovituri, înlocuirea sau repararea elementelor de caroserie, vopsirea în culoarea originală și polishul de finisare. Ai nevoie de acest serviciu după un accident, când ai o zgârietură adâncă sau rugină pe aripă, când bara s-a fisurat sau când vrei să readuci mașina la aspectul inițial înainte de vânzare.",
-      "Pe Contractez poți descrie dauna cu cuvintele tale și poți adăuga poze, iar platforma te ajută să o structurezi. Postarea e gratuită și primești cel mult 5 oferte, doar de la ateliere potrivite cererii. Prestatorii sunt verificați prin email, telefon și, când au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu atelierul ales.",
+      "Pe Contractez poți descrie dauna cu cuvintele tale și poți adăuga poze, iar platforma te ajută să o structurezi. Postarea e gratuită și primești cel mult 5 oferte, doar de la ateliere potrivite cererii. Prestatorii sunt verificați prin email și, când au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu atelierul ales.",
     ],
     prices: [
       { item: "Vopsit un element (aripă, ușă, capotă)", range: "450–1.100 lei", note: "per element, cu materiale" },
@@ -184,7 +184,7 @@ export const autoEventsBeautyGuides: CategoryGuides = {
       "Ai un martor aprins în bord sau o problemă electrică? Postezi gratuit și primești oferte de diagnoză de la electricieni auto verificați.",
     intro: [
       "Electrica și diagnoza auto includ citirea codurilor de eroare cu tester, depanarea instalației electrice, repararea alternatorului sau a electromotorului, problemele de baterie și consum, plus montajul și revizia instalațiilor GPL. Cauți un electrician auto când se aprinde martorul de motor, când mașina pornește greu, când nu mai merg geamurile sau luminile ori când vrei să treci pe GPL.",
-      "Pe Contractez descrii simptomele cu cuvintele tale, iar platforma te ajută să structurezi cererea. Postarea e gratuită, iar clienții nu plătesc nimic platformei. Primești cel mult 5 oferte, doar de la prestatori compatibili, verificați prin email, telefon și, când au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu cel ales.",
+      "Pe Contractez descrii simptomele cu cuvintele tale, iar platforma te ajută să structurezi cererea. Postarea e gratuită, iar clienții nu plătesc nimic platformei. Primești cel mult 5 oferte, doar de la prestatori compatibili, verificați prin email și, când au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu cel ales.",
     ],
     prices: [
       { item: "Diagnoză computerizată", range: "100–250 lei" },
@@ -263,7 +263,7 @@ export const autoEventsBeautyGuides: CategoryGuides = {
       "Cauți un wedding planner sau un organizator de evenimente? Postezi gratuit și primești oferte de la organizatori verificați, fără telefoane.",
     intro: [
       "Organizarea de evenimente înseamnă planificarea și coordonarea unei nunți, a unui botez sau a unui eveniment corporate: alegerea locației și a furnizorilor, bugetul, programul zilei și rezolvarea problemelor pe loc. Ai nevoie de un organizator când nu ai timp să te ocupi de toate detaliile, când evenimentul e în alt oraș sau când vrei doar ca cineva să coordoneze ziua cea mare.",
-      "Pe Contractez spui ce fel de eveniment pregătești și cât de mult ajutor vrei, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte, doar de la organizatori potriviți. Prestatorii sunt verificați prin email, telefon și, când au firmă, în registrul ANAF. Onorariul îl negociezi direct cu organizatorul ales.",
+      "Pe Contractez spui ce fel de eveniment pregătești și cât de mult ajutor vrei, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte, doar de la organizatori potriviți. Prestatorii sunt verificați prin email și, când au firmă, în registrul ANAF. Onorariul îl negociezi direct cu organizatorul ales.",
     ],
     prices: [
       { item: "Coordonare în ziua nunții", range: "3.000–10.000 lei" },
@@ -360,7 +360,7 @@ export const autoEventsBeautyGuides: CategoryGuides = {
       "Ai nevoie de catering, tort sau candy bar pentru eveniment? Postezi gratuit și primești oferte de la firme de catering verificate.",
     intro: [
       "Cateringul și cofetăria pentru evenimente includ meniuri complete pentru nunți și botezuri, platouri și finger food pentru evenimente de firmă, torturi personalizate, candy bar și bar mobil cu barman. Ai nevoie de ele când locația nu are bucătărie proprie, când organizezi o petrecere acasă sau la birou ori când vrei un tort sau un desert special pentru o ocazie.",
-      "Pe Contractez descrii evenimentul, numărul de invitați și ce vrei să servești, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte, doar de la furnizori compatibili. Prestatorii sunt verificați prin email, telefon și, când au firmă, în registrul ANAF. Meniul, prețul și plata le stabilești direct cu cel ales.",
+      "Pe Contractez descrii evenimentul, numărul de invitați și ce vrei să servești, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte, doar de la furnizori compatibili. Prestatorii sunt verificați prin email și, când au firmă, în registrul ANAF. Meniul, prețul și plata le stabilești direct cu cel ales.",
     ],
     prices: [
       { item: "Meniu nuntă", range: "300–550 lei/persoană", note: "în funcție de meniu și băuturi" },
@@ -458,7 +458,7 @@ export const autoEventsBeautyGuides: CategoryGuides = {
       "Cauți animatori pentru petrecerea copilului, MC sau photo booth? Postezi gratuit și primești oferte de la prestatori verificați.",
     intro: [
       "Serviciile de entertainment includ animatori pentru petreceri de copii, mascote, face painting, baloane modelate, MC pentru nunți și evenimente de firmă, plus photo booth sau oglindă foto. Ai nevoie de ele la aniversări, botezuri, petreceri la grădiniță sau evenimente corporate, când vrei ca invitații să fie implicați, iar programul să curgă fără pauze lungi.",
-      "Pe Contractez spui vârsta copiilor sau tipul evenimentului, numărul de invitați și durata, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte, doar de la prestatori compatibili. Aceștia sunt verificați prin email, telefon și, când au firmă, în registrul ANAF. Prețul îl stabilești direct cu cel ales.",
+      "Pe Contractez spui vârsta copiilor sau tipul evenimentului, numărul de invitați și durata, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte, doar de la prestatori compatibili. Aceștia sunt verificați prin email și, când au firmă, în registrul ANAF. Prețul îl stabilești direct cu cel ales.",
     ],
     prices: [
       { item: "Animator petrecere copii", range: "400–1.000 lei", note: "program de 2 ore" },
@@ -537,7 +537,7 @@ export const autoEventsBeautyGuides: CategoryGuides = {
       "Cauți make-up artist sau hair stilist pentru nuntă ori eveniment? Postezi gratuit și primești oferte de la prestatori verificați.",
     intro: [
       "Serviciul acoperă machiajul și coafura pentru ocazii speciale: nunți, cununii civile, botezuri, baluri, ședințe foto sau evenimente de firmă. Ai nevoie de el când vrei un look care să reziste o zi întreagă și să arate bine în poze, mai ales pentru mireasă, dar și pentru mame, nașe sau domnișoare de onoare, la salon sau la domiciliu.",
-      "Pe Contractez spui data, ora, locul și câte persoane trebuie pregătite, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte, doar de la prestatori compatibili. Aceștia sunt verificați prin email, telefon și, când au firmă, în registrul ANAF. Contactul tău rămâne ascuns până alegi, iar prețul îl stabiliți direct.",
+      "Pe Contractez spui data, ora, locul și câte persoane trebuie pregătite, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte, doar de la prestatori compatibili. Aceștia sunt verificați prin email și, când au firmă, în registrul ANAF. Contactul tău rămâne ascuns până alegi, iar prețul îl stabiliți direct.",
     ],
     prices: [
       { item: "Machiaj de eveniment", range: "200–500 lei" },
@@ -634,7 +634,7 @@ export const autoEventsBeautyGuides: CategoryGuides = {
       "Cauți masaj de relaxare, masaj de recuperare sau kinetoterapie? Postezi gratuit și primești oferte de la terapeuți verificați.",
     intro: [
       "Serviciul include masajul de relaxare, masajul de recuperare pentru tensiune musculară, masajul sportiv, precum și ședințele de kinetoterapie. Îl cauți când ai spatele încordat după multe ore la birou, după antrenamente intense sau când vrei o oră de relaxare la salon ori acasă. Pentru dureri persistente, accidentări sau afecțiuni, consultă mai întâi un medic.",
-      "Pe Contractez descrii ce tip de masaj vrei, durata și dacă preferi salon sau domiciliu, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte, doar de la terapeuți compatibili. Aceștia sunt verificați prin email, telefon și, când au firmă, în registrul ANAF. Prețul îl stabiliți direct.",
+      "Pe Contractez descrii ce tip de masaj vrei, durata și dacă preferi salon sau domiciliu, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte, doar de la terapeuți compatibili. Aceștia sunt verificați prin email și, când au firmă, în registrul ANAF. Prețul îl stabiliți direct.",
     ],
     prices: [
       { item: "Masaj de relaxare, 60 de minute", range: "150–300 lei" },

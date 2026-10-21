@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { hireAction, rejectAction, shortlistAction } from "@/app/proiectele-mele/[id]/actions";
+import { ContactDetails } from "@/components/shared/contact-details";
 import { NativeSelect } from "@/components/shared/native-select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -190,6 +191,7 @@ export function OffersList({ offers, projectOpen, highlight }: { offers: OfferVi
 
             <p className="text-sm leading-relaxed [overflow-wrap:anywhere] whitespace-pre-line">{o.message}</p>
             {o.status === "rejected" && o.rejectionReason && <p className="text-xs text-muted-foreground">Motiv: {o.rejectionReason}</p>}
+            {o.contact && <ContactDetails contact={o.contact} label="Contact prestator" />}
 
             <div className="flex flex-wrap gap-2 border-t pt-4">
               {o.conversationId && (

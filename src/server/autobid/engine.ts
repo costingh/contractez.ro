@@ -18,6 +18,7 @@ import {
   type Project,
 } from "../db/schema";
 import { DomainError, isDomainError } from "../errors";
+import { features } from "../features";
 import { scoreProvidersForProject } from "../matching/run";
 import { notify } from "../notifications";
 
@@ -139,7 +140,8 @@ export async function runAutoBidForProject(projectId: string) {
     let chosen: AutoBidRule | null = null;
     let lastReason = "";
     for (const rule of providerRules) {
-      if (rule.requireVerifiedClient && !clientVerified) {
+      // Fără verificare SMS, opțiunea „doar clienți cu telefon verificat” este ignorată (altfel ar bloca toate proiectele).
+      if (rule.requireVerifiedClient && features.phoneVerification && !clientVerified) {
         lastReason = "Client fără telefon verificat";
         continue;
       }

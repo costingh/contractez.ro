@@ -7,6 +7,7 @@ import { deleteAccount, savePreferences } from "@/server/account";
 import { requireUser } from "@/server/auth/guards";
 import { changePassword, sendPhoneOtp, verifyPhoneOtp } from "@/server/auth/service";
 import { createSession, destroyAllSessions, destroySession } from "@/server/auth/session";
+import { setContactPhone } from "@/server/contact";
 import { DomainError } from "@/server/errors";
 import { rateLimit } from "@/server/rate-limit";
 
@@ -63,6 +64,20 @@ export async function verifyOtpAction(_: ActionState, fd: FormData): Promise<Act
     revalidatePath("/onboarding");
     revalidatePath("/panou");
     return { ok: true, message: "Telefonul a fost verificat." };
+  } catch (err) {
+    return toActionError(err);
+  }
+}
+
+/** Telefonul de contact (fără SMS): vizibil doar celeilalte părți dintr-o colaborare acceptată. */
+export async function saveContactPhoneAction(_: ActionState<{ phone: string | null }>, fd: FormData): Promise<ActionState<{ phone: string | null }>> {
+  try {
+    const user = await requireUser("/setari");
+    if (!(await rateLimit(`contact-phone:${user.id}`, 10, 900))) throw new DomainError("rate", "Prea multe modificări. Încearcă din nou peste câteva minute.");
+    const phone = await setContactPhone(user.id, formStr(fd, "phone"));
+    revalidatePath("/setari");
+    revalidatePath("/onboarding");
+    return { ok: true, message: phone ? "Numărul de telefon a fost salvat." : "Numărul de telefon a fost șters.", data: { phone } };
   } catch (err) {
     return toActionError(err);
   }

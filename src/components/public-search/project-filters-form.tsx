@@ -30,10 +30,13 @@ export function ProjectFiltersForm({
   filters,
   categories,
   locality,
+  showVerifiedFilter,
 }: {
   filters: ProjectFilters;
   categories: CategoryOption[];
   locality: LocalityValue;
+  /** Filtrul „telefon verificat” apare doar când verificarea prin SMS este activă. */
+  showVerifiedFilter: boolean;
 }) {
   return (
     <form action="/proiecte" className="space-y-5">
@@ -108,7 +111,7 @@ export function ProjectFiltersForm({
       </Section>
 
       <Section title="Încredere & concurență">
-        <Check name="verified" checked={Boolean(filters.verified)} label="Client cu telefon verificat" />
+        {showVerifiedFilter && <Check name="verified" checked={Boolean(filters.verified)} label="Client cu telefon verificat" />}
         <Check name="few" checked={Boolean(filters.few)} label="Sub 2 oferte primite" />
       </Section>
 

@@ -19,6 +19,7 @@ import { getPlanUsage } from "@/server/billing/plans";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { db } from "@/server/db";
 import { autoBidExecutions, autoBidRules, projects, providerCategories } from "@/server/db/schema";
+import { features } from "@/server/features";
 
 export const metadata: Metadata = { title: "Auto Bid" };
 
@@ -74,7 +75,7 @@ export default async function AutoBidPage({ searchParams }: { searchParams: Prom
         actions={
           <>
             {enabledCount > 0 && <StopAllButton />}
-            <RuleFormDialog categories={categories} hasPlan={hasAutoBid} />
+            <RuleFormDialog categories={categories} hasPlan={hasAutoBid} phoneVerification={features.phoneVerification} />
           </>
         }
       />
@@ -164,7 +165,7 @@ export default async function AutoBidPage({ searchParams }: { searchParams: Prom
               icon={Bot}
               title="Nicio regulă încă"
               description="Creează o regulă: alegi categoriile, bugetul minim, compatibilitatea și mesajul. Începe cu modul „Propune, eu confirm”."
-              action={<RuleFormDialog categories={categories} hasPlan={hasAutoBid} />}
+              action={<RuleFormDialog categories={categories} hasPlan={hasAutoBid} phoneVerification={features.phoneVerification} />}
             />
           ) : (
             ruleRows.map((r) => {
@@ -212,7 +213,7 @@ export default async function AutoBidPage({ searchParams }: { searchParams: Prom
                     <Badge variant="outline">max {r.dailyCap}/zi</Badge>
                     {r.keywords.length > 0 && <Badge variant="outline">conține: {r.keywords.join(", ")}</Badge>}
                     {r.excludeKeywords.length > 0 && <Badge variant="outline">exclude: {r.excludeKeywords.join(", ")}</Badge>}
-                    {r.requireVerifiedClient && <Badge variant="outline">doar clienți verificați</Badge>}
+                    {r.requireVerifiedClient && features.phoneVerification && <Badge variant="outline">doar clienți verificați</Badge>}
                     {r.priceType !== "to_discuss" && r.priceAmount && (
                       <Badge variant="secondary">
                         {r.priceAmount.toLocaleString("ro-RO")} lei · {labels.priceType[r.priceType]}
@@ -221,7 +222,7 @@ export default async function AutoBidPage({ searchParams }: { searchParams: Prom
                   </div>
                   <p className="mt-4 line-clamp-2 border-l-2 pl-3 text-sm leading-relaxed text-muted-foreground italic">{r.template}</p>
                   <div className="mt-4 flex justify-end gap-1 border-t pt-3">
-                    <RuleFormDialog rule={value} categories={categories} hasPlan={hasAutoBid} />
+                    <RuleFormDialog rule={value} categories={categories} hasPlan={hasAutoBid} phoneVerification={features.phoneVerification} />
                     <RuleDelete ruleId={r.id} />
                   </div>
                 </div>

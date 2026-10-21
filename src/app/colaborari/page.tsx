@@ -2,12 +2,14 @@ import { Handshake, MessageSquare, Star, Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { EmptyState } from "@/components/shared/empty-state";
+import { ContactDetails } from "@/components/shared/contact-details";
 import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { requireOnboardedUser } from "@/server/auth/guards";
+import { counterpartContacts } from "@/server/contact";
 import { listCollaborations } from "@/server/trust/service";
 import { CollaborationActions } from "./collaboration-actions";
 import { ReviewForm } from "./review-form";
@@ -23,7 +25,8 @@ const STATUS: Record<string, { label: string; variant: "default" | "secondary" |
 
 export default async function CollaborationsPage() {
   const user = await requireOnboardedUser("/colaborari");
-  const rows = await listCollaborations(user.id);
+  const [rows, contacts] = await Promise.all([listCollaborations(user.id), counterpartContacts(user.id)]);
+  const contactByCollab = new Map(contacts.map((c) => [c.collaborationId, c]));
 
   return (
     <div className="container-page max-w-4xl pb-16">
@@ -44,6 +47,7 @@ export default async function CollaborationsPage() {
             const other = asClient ? r.providerName : r.clientName;
             const st = STATUS[r.collab.status];
             const canReview = (r.collab.status === "active" || r.collab.status === "completed") && r.myReview === null;
+            const contact = contactByCollab.get(r.collab.id);
             return (
               <article
                 key={r.collab.id}
@@ -68,6 +72,7 @@ export default async function CollaborationsPage() {
                     {asClient ? "Prestator" : "Client"}: {other}
                   </p>
                 </div>
+                {contact && <ContactDetails contact={contact} label={asClient ? "Contact prestator" : "Contact client"} />}
                 {r.collab.status === "pending_confirmation" && !asClient && (
                   <div className="flex items-center gap-3.5 rounded-xl border border-brand/20 bg-brand-soft px-4 py-3.5 text-sm leading-relaxed">
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(140deg,#1c2f57,#2b4acb_70%,#4f7cff)] text-white shadow-sm">

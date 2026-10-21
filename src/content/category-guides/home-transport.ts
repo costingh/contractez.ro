@@ -7,7 +7,7 @@ export const homeTransportGuides: CategoryGuides = {
       "Curățenie, mobilă, grădinărit, reparații sau dezinsecție. Publici gratuit proiectul și primești oferte de la prestatori verificați din zona ta.",
     intro: [
       "Casa și grădina au nevoie de grijă constantă: o curățenie generală înainte de sărbători, un dulap montat, gazonul tuns, o mașină de spălat care nu mai pornește sau o problemă cu gândacii. În această categorie găsești prestatori pentru lucrările de zi cu zi, dar și pentru proiecte mai mari, cum ar fi mobila la comandă sau amenajarea grădinii.",
-      "Pe Contractez descrii ce ai nevoie cu propriile cuvinte, iar platforma te ajută să structurezi cererea. Publicarea este gratuită și primești cel mult 5 oferte de la prestatori compatibili, verificați prin email, telefon și, când au firmă, în registrul ANAF. Datele tale de contact rămân ascunse până alegi tu cu cine vorbești.",
+      "Pe Contractez descrii ce ai nevoie cu propriile cuvinte, iar platforma te ajută să structurezi cererea. Publicarea este gratuită și primești cel mult 5 oferte de la prestatori compatibili, verificați prin email și, când au firmă, în registrul ANAF. Datele tale de contact rămân ascunse până alegi tu cu cine vorbești.",
     ],
     prices: [
       { item: "Curățenie generală apartament 2 camere", range: "250–450 lei" },
@@ -136,7 +136,7 @@ export const homeTransportGuides: CategoryGuides = {
       "Tuns gazon, amenajare grădină, sisteme de irigații și toaletare pomi. Publici gratuit cererea și primești oferte de la grădinari verificați.",
     intro: [
       "Serviciile de grădinărit și peisagistică includ tunsul și întreținerea gazonului, amenajarea unei grădini de la zero, montajul gazonului rulou, instalarea sistemelor de irigații și toaletarea pomilor și arbuștilor. Ai nevoie de ele primăvara, când pornește sezonul, după ce ți-ai construit casa sau când nu mai ai timp să întreții curtea în fiecare săptămână.",
-      "Pe Contractez spui ce suprafață ai, ce lucrări vrei și cât de des, iar platforma te ajută să structurezi cererea. Cererea ajunge doar la prestatori compatibili și primești cel mult 5 oferte. Grădinarii sunt verificați prin email, telefon și, când au firmă, în registrul ANAF, iar publicarea este gratuită.",
+      "Pe Contractez spui ce suprafață ai, ce lucrări vrei și cât de des, iar platforma te ajută să structurezi cererea. Cererea ajunge doar la prestatori compatibili și primești cel mult 5 oferte. Grădinarii sunt verificați prin email și, când au firmă, în registrul ANAF, iar publicarea este gratuită.",
     ],
     prices: [
       { item: "Tuns gazon", range: "0,5–2 lei/mp", note: "cu strângerea ierbii" },
@@ -184,7 +184,7 @@ export const homeTransportGuides: CategoryGuides = {
       "Mici reparații, montaj TV, corpuri de iluminat și lăcătuș. Publici gratuit lista de lucrări și primești oferte de la meșteri verificați.",
     intro: [
       "Un handyman rezolvă lucrările mărunte pentru care nu chemi o echipă întreagă: montaj TV pe perete, lustre și aplice, rafturi, galerii, uși care se freacă, robineți care picură sau o yală blocată. Ai nevoie de el când te muți, când strângi o listă de mici defecte sau când rămâi pe dinafară și ai nevoie urgent de un lăcătuș.",
-      "Pe Contractez îți scrii lista de reparații cu propriile cuvinte, iar platforma te ajută să o organizezi. Primești cel mult 5 oferte de la meșteri compatibili, verificați prin email și telefon. Datele tale de contact rămân ascunse până alegi tu, iar prețul și plata le stabilești direct cu meșterul.",
+      "Pe Contractez îți scrii lista de reparații cu propriile cuvinte, iar platforma te ajută să o organizezi. Primești cel mult 5 oferte de la meșteri compatibili, cu email verificat. Datele tale de contact rămân ascunse până alegi tu, iar prețul și plata le stabilești direct cu meșterul.",
     ],
     prices: [
       { item: "Handyman", range: "80–150 lei/oră", note: "deseori cu minim 1–2 ore" },
@@ -281,7 +281,7 @@ export const homeTransportGuides: CategoryGuides = {
       "Dezinsecție pentru gândaci și ploșnițe, deratizare și dezinfecție. Publici gratuit cererea și primești oferte de la firme DDD verificate.",
     intro: [
       "Serviciile DDD înseamnă dezinsecție (gândaci, ploșnițe, purici, furnici, țânțari, căpușe), deratizare (șoareci și șobolani) și dezinfecție. Ai nevoie de ele când observi insecte sau rozătoare în casă, după ce te muți într-o locuință nouă, la blocuri sau pentru spații comerciale și restaurante care au nevoie de tratamente periodice.",
-      "Pe Contractez descrii problema, tipul spațiului și suprafața, iar platforma te ajută să structurezi cererea. Primești cel mult 5 oferte de la firme compatibile, verificate prin email, telefon și în registrul ANAF. Datele tale rămân ascunse până alegi firma, iar prețul îl stabilești direct cu ea.",
+      "Pe Contractez descrii problema, tipul spațiului și suprafața, iar platforma te ajută să structurezi cererea. Primești cel mult 5 oferte de la firme compatibile, verificate prin email și în registrul ANAF. Datele tale rămân ascunse până alegi firma, iar prețul îl stabilești direct cu ea.",
     ],
     prices: [
       { item: "Dezinsecție gândaci garsonieră sau 2 camere", range: "150–300 lei", note: "per tratament" },
@@ -330,7 +330,7 @@ export const homeTransportGuides: CategoryGuides = {
       "Mutări, transport marfă, debarasare și curierat local. Publici gratuit cererea și primești oferte de la transportatori și firme verificate.",
     intro: [
       "Categoria acoperă tot ce ține de mutat lucruri dintr-un loc în altul: mutări de apartament, casă sau birou, transport de mobilă și marfă cu duba, debarasarea molozului și a mobilierului vechi, dar și șoferi și curieri pentru livrări locale. Ai nevoie de ea când te muți, când cumperi ceva voluminos sau când termini o renovare.",
-      "Pe Contractez descrii ce trebuie transportat, de unde și până unde, iar platforma te ajută să structurezi cererea. Publicarea este gratuită și primești cel mult 5 oferte de la prestatori compatibili, verificați prin email, telefon și, când au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu prestatorul ales.",
+      "Pe Contractez descrii ce trebuie transportat, de unde și până unde, iar platforma te ajută să structurezi cererea. Publicarea este gratuită și primești cel mult 5 oferte de la prestatori compatibili, verificați prin email și, când au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu prestatorul ales.",
     ],
     prices: [
       { item: "Mutare apartament 2 camere, în același oraș", range: "700–1.600 lei" },
@@ -410,7 +410,7 @@ export const homeTransportGuides: CategoryGuides = {
       "Transport marfă cu dubă de 3,5 t, transport mobilă și transport internațional. Publici gratuit cererea și primești oferte de la transportatori verificați.",
     intro: [
       "Transportul de marfă acoperă cursele cu dubă de 3,5 t în oraș sau între orașe, transportul de mobilă și electrocasnice cumpărate, transportul de paleți pentru firme și cursele internaționale. Ai nevoie de el când cumperi ceva voluminos, când trimiți marfă unui client sau când ai de dus lucruri în străinătate.",
-      "Pe Contractez descrii ce transporți, dimensiunile sau greutatea aproximativă, adresele și data, iar platforma te ajută să clarifici cererea. Primești cel mult 5 oferte de la transportatori compatibili, verificați prin email, telefon și, când au firmă, în registrul ANAF. Publicarea e gratuită.",
+      "Pe Contractez descrii ce transporți, dimensiunile sau greutatea aproximativă, adresele și data, iar platforma te ajută să clarifici cererea. Primești cel mult 5 oferte de la transportatori compatibili, verificați prin email și, când au firmă, în registrul ANAF. Publicarea e gratuită.",
     ],
     prices: [
       { item: "Dubă 3,5 t cu șofer, local", range: "80–150 lei/oră", note: "deseori cu minim 2 ore" },
@@ -504,7 +504,7 @@ export const homeTransportGuides: CategoryGuides = {
       "Șofer personal, livrări și curierat local în orașul tău. Publici gratuit cererea și primești oferte de la șoferi și curieri verificați.",
     intro: [
       "Categoria include șoferi personali care conduc mașina ta, de exemplu la un drum lung, la aeroport sau la un eveniment, precum și curieri și livratori pentru colete, documente sau marfă în oraș. Ai nevoie de ei când nu poți sau nu vrei să conduci, când ai o firmă cu livrări regulate sau când trebuie să ajungă ceva urgent la cineva.",
-      "Pe Contractez descrii traseul, programul și ce trebuie transportat, iar platforma te ajută să clarifici cererea. Primești cel mult 5 oferte de la prestatori compatibili, verificați prin email, telefon și, când au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu cel ales.",
+      "Pe Contractez descrii traseul, programul și ce trebuie transportat, iar platforma te ajută să clarifici cererea. Primești cel mult 5 oferte de la prestatori compatibili, verificați prin email și, când au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu cel ales.",
     ],
     prices: [
       { item: "Șofer personal, cu mașina ta", range: "50–100 lei/oră" },
@@ -551,7 +551,7 @@ export const homeTransportGuides: CategoryGuides = {
       "Pet sitting, plimbat câini, dresaj și toaletaj. Publici gratuit cererea și primești oferte de la îngrijitori și dresori verificați din zona ta.",
     intro: [
       "Categoria acoperă îngrijirea animalelor de companie când tu nu poți: plimbat câini, pet sitting la tine acasă sau la îngrijitor, pensiune, dresaj și corectarea comportamentului, plus toaletaj pentru câini și pisici. Ai nevoie de ele când pleci în concediu, când ai program lung la birou sau când câinele tău are nevoie de educație.",
-      "Pe Contractez descrii animalul, ce are nevoie și pe ce perioadă, iar platforma te ajută să structurezi cererea. Publicarea este gratuită și primești cel mult 5 oferte de la prestatori compatibili, verificați prin email și telefon. Recenziile pot fi lăsate doar după o colaborare confirmată.",
+      "Pe Contractez descrii animalul, ce are nevoie și pe ce perioadă, iar platforma te ajută să structurezi cererea. Publicarea este gratuită și primești cel mult 5 oferte de la prestatori compatibili, cu email verificat. Recenziile pot fi lăsate doar după o colaborare confirmată.",
     ],
     prices: [
       { item: "Plimbat câine 30 de minute", range: "20–45 lei" },
@@ -581,7 +581,7 @@ export const homeTransportGuides: CategoryGuides = {
       "Pet sitter, plimbat câini și pensiune pentru animale. Publici gratuit cererea și primești oferte de la îngrijitori verificați din zona ta.",
     intro: [
       "Pet sittingul înseamnă îngrijirea animalului tău când tu lipsești: vizite la domiciliu pentru hrănire, apă proaspătă și litieră, plimbări zilnice pentru câini, cazare la îngrijitor sau într-o pensiune. Ai nevoie de el în concediu, la delegații, când lucrezi multe ore departe de casă sau când câinele are nevoie de mai multă mișcare decât îi poți oferi tu.",
-      "Pe Contractez descrii animalul, programul dorit și perioada, iar platforma te ajută să incluzi detaliile importante. Primești cel mult 5 oferte de la îngrijitori compatibili, verificați prin email și telefon. Datele tale de contact rămân ascunse până alegi tu, iar prețul îl stabilești direct cu îngrijitorul.",
+      "Pe Contractez descrii animalul, programul dorit și perioada, iar platforma te ajută să incluzi detaliile importante. Primești cel mult 5 oferte de la îngrijitori compatibili, cu email verificat. Datele tale de contact rămân ascunse până alegi tu, iar prețul îl stabilești direct cu îngrijitorul.",
     ],
     prices: [
       { item: "Plimbat câine 30 de minute", range: "20–45 lei" },
@@ -630,7 +630,7 @@ export const homeTransportGuides: CategoryGuides = {
       "Dresaj de ascultare, educație pentru pui și corectarea comportamentului. Publici gratuit cererea și primești oferte de la dresori verificați.",
     intro: [
       "Dresajul canin acoperă educația puilor, ascultarea de bază (șezi, culcat, rămâi, chemarea, mersul la lesă) și lucrul cu probleme de comportament precum trasul de lesă, lătratul excesiv, anxietatea de separare sau reactivitatea față de alți câini. Ai nevoie de el când aduci un pui acasă, când adopți un câine adult sau când viața de zi cu zi devine greu de gestionat.",
-      "Pe Contractez descrii câinele, vârsta lui și ce vrei să rezolvi, iar platforma te ajută să structurezi cererea. Primești cel mult 5 oferte de la dresori compatibili, verificați prin email și telefon. Recenziile pot fi lăsate doar după o colaborare confirmată, iar prețul îl stabilești direct cu dresorul.",
+      "Pe Contractez descrii câinele, vârsta lui și ce vrei să rezolvi, iar platforma te ajută să structurezi cererea. Primești cel mult 5 oferte de la dresori compatibili, cu email verificat. Recenziile pot fi lăsate doar după o colaborare confirmată, iar prețul îl stabilești direct cu dresorul.",
     ],
     prices: [
       { item: "Ședință individuală", range: "80–200 lei", note: "aprox. 1 oră" },

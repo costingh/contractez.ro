@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { site } from "@/config/site";
 import { initials } from "@/lib/format";
+import { isPhoneVerified } from "@/server/features";
 import { cardPrice, getPublicCard } from "@/server/providers/public-card";
 
 export const alt = "Profil de prestator";
@@ -43,7 +44,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const p = card.profile;
   const badges = [
     card.companyVerifiedAt ? "Firmă verificată ANAF" : null,
-    card.phoneVerifiedAt ? "Telefon verificat" : null,
+    isPhoneVerified(card.phoneVerifiedAt) ? "Telefon verificat" : null,
     card.issuesInvoice ? "Emite factură" : null,
     p.remote ? "Lucrează remote" : null,
     p.onSite ? `Se deplasează ${p.travelRadiusKm} km` : null,

@@ -5,6 +5,7 @@ import { Faq } from "@/components/marketing/faq";
 import { cssVars } from "@/components/home/css-vars";
 import { Button } from "@/components/ui/button";
 import { freePlan, rules, site } from "@/config/site";
+import { features } from "@/server/features";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/cum-functioneaza" },
@@ -224,7 +225,12 @@ export default function HowItWorksPage() {
             { q: "Platforma intermediază plata lucrării?", a: "Nu. Clientul și prestatorul stabilesc direct prețul, termenele și plata. Prestatorii plătesc doar un abonament opțional (Pro sau Business) dacă au nevoie de mai multe aplicări." },
             { q: "Pot fi și client, și prestator?", a: "Da. Un cont poate avea ambele roluri; le activezi din onboarding sau din meniul contului." },
             { q: "De ce maximum 5 oferte?", a: "Ca fiecare ofertă să fie citită și ca prestatorii să aibă șanse reale. Clientul poate redeschide selecția dacă are nevoie de mai multe variante." },
-            { q: "Ce verificați despre un client?", a: "Emailul este obligatoriu; telefonul verificat apare ca insignă. Nu verificăm identitatea sau existența fondurilor, iar acest lucru este afișat transparent pe fiecare proiect." },
+            {
+              q: "Ce verificați despre un client?",
+              a: features.phoneVerification
+                ? "Emailul este obligatoriu; telefonul verificat apare ca insignă. Nu verificăm identitatea sau existența fondurilor, iar acest lucru este afișat transparent pe fiecare proiect."
+                : "Emailul confirmat este obligatoriu, iar firmele pot fi confirmate în registrul ANAF. Nu verificăm identitatea sau existența fondurilor, iar acest lucru este afișat transparent pe fiecare proiect. Numărul de telefon apare doar după ce colaborarea este acceptată.",
+            },
             {
               q: "Cum raportez o problemă?",
               a: (

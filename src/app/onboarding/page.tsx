@@ -9,10 +9,12 @@ import { FinishButton } from "@/components/onboarding/finish-button";
 import { ServiceForm } from "@/components/onboarding/first-service-form";
 import { ProviderProfileForm, emptyProviderForm } from "@/components/onboarding/provider-profile-form";
 import { OnboardingSteps } from "@/components/onboarding/steps";
+import { ContactPhoneForm } from "@/components/profile/contact-phone-form";
 import { EmailStatus } from "@/components/profile/email-status";
 import { PhoneVerification } from "@/components/profile/phone-verification";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { freePlan, labels } from "@/config/site";
+import { CONTACT_PHONE_HINT } from "@/lib/phone";
 import { getProviderFormData } from "@/server/account";
 import { requireUser } from "@/server/auth/guards";
 import { smsConfigured } from "@/server/auth/sms";
@@ -21,7 +23,7 @@ import { categoryOptions } from "@/server/catalog/options";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { db } from "@/server/db";
 import { providerServices } from "@/server/db/schema";
-import { env } from "@/server/env";
+import { features } from "@/server/features";
 
 export const metadata: Metadata = { title: "Configurează contul" };
 
@@ -41,7 +43,6 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   const wantsProvider = rol === "prestator" || user.isProvider || step === 2;
   const steps = wantsProvider ? ["Despre tine", "Profil prestator", "Gata"] : ["Despre tine", "Gata"];
   const current = step === 1 ? 1 : step === 2 ? 2 : steps.length;
-  const showPhone = smsConfigured || env.NODE_ENV !== "production";
 
   return (
     <div className="container-page max-w-3xl pt-8 pb-16 sm:pt-12">
@@ -102,11 +103,11 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
           userId={user.id}
           email={user.email}
           emailVerified={Boolean(user.emailVerifiedAt)}
-          phone={user.phoneVerifiedAt ? user.phone : null}
+          verifiedPhone={user.phoneVerifiedAt ? user.phone : null}
+          contactPhone={user.phone}
           isProvider={user.isProvider}
           isClient={user.isClient}
           welcomeGranted={Boolean(user.welcomeCreditsGrantedAt)}
-          showPhone={showPhone}
         />
       )}
     </div>
@@ -159,11 +160,11 @@ async function StepFinish(props: {
   userId: string;
   email: string;
   emailVerified: boolean;
-  phone: string | null;
+  verifiedPhone: string | null;
+  contactPhone: string | null;
   isProvider: boolean;
   isClient: boolean;
   welcomeGranted: boolean;
-  showPhone: boolean;
 }) {
   const catalog = await getCatalog();
   let providerCats: { id: number; name: string }[] = [];
@@ -201,12 +202,20 @@ async function StepFinish(props: {
         </CardHeader>
         <CardContent className="space-y-4">
           <EmailStatus email={props.email} verified={props.emailVerified} />
-          {props.showPhone && (
+          {features.phoneVerification ? (
             <div className="space-y-2">
               <div className="text-sm font-medium">
                 Telefon <span className="font-normal text-muted-foreground">(opțional — afișăm insigna „verificat”)</span>
               </div>
-              <PhoneVerification verifiedPhone={props.phone} devHint={!smsConfigured} />
+              <PhoneVerification verifiedPhone={props.verifiedPhone} devHint={!smsConfigured} />
+              <p className="text-xs text-muted-foreground">{CONTACT_PHONE_HINT}</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="text-sm font-medium">
+                Telefon de contact <span className="font-normal text-muted-foreground">(opțional)</span>
+              </div>
+              <ContactPhoneForm phone={props.contactPhone} />
             </div>
           )}
         </CardContent>

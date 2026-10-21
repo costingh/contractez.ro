@@ -3,6 +3,7 @@ import { Bot, CheckCircle2, Circle, Eye, Inbox, ListChecks, Send, Sparkles, Trop
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cssVars } from "@/components/home/css-vars";
+import { ContactDetails } from "@/components/shared/contact-details";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ import { describeBudget, formatDateTime, formatLei, timeAgo } from "@/lib/format
 import { truncate } from "@/lib/text";
 import { cn } from "@/lib/utils";
 import { requireProvider } from "@/server/auth/guards";
+import { counterpartContacts } from "@/server/contact";
 import { db } from "@/server/db";
 import { applicationEvents, applications, conversations, projects } from "@/server/db/schema";
 import { providerStats } from "@/server/insights";
@@ -31,15 +33,20 @@ async function loadApplications(providerId: string) {
     .orderBy(desc(applications.createdAt))
     .limit(200);
   const ids = rows.map((r) => r.app.id);
-  const [events, convs] = await Promise.all([
+  const hiredIds = rows.filter((r) => r.app.status === "hired").map((r) => r.app.id);
+  const [events, convs, contacts] = await Promise.all([
     ids.length ? db.select().from(applicationEvents).where(inArray(applicationEvents.applicationId, ids)) : [],
     ids.length ? db.select({ id: conversations.id, applicationId: conversations.applicationId }).from(conversations).where(inArray(conversations.applicationId, ids)) : [],
+    // Datele de contact ale clientului: doar pentru ofertele alese (colaborare acceptată).
+    counterpartContacts(providerId, { applicationIds: hiredIds }),
   ]);
   const convMap = new Map(convs.map((c) => [c.applicationId, c.id]));
+  const contactMap = new Map(contacts.map((c) => [c.applicationId, c]));
   return rows.map((r) => ({
     ...r,
     events: events.filter((e) => e.applicationId === r.app.id).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()),
     conversationId: convMap.get(r.app.id) ?? null,
+    contact: contactMap.get(r.app.id) ?? null,
   }));
 }
 
@@ -152,6 +159,8 @@ function ApplicationItem({ row }: { row: Row }) {
           <span className="font-medium">Motivul clientului:</span> {app.rejectionReason}
         </p>
       )}
+
+      {row.contact && <ContactDetails contact={row.contact} label="Contact client" className="mt-4" />}
 
       <div className="mt-5 flex flex-wrap items-center gap-2 border-t pt-4">
         <ChatLink conversationId={row.conversationId} />

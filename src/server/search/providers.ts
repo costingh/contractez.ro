@@ -5,6 +5,7 @@ import { expandCategory, getCatalog } from "../catalog/taxonomy";
 import { getLocality } from "../catalog/localities";
 import { db } from "../db";
 import { localities, providerProfiles, users } from "../db/schema";
+import { phoneVerifiedSql } from "../features";
 
 const num = z.coerce.number().int().positive().optional().catch(undefined);
 const flag = z.literal("1").optional().catch(undefined);
@@ -87,7 +88,7 @@ const selection = (distance: SQL<number | null>) => ({
   avatarPath: users.avatarPath,
   issuesInvoice: users.issuesInvoice,
   legalEntity: users.legalEntity,
-  phoneVerified: sql<boolean>`${users.phoneVerifiedAt} IS NOT NULL`,
+  phoneVerified: phoneVerifiedSql(),
   companyVerified: sql<boolean>`${users.companyVerifiedAt} IS NOT NULL`,
   localityName: localities.name,
   countyCode: localities.countyCode,

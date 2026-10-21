@@ -18,11 +18,13 @@ import { describeBudget, formatDate, timeAgo } from "@/lib/format";
 import { markApplicationViewed } from "@/server/applications/service";
 import { cn } from "@/lib/utils";
 import { requireOnboardedUser } from "@/server/auth/guards";
+import { counterpartContacts } from "@/server/contact";
 import { getLocality } from "@/server/catalog/localities";
 import { categoryPath, getCatalog } from "@/server/catalog/taxonomy";
 import { db } from "@/server/db";
 import { applications, conversations, projectMatches, projects, providerProfiles, users } from "@/server/db/schema";
 import { env } from "@/server/env";
+import { phoneVerifiedSql } from "@/server/features";
 
 export const metadata: Metadata = { title: "Gestionează proiectul" };
 
@@ -57,7 +59,7 @@ export default async function ManageProjectPage({
         avatarPath: users.avatarPath,
         issuesInvoice: users.issuesInvoice,
         legalEntity: users.legalEntity,
-        phoneVerified: sql<boolean>`${users.phoneVerifiedAt} IS NOT NULL`,
+        phoneVerified: phoneVerifiedSql(),
         slug: providerProfiles.slug,
         headline: providerProfiles.headline,
         ratingAvg: providerProfiles.ratingAvg,
@@ -79,6 +81,10 @@ export default async function ManageProjectPage({
   const unseen = rows.filter((r) => !r.app.viewedAt && r.app.status === "submitted");
   await Promise.allSettled(unseen.map((r) => markApplicationViewed(r.app.id, user.id)));
 
+  // Datele de contact ale prestatorului ajung în pagină doar pentru oferta aleasă (colaborare acceptată).
+  const hiredIds = rows.filter((r) => r.app.status === "hired").map((r) => r.app.id);
+  const contacts = new Map((await counterpartContacts(user.id, { applicationIds: hiredIds })).map((c) => [c.applicationId, { phone: c.phone, email: c.email }]));
+
   const offers: OfferView[] = rows.map((r) => ({
     id: r.app.id,
     status: r.app.status,
@@ -92,6 +98,7 @@ export default async function ManageProjectPage({
     createdAt: r.app.createdAt.toISOString(),
     conversationId: r.conversationId,
     rejectionReason: r.app.rejectionReason,
+    contact: contacts.get(r.app.id) ?? null,
     provider: {
       id: r.app.providerId,
       name: r.name,

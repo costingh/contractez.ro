@@ -31,6 +31,7 @@ import { truncate } from "@/lib/text";
 import { getCurrentUser } from "@/server/auth/session";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { db } from "@/server/db";
+import { isPhoneVerified } from "@/server/features";
 import {
   localities,
   portfolioItems,
@@ -209,7 +210,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
                     <Mail /> Email verificat
                   </Badge>
                 )}
-                {u.phoneVerifiedAt && (
+                {isPhoneVerified(u.phoneVerifiedAt) && (
                   <Badge variant="success" className="gap-1">
                     <BadgeCheck /> Telefon verificat
                   </Badge>

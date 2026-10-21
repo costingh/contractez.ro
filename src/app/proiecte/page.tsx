@@ -1,5 +1,6 @@
 import { FolderSearch, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
+import { TrackOnMount } from "@/components/analytics/track-on-mount";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ProjectCard } from "@/components/projects/project-card";
@@ -20,6 +21,7 @@ import { getCurrentUser } from "@/server/auth/session";
 import { findLocalityByName, getLocality } from "@/server/catalog/localities";
 import { categoryOptions } from "@/server/catalog/options";
 import { getCatalog } from "@/server/catalog/taxonomy";
+import { features } from "@/server/features";
 import { parseProjectFilters, searchProjects, type ProjectFilters } from "@/server/search/projects";
 
 export const metadata: Metadata = {
@@ -96,13 +98,14 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   if (loc) chips.push({ key: "loc", label: `${loc.name}${filters.r ? ` · ${filters.r} km` : ""}` });
   if (filters.inv) chips.push({ key: "inv", label: filters.inv === "required" ? "Cu factură obligatorie" : "Fără factură obligatorie" });
   if (filters.urg) chips.push({ key: "urg", label: labels.urgency[filters.urg] });
-  if (filters.verified) chips.push({ key: "verified", label: "Client cu telefon verificat" });
+  if (filters.verified && features.phoneVerification) chips.push({ key: "verified", label: "Client cu telefon verificat" });
   if (filters.few) chips.push({ key: "few", label: "Puține oferte" });
   if (filters.days) chips.push({ key: "days", label: `Ultimele ${filters.days} zile` });
 
   const form = (
     <ProjectFiltersForm
       filters={filters}
+      showVerifiedFilter={features.phoneVerification}
       categories={cats}
       locality={loc ? { id: loc.id, name: loc.name, county: loc.county, countyCode: loc.countyCode } : null}
     />
@@ -111,6 +114,12 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="pb-16">
+      {(filters.q || filters.cat || filters.loc) && (
+        <TrackOnMount
+          name="search_projects"
+          props={{ q: filters.q, category: filters.cat ? catalog.byId.get(filters.cat)?.slug : undefined, locality: loc?.name, results: results.total }}
+        />
+      )}
       <SearchHero
         eyebrow="Pentru prestatori"
         stat={results.total === 1 ? "1 proiect deschis" : `${results.total.toLocaleString("ro-RO")} proiecte`}

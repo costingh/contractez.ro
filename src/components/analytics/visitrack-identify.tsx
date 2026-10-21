@@ -1,28 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-
-declare global {
-  interface Window {
-    visitrack?: ((name: string, props?: Record<string, unknown>) => void) & {
-      visitorId?: () => string | undefined;
-      identify?: (externalId: string, traits?: Record<string, unknown>) => void;
-    };
-  }
-}
-
-/** Scriptul se încarcă după hidratare; așteptăm puțin în loc să pierdem apelul. */
-function whenReady(timeoutMs = 15_000): Promise<boolean> {
-  return new Promise((resolve) => {
-    const start = Date.now();
-    const tick = () => {
-      if (window.visitrack) return resolve(true);
-      if (Date.now() - start > timeoutMs) return resolve(false);
-      setTimeout(tick, 250);
-    };
-    tick();
-  });
-}
+import { whenVisitrackReady as whenReady } from "./visitrack-client";
 
 function visitorId(): string | null {
   try {

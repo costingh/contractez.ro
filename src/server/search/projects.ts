@@ -5,6 +5,7 @@ import { expandCategory, getCatalog } from "../catalog/taxonomy";
 import { getLocality } from "../catalog/localities";
 import { db } from "../db";
 import { categories, localities, projects, users } from "../db/schema";
+import { features, phoneVerifiedSql } from "../features";
 
 const csv = z
   .string()
@@ -33,7 +34,10 @@ export type ProjectFilters = z.infer<typeof projectFiltersSchema>;
 
 export function parseProjectFilters(params: Record<string, string | string[] | undefined>): ProjectFilters {
   const flat = Object.fromEntries(Object.entries(params).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v]));
-  return projectFiltersSchema.parse(flat);
+  const filters = projectFiltersSchema.parse(flat);
+  // Fără verificare SMS nimeni nu are telefon verificat: ignorăm filtrul (altfel ar ascunde tot).
+  if (!features.phoneVerification) filters.verified = undefined;
+  return filters;
 }
 
 const PAGE_SIZE = 20;
@@ -57,7 +61,7 @@ export async function searchProjects(filters: ProjectFilters) {
   if (filters.urg === "urgent") where.push(eq(projects.urgency, "urgent"));
   if (filters.urg === "this_week") where.push(inArray(projects.urgency, ["urgent", "this_week"]));
   if (filters.urg === "this_month") where.push(inArray(projects.urgency, ["urgent", "this_week", "this_month"]));
-  if (filters.verified) where.push(sql`${users.phoneVerifiedAt} IS NOT NULL`);
+  if (filters.verified && features.phoneVerification) where.push(sql`${users.phoneVerifiedAt} IS NOT NULL`);
   if (filters.few) where.push(sql`${projects.applicationsCount} < 2`);
   if (filters.days) where.push(gte(projects.publishedAt, new Date(Date.now() - filters.days * 86_400_000)));
 
@@ -90,7 +94,7 @@ export async function searchProjects(filters: ProjectFilters) {
       localityName: localities.name,
       countyCode: localities.countyCode,
       clientName: users.name,
-      clientPhoneVerified: sql<boolean>`${users.phoneVerifiedAt} IS NOT NULL`,
+      clientPhoneVerified: phoneVerifiedSql(),
       clientEmailVerified: sql<boolean>`${users.emailVerifiedAt} IS NOT NULL`,
       distanceKm: distance,
     })
@@ -124,7 +128,7 @@ export async function latestOpenProjects(limit = 6) {
       localityName: localities.name,
       countyCode: localities.countyCode,
       clientName: users.name,
-      clientPhoneVerified: sql<boolean>`${users.phoneVerifiedAt} IS NOT NULL`,
+      clientPhoneVerified: phoneVerifiedSql(),
       clientEmailVerified: sql<boolean>`${users.emailVerifiedAt} IS NOT NULL`,
       distanceKm: sql<number | null>`NULL::float8`,
     })

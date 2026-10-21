@@ -87,7 +87,7 @@ export const businessLegalGuides: CategoryGuides = {
       "Ai nevoie de plan de afaceri, înființare firmă sau analiză financiară? Publici gratuit proiectul și primești oferte de la consultanți verificați.",
     intro: [
       "Consultanța de afaceri te ajută să iei decizii pe baza unor cifre clare. Poate însemna un plan de afaceri pentru bancă, investitori sau un program de finanțare, înființarea unui SRL cu toate actele, alegerea formei de organizare potrivite sau o analiză financiară a firmei. Ai nevoie de ea când pornești o afacere, extinzi activitatea sau vrei să înțelegi de ce nu ies cifrele.",
-      "Pe Contractez explici situația cu propriile cuvinte, iar platforma te ajută să structurezi cererea. Proiectul ajunge doar la consultanți compatibili, iar tu primești cel mult 5 oferte. Prestatorii sunt verificați prin e-mail, telefon și, când au firmă, în registrul ANAF. Recenziile pot fi lăsate doar după o colaborare confirmată.",
+      "Pe Contractez explici situația cu propriile cuvinte, iar platforma te ajută să structurezi cererea. Proiectul ajunge doar la consultanți compatibili, iar tu primești cel mult 5 oferte. Prestatorii sunt verificați prin e-mail și, când au firmă, în registrul ANAF. Recenziile pot fi lăsate doar după o colaborare confirmată.",
     ],
     prices: [
       { item: "Înființare SRL (acte și depunere)", range: "500–1.500 lei", note: "plus taxele ONRC" },
@@ -357,7 +357,7 @@ export const businessLegalGuides: CategoryGuides = {
       "Ai nevoie de un contract, termeni și condiții sau acte pentru firmă? Publici gratuit cererea și primești oferte de la juriști și avocați verificați.",
     intro: [
       "Un contract bine scris te protejează înainte să apară o problemă. Aici intră redactarea și revizuirea contractelor de închiriere, prestări servicii, vânzare sau colaborare, termenii și condițiile pentru magazine online și aplicații, acordurile de confidențialitate, actele constitutive și modificările de acte ale unei societăți, cum ar fi schimbarea sediului sau cesiunea de părți sociale.",
-      "Pe Contractez descrii ce fel de document îți trebuie și pentru ce situație, iar platforma te ajută să structurezi cererea. Proiectul ajunge doar la prestatori compatibili și primești cel mult 5 oferte. Prestatorii sunt verificați prin e-mail, telefon și, când au firmă, în registrul ANAF, iar prețul îl stabilești direct cu cel ales.",
+      "Pe Contractez descrii ce fel de document îți trebuie și pentru ce situație, iar platforma te ajută să structurezi cererea. Proiectul ajunge doar la prestatori compatibili și primești cel mult 5 oferte. Prestatorii sunt verificați prin e-mail și, când au firmă, în registrul ANAF, iar prețul îl stabilești direct cu cel ales.",
     ],
     prices: [
       { item: "Contract simplu (închiriere, prestări servicii)", range: "300–1.000 lei" },
@@ -533,7 +533,7 @@ export const businessLegalGuides: CategoryGuides = {
       "Ai nevoie de proiect de casă, autorizație de construire sau certificat energetic? Publici gratuit proiectul și primești oferte de la arhitecți verificați.",
     intro: [
       "Arhitectul transformă ideea ta într-un proiect care poate fi autorizat și construit. Serviciile includ proiectul de arhitectură, documentația pentru autorizația de construire (DTAC), proiectul tehnic împreună cu inginerii de structură și instalații, adaptarea unui proiect tipizat, extinderi și mansardări, plus certificatul de performanță energetică. Ai nevoie de ele când construiești o casă, modifici o clădire existentă sau vinzi ori închiriezi o locuință.",
-      "Pe Contractez descrii terenul, suprafața dorită și etapa în care ești, iar platforma te ajută să structurezi cererea. Primești cel mult 5 oferte, doar de la prestatori compatibili, și poți extinde selecția. Prestatorii sunt verificați prin e-mail, telefon și, când au firmă, în registrul ANAF.",
+      "Pe Contractez descrii terenul, suprafața dorită și etapa în care ești, iar platforma te ajută să structurezi cererea. Primești cel mult 5 oferte, doar de la prestatori compatibili, și poți extinde selecția. Prestatorii sunt verificați prin e-mail și, când au firmă, în registrul ANAF.",
     ],
     prices: [
       { item: "Proiect casă complet (arhitectură, structură, instalații)", range: "70–200 lei/mp" },
@@ -727,7 +727,7 @@ export const businessLegalGuides: CategoryGuides = {
       "Ai un proiect care nu se încadrează în altă categorie? Îl publici gratuit și primești oferte de la prestatori verificați, potriviți pentru cererea ta.",
     intro: [
       "Nu orice nevoie are o categorie clară. Aici intră lucrările neobișnuite, sarcinile mici și proiectele care combină mai multe domenii: ajutor la o mutare de mobilier, un comision, asamblarea unui obiect, organizarea unui spațiu, ajutor la un eveniment sau orice altă lucrare pentru care nu știi exact ce tip de prestator îți trebuie.",
-      "Pe Contractez descrii ce ai nevoie cu propriile cuvinte, iar platforma te ajută să structurezi cererea și să o trimiți prestatorilor potriviți. Publicarea este gratuită și primești cel mult 5 oferte. Prestatorii sunt verificați prin e-mail, telefon și, când au firmă, în registrul ANAF, iar prețul îl stabilești direct cu cel ales.",
+      "Pe Contractez descrii ce ai nevoie cu propriile cuvinte, iar platforma te ajută să structurezi cererea și să o trimiți prestatorilor potriviți. Publicarea este gratuită și primești cel mult 5 oferte. Prestatorii sunt verificați prin e-mail și, când au firmă, în registrul ANAF, iar prețul îl stabilești direct cu cel ales.",
     ],
     faq: [
       {

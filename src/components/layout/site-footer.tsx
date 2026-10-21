@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
+import { CookieSettingsLink } from "@/components/consent/cookie-banner";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { site } from "@/config/site";
 
@@ -71,6 +72,8 @@ export function SiteFooter() {
               >
                 ANPC – Soluționarea alternativă a litigiilor (SAL)
               </a>
+              <span className="mx-2 text-border-strong">·</span>
+              <CookieSettingsLink className="underline-offset-2 transition-colors hover:text-foreground hover:underline" />
             </p>
           </div>
           <ThemeToggle className="self-start sm:self-auto" />

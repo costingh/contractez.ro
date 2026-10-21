@@ -73,7 +73,18 @@ function Toggle({ name, label, hint, checked, onChange }: { name: string; label:
   );
 }
 
-export function RuleFormDialog({ rule, categories, hasPlan }: { rule?: RuleFormValue; categories: { id: number; name: string }[]; hasPlan: boolean }) {
+export function RuleFormDialog({
+  rule,
+  categories,
+  hasPlan,
+  phoneVerification,
+}: {
+  rule?: RuleFormValue;
+  categories: { id: number; name: string }[];
+  hasPlan: boolean;
+  /** Fără verificare SMS opțiunea „doar clienți cu telefon verificat” e ascunsă (valoarea salvată se păstrează). */
+  phoneVerification: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [state, action] = useActionState(async (prev: Awaited<ReturnType<typeof saveRuleAction>>, fd: FormData) => {
     const res = await saveRuleAction(prev, fd);
@@ -291,12 +302,16 @@ export function RuleFormDialog({ rule, categories, hasPlan }: { rule?: RuleFormV
               checked={v.personalizeWithAi}
               onChange={(c) => set("personalizeWithAi", c)}
             />
-            <Toggle
-              name="requireVerifiedClient"
-              label="Doar clienți cu telefon verificat"
-              checked={v.requireVerifiedClient}
-              onChange={(c) => set("requireVerifiedClient", c)}
-            />
+            {phoneVerification ? (
+              <Toggle
+                name="requireVerifiedClient"
+                label="Doar clienți cu telefon verificat"
+                checked={v.requireVerifiedClient}
+                onChange={(c) => set("requireVerifiedClient", c)}
+              />
+            ) : (
+              <input type="hidden" name="requireVerifiedClient" value={v.requireVerifiedClient ? "true" : "false"} />
+            )}
           </div>
 
           {!hasPlan && (

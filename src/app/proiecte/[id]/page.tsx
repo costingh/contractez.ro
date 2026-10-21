@@ -35,6 +35,7 @@ import { getCurrentUser } from "@/server/auth/session";
 import { getPlanUsage, type PlanUsage } from "@/server/billing/plans";
 import { getCategoryAttributes, getCatalog, rootOf } from "@/server/catalog/taxonomy";
 import { db } from "@/server/db";
+import { features, phoneVerifiedSql } from "@/server/features";
 import {
   applications,
   conversations,
@@ -61,7 +62,7 @@ const loadProject = cache(async (id: string) => {
       clientName: users.name,
       clientCreatedAt: users.createdAt,
       clientEmailVerified: sql<boolean>`${users.emailVerifiedAt} IS NOT NULL`,
-      clientPhoneVerified: sql<boolean>`${users.phoneVerifiedAt} IS NOT NULL`,
+      clientPhoneVerified: phoneVerifiedSql(),
       clientCompanyName: sql<string | null>`CASE WHEN ${users.companyVerifiedAt} IS NOT NULL THEN ${users.companyName} END`,
       clientProjects: sql<number>`(SELECT count(*)::int FROM projects p2 WHERE p2.client_id = ${projects.clientId} AND p2.published_at IS NOT NULL)`,
       clientCollabs: sql<number>`(SELECT count(*)::int FROM collaborations c WHERE c.client_id = ${projects.clientId} AND c.status IN ('active','completed'))`,
@@ -372,7 +373,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             <CardContent className="space-y-4">
               <ul className="space-y-2">
                 <TrustRow ok={row.clientEmailVerified}>Email confirmat</TrustRow>
-                <TrustRow ok={row.clientPhoneVerified}>{row.clientPhoneVerified ? "Telefon verificat" : "Telefon neverificat"}</TrustRow>
+                {features.phoneVerification && (
+                  <TrustRow ok={row.clientPhoneVerified}>{row.clientPhoneVerified ? "Telefon verificat" : "Telefon neverificat"}</TrustRow>
+                )}
                 {row.clientCompanyName && <TrustRow ok>Firmă verificată ANAF: {row.clientCompanyName}</TrustRow>}
                 <TrustRow ok={p.budgetType !== "unknown" && Boolean(p.budgetMax ?? p.budgetMin)}>
                   {p.budgetType !== "unknown" && (p.budgetMax ?? p.budgetMin) ? "Buget completat" : "Buget nedeclarat"}

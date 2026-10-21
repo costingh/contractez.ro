@@ -93,7 +93,8 @@ export async function createPlanCheckout(userId: string, planId: string) {
     line_items: [planPrice(plan)],
     metadata: { kind: "plan", planId: plan.id, userId },
     subscription_data: { metadata: { kind: "plan", planId: plan.id, userId } },
-    success_url: `${env.APP_URL}/abonament?plata=succes`,
+    // session_id: scriptul VisitTrack înregistrează plata („payment”) la întoarcere.
+    success_url: `${env.APP_URL}/abonament?plata=succes&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${env.APP_URL}/abonament?plata=anulata`,
     integration_identifier: INTEGRATION_ID,
     locale: "ro",

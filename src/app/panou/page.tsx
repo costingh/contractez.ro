@@ -7,11 +7,10 @@ import { WelcomeBand } from "@/components/dashboard/welcome-band";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { requireOnboardedUser } from "@/server/auth/guards";
 import { getPlanUsage } from "@/server/billing/plans";
-import { smsConfigured } from "@/server/auth/sms";
 import { getLocality } from "@/server/catalog/localities";
 import { db } from "@/server/db";
 import { providerProfiles } from "@/server/db/schema";
-import { env } from "@/server/env";
+import { features } from "@/server/features";
 
 export const metadata: Metadata = { title: "Panou" };
 
@@ -36,7 +35,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         phoneVerified={Boolean(user.phoneVerifiedAt)}
         isProvider={user.isProvider}
         hasProviderProfile={profile.length > 0}
-        showPhone={smsConfigured || env.NODE_ENV !== "production"}
+        showPhone={features.phoneVerification}
       />
       {both ? (
         <Tabs defaultValue={tab === "client" ? "client" : "prestator"}>

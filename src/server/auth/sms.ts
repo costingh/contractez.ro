@@ -3,7 +3,8 @@ import { env } from "../env";
 /**
  * Trimitere SMS printr-un gateway HTTP generic (ex: SMSLink, SMSO, Twilio printr-un mic adaptor).
  * Configurează SMS_WEBHOOK_URL (+ opțional SMS_WEBHOOK_TOKEN). Fără configurare, în dezvoltare codul
- * apare în consolă, iar în producție verificarea telefonului este dezactivată în interfață.
+ * apare în consolă, iar în producție verificarea telefonului este dezactivată în interfață
+ * (vezi `features.phoneVerification` din ../features.ts).
  */
 export const smsConfigured = Boolean(process.env.SMS_WEBHOOK_URL);
 

@@ -7,7 +7,7 @@ export const creativeTechGuides: CategoryGuides = {
       "Găsește programatori pentru site-uri, magazine online, aplicații și suport IT. Postezi gratuit și primești oferte de la prestatori verificați.",
     intro: [
       "Categoria IT & Programare acoperă tot ce ține de partea tehnică a unei afaceri: site-uri de prezentare, magazine online, aplicații mobile, backend și API-uri, automatizări cu AI, infrastructură cloud, suport IT și testare. Ai nevoie de ea când pornești un proiect nou, când un sistem existent nu mai face față sau când vrei să automatizezi munca repetitivă.",
-      "Pe Contractez descrii proiectul cu propriile cuvinte, iar platforma te ajută să îl structurezi într-o cerere clară. Postarea este gratuită și primești cel mult 5 oferte, doar de la prestatori compatibili cu ce ai nevoie. Prestatorii sunt verificați prin email, telefon și, dacă au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu prestatorul ales.",
+      "Pe Contractez descrii proiectul cu propriile cuvinte, iar platforma te ajută să îl structurezi într-o cerere clară. Postarea este gratuită și primești cel mult 5 oferte, doar de la prestatori compatibili cu ce ai nevoie. Prestatorii sunt verificați prin email și, dacă au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu prestatorul ales.",
     ],
     prices: [
       { item: "Site de prezentare (5–8 pagini)", range: "2.500–8.000 lei" },
@@ -134,7 +134,7 @@ export const creativeTechGuides: CategoryGuides = {
       "Magazin online pe WooCommerce, Shopify sau PrestaShop, cu plăți și curierat integrate. Postezi gratuit și primești oferte verificate.",
     intro: [
       "Realizarea unui magazin online include catalogul de produse, coșul de cumpărături, plata cu cardul, integrarea cu firmele de curierat, facturarea și paginile legale obligatorii. Ai nevoie de acest serviciu când vrei să vinzi online pentru prima dată, când muți magazinul pe o altă platformă sau când volumul de comenzi cere automatizări noi.",
-      "Pe Contractez descrii ce vinzi, câte produse ai și ce integrări îți trebuie, iar platforma te ajută să ordonezi cererea. Primești cel mult 5 oferte de la dezvoltatori compatibili, verificați prin email, telefon și, când au firmă, în registrul ANAF. Datele tale de contact rămân ascunse până alegi, iar plata o stabilești direct cu prestatorul.",
+      "Pe Contractez descrii ce vinzi, câte produse ai și ce integrări îți trebuie, iar platforma te ajută să ordonezi cererea. Primești cel mult 5 oferte de la dezvoltatori compatibili, verificați prin email și, când au firmă, în registrul ANAF. Datele tale de contact rămân ascunse până alegi, iar plata o stabilești direct cu prestatorul.",
     ],
     prices: [
       { item: "Magazin WooCommerce pe temă existentă (până la 100 de produse)", range: "4.000–10.000 lei" },
@@ -230,7 +230,7 @@ export const creativeTechGuides: CategoryGuides = {
       "Programatori backend în Python, Java, .NET sau Go pentru API-uri, baze de date și integrări. Postezi gratuit, primești oferte verificate.",
     intro: [
       "Serviciile de backend și API se ocupă de partea care nu se vede a unei aplicații: logica de business, bazele de date, autentificarea, integrările cu alte sisteme și performanța sub încărcare. Ai nevoie de un programator backend când construiești o aplicație nouă, când conectezi sisteme care nu comunică între ele sau când o bază de date a devenit prea lentă.",
-      "Pe Contractez descrii sistemul și problema pe care vrei să o rezolvi, iar platforma te ajută să o structurezi. Cererea ajunge doar la programatori compatibili, verificați prin email, telefon și, dacă au firmă, în registrul ANAF. Primești cel mult 5 oferte și poți extinde selecția. Postarea e gratuită, iar plata o convii direct cu prestatorul.",
+      "Pe Contractez descrii sistemul și problema pe care vrei să o rezolvi, iar platforma te ajută să o structurezi. Cererea ajunge doar la programatori compatibili, verificați prin email și, dacă au firmă, în registrul ANAF. Primești cel mult 5 oferte și poți extinde selecția. Postarea e gratuită, iar plata o convii direct cu prestatorul.",
     ],
     prices: [
       { item: "API REST simplu (câteva resurse, autentificare)", range: "4.000–12.000 lei" },
@@ -326,7 +326,7 @@ export const creativeTechGuides: CategoryGuides = {
       "Specialiști DevOps pentru AWS, Azure, Google Cloud, Docker, CI/CD și servere Linux. Postezi proiectul gratuit și primești oferte verificate.",
     intro: [
       "Serviciile DevOps și cloud acoperă configurarea serverelor, migrarea în AWS, Azure sau Google Cloud, containerizarea cu Docker, pipeline-uri CI/CD, monitorizare și backup. Ai nevoie de ele când aplicația crește și serverul nu mai face față, când factura de cloud e prea mare sau când vrei ca fiecare actualizare să ajungă în producție fără intervenții manuale.",
-      "Pe Contractez descrii infrastructura actuală și ce vrei să obții, iar platforma te ajută să structurezi cererea. Proiectul ajunge doar la specialiști compatibili, verificați prin email, telefon și, dacă au firmă, în registrul ANAF. Primești cel mult 5 oferte și poți extinde selecția. Postarea e gratuită, iar prețul îl stabilești direct cu prestatorul.",
+      "Pe Contractez descrii infrastructura actuală și ce vrei să obții, iar platforma te ajută să structurezi cererea. Proiectul ajunge doar la specialiști compatibili, verificați prin email și, dacă au firmă, în registrul ANAF. Primești cel mult 5 oferte și poți extinde selecția. Postarea e gratuită, iar prețul îl stabilești direct cu prestatorul.",
     ],
     prices: [
       { item: "Configurare server Linux (VPS) cu securizare de bază", range: "500–2.000 lei" },
@@ -374,7 +374,7 @@ export const creativeTechGuides: CategoryGuides = {
       "Instalare rețele, configurare routere, reparații calculatoare și recuperare date. Postezi gratuit și primești oferte de la tehnicieni verificați.",
     intro: [
       "Suportul IT și rețelistica acoperă instalarea și configurarea rețelelor în casă sau la birou, routere și Wi-Fi, reparații de calculatoare și laptopuri, recuperarea datelor și măsuri de securitate cibernetică. Ai nevoie de un tehnician când internetul nu acoperă toată locuința, când deschizi un birou nou, când un calculator nu mai pornește sau când ai pierdut fișiere importante.",
-      "Pe Contractez descrii problema sau ce vrei să instalezi, iar platforma te ajută să structurezi cererea. Primești maximum 5 oferte, doar de la tehnicieni compatibili, verificați prin email, telefon și, dacă au firmă, în registrul ANAF. Postarea e gratuită, iar datele tale de contact rămân ascunse până alegi prestatorul. Plata o stabilești direct cu el.",
+      "Pe Contractez descrii problema sau ce vrei să instalezi, iar platforma te ajută să structurezi cererea. Primești maximum 5 oferte, doar de la tehnicieni compatibili, verificați prin email și, dacă au firmă, în registrul ANAF. Postarea e gratuită, iar datele tale de contact rămân ascunse până alegi prestatorul. Plata o stabilești direct cu el.",
     ],
     prices: [
       { item: "Configurare router și rețea Wi-Fi acasă", range: "150–400 lei" },
@@ -471,7 +471,7 @@ export const creativeTechGuides: CategoryGuides = {
       "Găsește designeri pentru logo, UI/UX, print, ilustrație și randări 3D. Postezi proiectul gratuit și primești oferte de la prestatori verificați.",
     intro: [
       "Categoria Design & Creație reunește serviciile vizuale de care are nevoie o afacere sau un proiect personal: logo și identitate vizuală, design de site-uri și aplicații, materiale tipărite, ilustrații și randări 3D. Ai nevoie de un designer când îți lansezi brandul, când pregătești materiale pentru un eveniment sau când vrei să arăți cum va arăta un spațiu înainte să îl amenajezi.",
-      "Pe Contractez descrii ce vrei să obții, chiar dacă nu știi încă stilul exact, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte, doar de la designeri compatibili, verificați prin email, telefon și, dacă au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu designerul ales.",
+      "Pe Contractez descrii ce vrei să obții, chiar dacă nu știi încă stilul exact, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte, doar de la designeri compatibili, verificați prin email și, dacă au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu designerul ales.",
     ],
     prices: [
       { item: "Logo profesional cu fișiere sursă", range: "500–2.500 lei" },
@@ -550,7 +550,7 @@ export const creativeTechGuides: CategoryGuides = {
       "Designeri UI/UX în Figma pentru site-uri și aplicații: wireframes, prototipuri, design complet. Postezi gratuit și primești oferte verificate.",
     intro: [
       "Designul UI/UX stabilește cum arată și cum se folosește un site sau o aplicație: structura paginilor, fluxurile utilizatorului, wireframes, prototipuri interactive și designul final, pregătit pentru programatori. Ai nevoie de un designer UI/UX înainte să începi dezvoltarea unui produs digital, când utilizatorii se pierd în aplicația actuală sau când vrei un redesign al site-ului.",
-      "Pe Contractez descrii produsul și cine îl folosește, iar platforma te ajută să structurezi cererea. Proiectul ajunge doar la designeri compatibili și primești cel mult 5 oferte, cu opțiunea de a extinde selecția. Designerii sunt verificați prin email, telefon și, dacă au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu cel ales.",
+      "Pe Contractez descrii produsul și cine îl folosește, iar platforma te ajută să structurezi cererea. Proiectul ajunge doar la designeri compatibili și primești cel mult 5 oferte, cu opțiunea de a extinde selecția. Designerii sunt verificați prin email și, dacă au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu cel ales.",
     ],
     prices: [
       { item: "Wireframes pentru un site (5–8 pagini)", range: "1.000–3.000 lei" },
@@ -743,7 +743,7 @@ export const creativeTechGuides: CategoryGuides = {
       "Găsește copywriteri, autori de articole, traducători autorizați și corectori. Postezi gratuit și primești oferte de la prestatori verificați.",
     intro: [
       "Categoria Scris & Traduceri acoperă textele de care ai nevoie pentru afacere sau pentru acte: texte pentru site și reclame, articole de blog, traduceri simple sau autorizate, corectură și redactare. Ai nevoie de aceste servicii când lansezi un site, când vrei trafic din Google, când depui acte în altă țară sau când un document trebuie să fie impecabil.",
-      "Pe Contractez descrii ce text sau ce document ai, în cuvintele tale, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte, doar de la prestatori compatibili, verificați prin email, telefon și, dacă au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu prestatorul ales.",
+      "Pe Contractez descrii ce text sau ce document ai, în cuvintele tale, iar platforma te ajută să structurezi cererea. Postarea e gratuită și primești cel mult 5 oferte, doar de la prestatori compatibili, verificați prin email și, dacă au firmă, în registrul ANAF. Prețul și plata le stabilești direct cu prestatorul ales.",
     ],
     prices: [
       { item: "Texte pentru un site de prezentare (5 pagini)", range: "800–2.500 lei" },
@@ -821,7 +821,7 @@ export const creativeTechGuides: CategoryGuides = {
       "Redactori pentru articole SEO, bloguri și comunicate de presă în limba română. Postezi gratuit și primești oferte de la prestatori verificați.",
     intro: [
       "Serviciile de articole și blog includ articole optimizate pentru Google, conținut pentru blogul firmei, ghiduri, recenzii de produse și comunicate de presă. Ai nevoie de un redactor când vrei trafic organic constant, când nu ai timp să scrii singur sau când trebuie să anunți o lansare ori un eveniment în presă.",
-      "Pe Contractez descrii subiectele, frecvența și publicul, iar platforma te ajută să structurezi cererea. Primești cel mult 5 oferte, doar de la redactori compatibili, verificați prin email, telefon și, dacă au firmă, în registrul ANAF. Poți extinde selecția dacă vrei mai multe variante. Postarea e gratuită, iar plata o stabilești direct cu redactorul.",
+      "Pe Contractez descrii subiectele, frecvența și publicul, iar platforma te ajută să structurezi cererea. Primești cel mult 5 oferte, doar de la redactori compatibili, verificați prin email și, dacă au firmă, în registrul ANAF. Poți extinde selecția dacă vrei mai multe variante. Postarea e gratuită, iar plata o stabilești direct cu redactorul.",
     ],
     prices: [
       { item: "Articol de blog standard (circa 1.000 de cuvinte)", range: "150–300 lei" },
