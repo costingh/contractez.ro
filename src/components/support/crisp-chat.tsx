@@ -40,6 +40,15 @@ export function CrispChat({ websiteId, user }: { websiteId: string; user: { emai
     const s = document.createElement("script");
     s.src = "https://client.crisp.chat/l.js";
     s.async = true;
+    // Blocat (ad-blocker, rețea)? După 10 secunde trimitem omul la pagina de contact.
+    const fallback = window.setTimeout(() => {
+      window.location.href = "/contact";
+    }, 10_000);
+    window.$crisp.push(["on", "session:loaded", () => window.clearTimeout(fallback)]);
+    s.onerror = () => {
+      window.clearTimeout(fallback);
+      window.location.href = "/contact";
+    };
     document.head.appendChild(s);
   };
 
