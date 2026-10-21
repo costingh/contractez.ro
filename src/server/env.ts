@@ -29,6 +29,9 @@ const schema = z.object({
   UPLOAD_DIR: z.string().default("./uploads"),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
+  /** VisitTrack (opțional): id-ul public al site-ului (scriptul de tracking) și cheia API (evenimente de pe server). */
+  VISITRACK_SITE_ID: z.string().optional(),
+  VISITRACK_API_KEY: z.string().optional(),
 });
 
 const parsed = schema.safeParse(
@@ -48,6 +51,7 @@ export const features = {
   stripeConfigured: Boolean(env.STRIPE_SECRET_KEY),
   managedPayments: env.STRIPE_MANAGED_PAYMENTS,
   google: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
+  visitrack: Boolean(env.VISITRACK_SITE_ID),
 };
 
 export const adminEmails = new Set(

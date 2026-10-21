@@ -162,6 +162,8 @@ export const users = pgTable(
     companyVerifiedAt: timestamp("company_verified_at", { withTimezone: true }),
     companyVerification: jsonb("company_verification").$type<CompanyVerification>(),
     stripeCustomerId: text("stripe_customer_id"),
+    /** Id-ul de vizitator VisitTrack din browser (pentru evenimentele trimise de pe server și atribuirea plăților). */
+    vtVisitorId: text("vt_visitor_id"),
     referralCode: text("referral_code"),
     referredById: uuid("referred_by_id"),
     /** Prestator activat (email confirmat + onboarding): marchează o singură dată recompensa pentru recomandare. */

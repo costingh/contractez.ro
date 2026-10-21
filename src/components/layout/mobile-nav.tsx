@@ -9,12 +9,13 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import type { NavItem } from "./site-header";
+import { isActive } from "./nav-links";
+import type { NavItem, NavLink } from "./site-header";
 
 export function MobileNav({ items, signedIn }: { items: NavItem[]; signedIn: boolean }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const extra: NavItem[] = signedIn
+  const extra: NavLink[] = signedIn
     ? [
         { href: "/mesaje", label: "Mesaje" },
         { href: "/abonament", label: "Abonament" },
@@ -24,8 +25,8 @@ export function MobileNav({ items, signedIn }: { items: NavItem[]; signedIn: boo
         { href: "/autentificare", label: "Intră în cont" },
         { href: "/inregistrare", label: "Creează cont" },
       ];
-  const link = (item: NavItem) => {
-    const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href + "/"));
+  const link = (item: NavLink) => {
+    const active = isActive(pathname, item.href);
     return (
       <Link
         key={item.href}
@@ -55,7 +56,16 @@ export function MobileNav({ items, signedIn }: { items: NavItem[]; signedIn: boo
           </SheetTitle>
         </SheetHeader>
         <nav aria-label="Meniu mobil" className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4">
-          {items.map(link)}
+          {items.map((item) =>
+            "children" in item ? (
+              <div key={item.label} className="mt-3 first:mt-0">
+                <div className="eyebrow px-3 pb-1.5">{item.label}</div>
+                {item.children.map(link)}
+              </div>
+            ) : (
+              link(item)
+            ),
+          )}
           <div className="mx-3 my-3 border-t" />
           {extra.map(link)}
         </nav>

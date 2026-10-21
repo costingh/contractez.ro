@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Instrument_Sans, Instrument_Serif } from "next/font/google";
+import { Visitrack } from "@/components/analytics/visitrack";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { ThemeProvider } from "@/components/theme/theme-provider";
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="flex-1">{children}</main>
             <SiteFooter />
             <Toaster position="top-center" />
+            <Visitrack />
           </TooltipProvider>
         </ThemeProvider>
       </body>

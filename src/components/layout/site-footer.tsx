@@ -9,6 +9,7 @@ const columns: { title: string; links: { href: string; label: string }[] }[] = [
     links: [
       { href: "/proiecte/nou", label: "Publică un proiect gratuit" },
       { href: "/prestatori", label: "Caută prestatori" },
+      { href: "/orase", label: "Prestatori pe orașe" },
       { href: "/cum-functioneaza", label: "Cum funcționează" },
       { href: "/blog", label: "Ghiduri și prețuri" },
     ],

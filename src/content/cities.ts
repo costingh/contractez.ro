@@ -142,3 +142,13 @@ export function isCityPageIndexedByDefault(categorySlug: string, city: City) {
 
 /** Servicii pentru care contează distribuitorul de energie (avize, branșamente, PRAM). */
 export const powerRelatedServices = new Set(["instalatii-electrice", "panouri-solare", "aer-conditionat", "instalatii-termice", "renovari-complete"]);
+
+/** „Cluj-Napoca și județul Cluj”, „București și Ilfov”. */
+export function areaLabel(city: City) {
+  return city.countyCode === "B" ? "București și Ilfov" : `${city.name} și județul ${city.county}`;
+}
+
+/** „județul Cluj”, „Municipiul București”. */
+export function countyLabel(city: City) {
+  return city.countyCode === "B" ? "Municipiul București" : `județul ${city.county}`;
+}

@@ -36,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .limit(10000),
   ]);
 
-  const staticPages = ["", "/proiecte", "/prestatori", "/preturi", "/cum-functioneaza", "/contact", "/termeni", "/confidentialitate", "/blog"].map((p) => ({
+  const staticPages = ["", "/proiecte", "/prestatori", "/preturi", "/cum-functioneaza", "/contact", "/termeni", "/confidentialitate", "/blog", "/orase"].map((p) => ({
     url: `${base}${p}`,
     lastModified: now,
     changeFrequency: (p === "" || p === "/proiecte" ? "daily" : "weekly") as "daily" | "weekly",
@@ -55,8 +55,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .filter((c) => isCityPageIndexedByDefault(slug, c))
         .map((c) => ({ url: `${base}/categorii/${slug}/${c.slug}`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.6 })),
     );
+  const cityHubs = cities
+    .filter((c) => Object.keys(cityServices).some((s) => isCityPageIndexedByDefault(s, c)))
+    .map((c) => ({ url: `${base}/orase/${c.slug}`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.6 }));
   return [
     ...staticPages,
+    ...cityHubs,
     ...categories,
     ...cityPages,
     ...posts.map((p) => ({ url: `${base}/blog/${p.slug}`, lastModified: new Date(p.updated ?? p.date), changeFrequency: "monthly" as const, priority: 0.7 })),

@@ -1,0 +1,166 @@
+{/* SURSE (verificate 21.10.2026): (1) Upwork: support.upwork.com, articolul „Learn about the Freelancer Service Fee” (comisionul freelancerului e între 0% și 15% pe contract, afișat înainte de aplicare; la clienții Enterprise de regulă 10%) și upwork.com/i/how-it-works/freelancer/ (același interval 0–15%); aplicările consumă Connects, prețul lor nu l-am confirmat pe pagina oficială. (2) Fiverr: 20% din fiecare comandă, cifră constantă în ghidurile din 2026 (vaultleap.com, hireinsouth.com, fastlancer.org); pagina oficială help.fiverr.com nu a putut fi accesată (403). (3) Freelancer.com: freelancer.com/feesandcharges, accesat oct. 2026: 10% sau minimum 5 USD la proiectele cu preț fix, 10% la proiectele plătite cu ora; există planuri de membership. (4) Malt: help.malt.com, articolul „How does the Malt commission work for freelancers”: 10% fără TVA la un client găsit pe platformă, 5% după 6 luni de colaborare cu același client, 2% pentru clienții invitați de freelancer; ghidurile din 2026 raportează modificări, deci cifra e marcată „verifică”; ghidul Malt pentru freelanceri din străinătate cere firmă verificată în afara țărilor principale. (5) Toptal: toptal.com/freelance-jobs, oct. 2026: rețea care se prezintă ca „top 3%”, selecție de câteva săptămâni, freelancerul își stabilește tariful, Toptal se ocupă de facturarea clientului; nu e afișat un comision pentru freelancer. (6) UpTask.ro: uptask.ro, oct. 2026: comision 12%, prestatorul primește 88% după ce clientul marchează comanda finalizată, plată prin escrow; articole din mai și septembrie 2026. (7) HomeRun: homerun.ro, oct. 2026 (înscriere gratuită, rețea de 30.000 de profesioniști) și gadget.ro, 4.02.2026 (fără abonament; profesionistul plătește o taxă variabilă pe serviciu doar dacă acceptă să trimită ofertă; maximum 4 profesioniști selectați pe cerere). (8) Daibau: daibau.ro, oct. 2026: 19.283 de firme verificate, gratuit pentru clienți, acces la proiecte după verificarea firmei; costul pentru firme nu e afișat. (9) CautAjutor.ro: startupcafe.ro, 28.09.2026: lansat în septembrie 2026, cont de prestator gratuit, fără comision din lucrare, plată per răspuns doar când clientul deschide oferta, clientul primește până la 5 oferte; prețul per răspuns nu e publicat în sursă. (10) OLX Servicii: modelul de tarifare pentru categoria Servicii nu l-am găsit într-o sursă oficială recentă. (11) Freelance.ro și LiberProfi.ro au fost verificate și excluse: pe freelance.ro contoarele de proiecte și profiluri arătau 0, iar liberprofi.ro redirecționează spre o pagină cu „Launching soon” și copyright 2022. (12) Contractez: planurile și prețurile din src/config/site.ts (Pro 49 lei, Business 149 lei) și modelul fără comision descris pe /preturi. */}
+
+Dacă vrei clienți străini și lucrezi online (programare, design, texte), platformele internaționale precum Upwork, Fiverr sau Freelancer.com au cel mai mare volum de proiecte, dar iau un comision din fiecare plată. Pentru clienți din România, mai ales dacă ești meseriaș sau lucrezi la domiciliul clientului, platformele locale de cereri de ofertă și canalele proprii (Google, recomandări, grupuri de Facebook) aduc de obicei proiecte mai relevante. Mai jos ai o comparație cu costurile reale verificate în octombrie 2026 și pașii practici pentru a găsi clienți și în afara platformelor.
+
+## Platforme freelancing România și internaționale: comparația pe scurt
+
+Tabelul de mai jos pune una lângă alta platformele active în 2026 pe care le folosesc freelancerii și meseriașii din România. Comisioanele sunt cele publicate de platforme, cu luna în care le-am verificat. Unde n-am găsit o cifră oficială, scrie „variabil, verifică pe site”.
+
+| Platformă | Pentru cine | Comision/cost | Avantaje | Dezavantaje |
+| --- | --- | --- | --- | --- |
+| Upwork | IT, design, marketing, scris, clienți internaționali | 0–15% pe contract, afișat înainte să aplici (support.upwork.com, oct. 2026); aplicările consumă Connects | cel mai mare volum de proiecte remote, plată protejată | concurență globală pe preț, Connects consumate și când nu primești răspuns |
+| Fiverr | servicii „la pachet”: logo, editare video, texte | 20% din comandă (raportat în ghidurile din 2026; verifică pe site) | clientul vine la tine, nu trimiți propuneri | comision mare, presiune pe prețuri mici |
+| Freelancer.com | proiecte remote variate, inclusiv concursuri | 10% sau minimum 5 USD la preț fix, 10% la orar (freelancer.com, oct. 2026) | multe proiecte mici, bune pentru început | foarte multe oferte pe fiecare proiect |
+| Malt | consultanți și freelanceri seniori, clienți din Europa de Vest | 10% la un client nou, 5% după 6 luni, 2% pentru clienții aduși de tine (help.malt.com, oct. 2026; verifică, s-a modificat) | clienți corporate, tarife zilnice mari | orientat pe Franța, Germania, Spania etc.; din alte țări ți se cere firmă verificată |
+| Toptal | programatori, designeri și specialiști în finanțe cu experiență | nu afișează comision pentru freelancer; îți setezi tariful, Toptal facturează clientul (toptal.com, oct. 2026) | proiecte bine plătite, fără licitații | selecție în mai multe etape, care durează câteva săptămâni |
+| UpTask.ro | freelanceri români: design, web, foto, marketing | 12% din comandă (uptask.ro, oct. 2026) | platformă în română, plată prin escrow | comunitate mai mică decât la cele internaționale |
+| HomeRun | meseriași și servicii pentru casă | fără abonament; plătești o taxă variabilă pe serviciu când accepți să trimiți ofertă (gadget.ro, feb. 2026) | rețea mare, maximum 4 profesioniști pe cerere | plătești pentru ocazie, chiar dacă nu câștigi lucrarea |
+| Daibau | firme de construcții și renovări | variabil, verifică pe site | peste 19.000 de firme verificate, nișă clară | e gândit pentru firme, nu pentru freelanceri |
+| CautAjutor.ro | meseriași și prestatori locali | cont gratuit, fără comision; plătești per răspuns doar dacă clientul deschide oferta (startupcafe.ro, sept. 2026) | plătești doar ofertele citite | lansat în septembrie 2026, încă puțin testat |
+| OLX Servicii | orice prestator local | variabil, verifică pe site | audiență foarte mare | multe anunțuri, concurență pe preț |
+| Contractez | prestatori locali și freelanceri din România | plan gratuit cu 5 aplicări pe lună; Pro 49 lei/lună (40 de aplicări, Auto Bid); Business 149 lei/lună (200 de aplicări, profil promovat); fără comision din lucrare | clienți din România, cel mult 5 oferte pe proiect, prețul îl stabilești direct cu clientul | platformă nouă, lansată în octombrie 2026; plata se face direct între voi, fără escrow |
+
+Am verificat și alte site-uri de freelancing românești care apar în articolele vechi, dar nu le-am trecut în tabel. Pe unul dintre ele nu apărea niciun proiect recent, iar altul afișa o pagină „în curând” cu copyright din 2022.
+
+### Site-uri freelancing românești: ce găsești pe ele
+
+Site-urile românești se împart în două tipuri:
+
+- **Marketplace-uri de freelancing** (de exemplu UpTask.ro), unde vinzi servicii online, de obicei prin escrow și cu un comision procentual.
+- **Platforme de cereri de ofertă**, unde clientul descrie o lucrare și primește câteva oferte: HomeRun, Daibau, CautAjutor.ro, Contractez. Aici costul pentru tine e o taxă per ofertă sau un abonament, nu un procent din lucrare.
+
+Dacă faci proiecte online, de pildă [dezvoltare web](/categorii/dezvoltare-web), poți folosi ambele tipuri. Dacă lucrezi la fața locului, contează mai mult platformele de cereri de ofertă.
+
+<Cta href="/inregistrare?rol=prestator" title="Ești prestator?">Creează-ți profilul gratuit și primești proiecte compatibile din zona ta.</Cta>
+
+## Upwork vs platforme românești: pe care le alegi
+
+Alegerea depinde mai puțin de platformă și mai mult de cine e clientul tău.
+
+**Alege Upwork, Fiverr sau Freelancer.com dacă:**
+
+- lucrezi integral online și vorbești bine engleză;
+- vrei tarife în euro sau dolari, nu în lei;
+- poți rezista primelor luni, când concurezi cu mii de freelanceri care au deja recenzii.
+
+**Alege platformele românești dacă:**
+
+- clientul trebuie să te vadă sau să te primească acasă: instalator, electrician, zugrav, fotograf, meditator;
+- vrei să lucrezi în română, cu factură în lei și fără conversii valutare;
+- preferi mai puțină concurență pe fiecare proiect. Pe platformele de cereri de ofertă, numărul de oferte e limitat: 4 la HomeRun, 5 la CautAjutor.ro și la Contractez.
+
+Mulți freelanceri folosesc ambele variante: un profil pe Upwork pentru clienții străini și unul pe o platformă locală pentru proiectele din oraș.
+
+<Callout type="info" title="Upwork nu are un comision fix">
+Upwork nu aplică o cotă unică pentru toți freelancerii. Comisionul freelancerului e între 0% și 15% și îl vezi pe fiecare proiect înainte să aplici. Citește-l de fiecare dată, pentru că diferența dintre 5% și 15% pe un proiect de 2.000 de dolari înseamnă 200 de dolari.
+</Callout>
+
+## Comision platforme freelancing: cât te costă de fapt
+
+Platformele câștigă bani în trei moduri. Fiecare te avantajează în altă situație.
+
+1. **Comision procentual din lucrare** (Upwork, Fiverr, Freelancer.com, Malt, UpTask.ro). Plătești doar când încasezi, dar plătești la fiecare proiect, oricât de mare ar fi.
+2. **Plată per ofertă sau per cerere** (HomeRun, CautAjutor.ro). Plătești pentru șansa de a câștiga un client, nu pentru lucrarea în sine.
+3. **Abonament lunar** (Contractez, planurile de membership de la Freelancer.com). Costul e fix, iar tot ce câștigi rămâne la tine.
+
+Un exemplu simplu: ai un proiect de 3.000 de lei. La un comision de 10% plătești 300 de lei, iar la 20% plătești 600 de lei. Un abonament de 49 de lei pe lună costă la fel indiferent dacă iei un proiect sau cinci. Pe de altă parte, dacă iei un singur proiect mic pe lună, comisionul poate ieși mai ieftin decât abonamentul.
+
+<Callout type="tip" title="Calculează costul pe client câștigat">
+Nu compara doar procentele. Notează câte oferte trimiți, câte câștigi și cât ai plătit în total pe platformă. Împarte suma la numărul de clienți câștigați și ai costul real al unui client. Fă calculul după 2–3 luni, nu după prima săptămână.
+</Callout>
+
+Mai e un detaliu: la unele platforme internaționale poate apărea și TVA pe comision, plus costuri de retragere a banilor sau de schimb valutar. Întreabă-ți contabilul cum se înregistrează aceste costuri în cazul tău.
+
+## Unde găsesc clienți ca freelancer în afara platformelor
+
+Platformele sunt un început bun, dar cei mai stabili clienți vin de obicei din canalele tale. Ai nevoie de patru lucruri.
+
+### Un portofoliu pe care îl poți trimite într-un minut
+
+Portofoliul e primul lucru pe care îl cere un client, indiferent cum te-a găsit.
+
+- Alege 5–8 lucrări bune, nu 40 de lucrări medii.
+- Pentru fiecare lucrare, scrie trei rânduri: ce problemă avea clientul, ce ai făcut și ce rezultat a obținut.
+- Dacă ești meseriaș, fă poze înainte și după, cu lumină bună și din același unghi.
+- Ține totul într-un singur loc: un site simplu, un PDF sau profilul de pe o platformă. Așa trimiți un singur link.
+
+### Google Business Profile, dacă ai o zonă reală de servicii
+
+Google Business Profile (fosta fișă Google My Business) e gratuit și te poate aduce în Google Maps când cineva caută „electrician Cluj” sau „fotograf nuntă Iași”. Merge și dacă n-ai sediu cu clienți la ușă:
+
+- îți setezi **zona de servicii** (orașe sau județe) și îți ascunzi adresa de acasă;
+- alegi categoria exactă, adaugi programul, poze cu lucrări reale și un număr de telefon la care răspunzi;
+- le ceri clienților mulțumiți o recenzie imediat după lucrare, cu linkul direct.
+
+Folosește doar adresa și zona în care lucrezi cu adevărat. Fișele cu adrese inventate pot fi suspendate de Google.
+
+### Recomandările: cel mai ieftin canal
+
+Un client mulțumit te poate recomanda la încă doi-trei oameni, dar de obicei trebuie să-i amintești:
+
+- la final, spune-i clar că lucrezi din recomandări și roagă-l să te dea mai departe;
+- trimite-i un mesaj scurt cu linkul la portofoliu, ca să-l poată redirecționa ușor;
+- colaborează cu meserii complementare: electricianul îl recomandă pe instalator, designerul pe programator.
+
+### Grupuri locale de Facebook
+
+Grupurile de cartier, de oraș sau de asociații de proprietari sunt pline de cereri de genul „caut un meseriaș de încredere”. Ce funcționează:
+
+- citește regulile grupului; multe permit reclamă doar într-o anumită zi sau deloc;
+- răspunde util la întrebări, nu doar cu numărul de telefon;
+- pune poze cu lucrări reale din zonă, cu acordul clientului.
+
+## Cum găsesc clienți ca meseriaș: ce merge local
+
+Pentru meseriași, regulile sunt puțin diferite față de freelancerii online:
+
+- **Timpul de răspuns contează enorm.** Clientul cu țeava spartă îl angajează pe primul care răspunde serios, nu pe cel mai ieftin.
+- **Ofertele scrise câștigă.** Un preț estimat, ce include, cât durează și când poți începe. Clientul compară mai ușor și are mai multă încredere.
+- **Autorizările se arată din prima.** De exemplu, la [instalații electrice](/categorii/instalatii-electrice) clienții caută electricieni autorizați ANRE. Pune autorizația în profil și în oferte.
+- **Zona contează.** Mai bine 20 de clienți într-un oraș decât 5 în tot județul, pentru că pierzi mai puțin timp pe drum.
+
+Pe Contractez poți vedea [proiectele deschise](/proiecte) din zona ta și filtra după categorie înainte să-ți faci cont. Dacă vrei să știi ce primești în fiecare plan, vezi [prețurile pentru prestatori](/preturi).
+
+## Cum să lucrezi ca freelancer în România: PFA sau fără firmă
+
+Dacă lucrezi constant pentru clienți și încasezi bani din asta, ai nevoie, în general, de o formă legală: **PFA**, întreprindere individuală sau SRL. Alegerea depinde de cât câștigi, cu cine lucrezi (persoane fizice sau firme, din țară sau din străinătate) și dacă ai cheltuieli mari.
+
+Pe scurt, diferențele practice:
+
+- **Fără nicio formă de organizare** nu poți emite facturi, iar multe firme și platforme nu te pot plăti corect. Lucrul constant fără înregistrare te expune la probleme cu ANAF.
+- **PFA** se înființează relativ simplu și e forma aleasă des la început. Răspunzi însă cu bunurile personale.
+- **SRL** are mai multe obligații administrative, dar separă patrimoniul firmei de al tău.
+
+Unele venituri, de exemplu cele din drepturi de autor, au alt regim, iar regulile fiscale se schimbă des.
+
+<Callout type="warning" title="Nu decide forma legală după un articol">
+Impozitele, contribuțiile și pragurile de TVA se modifică aproape în fiecare an. Înainte să te înregistrezi, discută cu un contabil care lucrează cu freelanceri. Poți găsi unul în categoria [contabilitate](/categorii/contabilitate).
+</Callout>
+
+<Cta href="/inregistrare?rol=prestator" title="Ești prestator?">Creează-ți profilul gratuit și primești proiecte compatibile din zona ta.</Cta>
+
+## Întrebări frecvente
+
+### Care sunt cele mai bune platforme de freelancing din România?
+
+Nu există una singură care să fie cea mai bună pentru toată lumea. Pentru proiecte online cu clienți străini, Upwork, Fiverr și Freelancer.com au cel mai mare volum. Pentru clienți din România și lucrări la fața locului, contează platformele de cereri de ofertă (HomeRun, Daibau, CautAjutor.ro, Contractez) și marketplace-urile locale precum UpTask.ro.
+
+### Cât comision iau platformele de freelancing?
+
+În octombrie 2026, Upwork ia între 0% și 15% pe contract, Freelancer.com 10% (minimum 5 USD la proiectele cu preț fix), Fiverr 20% din comandă, iar UpTask.ro 12%. Platformele de cereri de ofertă nu iau un procent, ci cer o taxă per ofertă sau un abonament.
+
+### Unde găsesc clienți ca freelancer dacă abia încep?
+
+Începe cu 3–5 lucrări în portofoliu, chiar și proiecte făcute pentru prieteni sau pentru tine. Apoi aplică pe o platformă cu proiecte mici și cere recenzii de la primii clienți. În paralel, spune-le cunoscuților ce faci și intră în grupurile locale relevante.
+
+### Pot lucra pe Upwork din România fără PFA?
+
+Tehnic, îți poți face cont, dar dacă încasezi regulat bani din proiecte ai nevoie, în general, de o formă legală de organizare, iar declararea veniturilor e obligația ta. Întreabă un contabil ce variantă ți se potrivește.
+
+### Merită Google Business Profile pentru un meseriaș fără sediu?
+
+Da, dacă lucrezi într-o zonă clară. Îți setezi zona de servicii, îți ascunzi adresa de acasă și adaugi poze și recenzii reale. Pentru căutările de tipul „meserie + oraș”, e unul dintre cele mai bune canale gratuite.
+
+### Contractez ia comision din lucrare?
+
+Nu. Clientul și prestatorul stabilesc prețul și plata direct. Prestatorul are un plan gratuit cu 5 aplicări pe lună sau poate alege un abonament: Pro, la 49 de lei pe lună, sau Business, la 149 de lei pe lună.

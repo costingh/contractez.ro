@@ -11,7 +11,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { site } from "@/config/site";
 import { getCategoryGuide } from "@/content/category-guides";
-import { cities, citiesBySlug, cityServices, isCityPageIndexedByDefault, powerRelatedServices } from "@/content/cities";
+import { areaLabel, cities, citiesBySlug, cityServices, isCityPageIndexedByDefault, powerRelatedServices } from "@/content/cities";
 import { findLocalityByName, nearbyLocalities } from "@/server/catalog/localities";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { env } from "@/server/env";
@@ -132,7 +132,7 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
                 {service.noun} în {city.name}
               </h1>
               <p className="enter mt-5 max-w-2xl text-[1.0625rem] leading-relaxed text-white/65" style={cssVars({ i: 2 })}>
-                Publici gratuit ce ai nevoie și primești până la 5 oferte de la {service.plural} verificați din {city.name} și județul {city.county}.
+                Publici gratuit ce ai nevoie și primești până la 5 oferte de la {service.plural} verificați din {areaLabel(city)}.
                 Compari prețurile și alegi direct, fără comision.
               </p>
               <div className="enter mt-8 flex flex-col gap-3 sm:flex-row" style={cssVars({ i: 3 })}>
@@ -191,7 +191,7 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
             )}
             {slug === "topografie-cadastru" && (
               <p>
-                Documentația cadastrală întocmită de un expert autorizat ANCPI se depune la OCPI {city.county} (Oficiul de Cadastru și Publicitate
+                Documentația cadastrală întocmită de un expert autorizat ANCPI se depune la OCPI {city.countyCode === "B" ? "București" : city.county} (Oficiul de Cadastru și Publicitate
                 Imobiliară), care face și înscrierea în cartea funciară.
               </p>
             )}
@@ -274,6 +274,12 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
                   {cityServices[c.slug].noun}
                 </Link>
               ))}
+              <Link
+                href={`/orase/${city.slug}`}
+                className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium text-brand underline-offset-4 hover:underline"
+              >
+                Toate serviciile din {city.name} <ArrowRight className="size-3.5" />
+              </Link>
             </div>
           </section>
         )}

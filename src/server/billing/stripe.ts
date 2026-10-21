@@ -84,9 +84,12 @@ export async function createPlanCheckout(userId: string, planId: string) {
     .where(and(eq(subscriptions.userId, userId), inArray(subscriptions.status, ["active", "past_due"]), sql`${subscriptions.stripeSubscriptionId} IS NOT NULL`));
   if (paid) throw new DomainError("active", "Ai deja un abonament. Schimbă planul sau anulează-l din „Gestionează abonamentul”.");
   const customer = await ensureCustomer(userId);
+  // Id-ul de vizitator VisitTrack: atribuie plata vizitei (sursă, campanie) care a adus-o.
+  const [vt] = await db.select({ vid: users.vtVisitorId }).from(users).where(eq(users.id, userId)).limit(1);
   const session = await getStripe().checkout.sessions.create({
     mode: "subscription",
     customer,
+    ...(vt?.vid ? { client_reference_id: vt.vid } : {}),
     line_items: [planPrice(plan)],
     metadata: { kind: "plan", planId: plan.id, userId },
     subscription_data: { metadata: { kind: "plan", planId: plan.id, userId } },

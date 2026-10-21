@@ -12,7 +12,9 @@ import { MobileNav } from "./mobile-nav";
 import { NavLinks } from "./nav-links";
 import { UserMenu } from "./user-menu";
 
-export type NavItem = { href: string; label: string };
+export type NavLink = { href: string; label: string; description?: string };
+/** Un link simplu sau un grup afișat ca meniu derulant. */
+export type NavItem = NavLink | { label: string; children: NavLink[] };
 
 export function navFor(user: { isClient: boolean; isProvider: boolean; role: string } | null): NavItem[] {
   if (!user) {
@@ -21,14 +23,24 @@ export function navFor(user: { isClient: boolean; isProvider: boolean; role: str
       { href: "/prestatori", label: "Prestatori" },
       { href: "/cum-functioneaza", label: "Cum funcționează" },
       { href: "/preturi", label: "Prețuri" },
+      { href: "/blog", label: "Ghiduri" },
     ];
   }
+  const provider: NavLink[] = [
+    { href: "/recomandari", label: "Recomandări", description: "Proiecte potrivite pentru profilul tău" },
+    { href: "/proiecte", label: "Proiecte", description: "Toate proiectele deschise" },
+    { href: "/aplicarile-mele", label: "Aplicările mele", description: "Ofertele trimise și statusul lor" },
+  ];
+  const client: NavLink[] = [
+    { href: "/proiectele-mele", label: "Proiectele mele", description: "Proiectele publicate și ofertele primite" },
+    { href: "/prestatori", label: "Prestatori", description: "Caută și compară prestatori" },
+  ];
   const items: NavItem[] = [{ href: "/panou", label: "Panou" }];
-  if (user.isProvider) {
-    items.push({ href: "/recomandari", label: "Recomandări" }, { href: "/proiecte", label: "Proiecte" }, { href: "/aplicarile-mele", label: "Aplicările mele" });
-  }
-  if (user.isClient) items.push({ href: "/proiectele-mele", label: "Proiectele mele" }, { href: "/prestatori", label: "Prestatori" });
-  if (!user.isProvider && !user.isClient) items.push({ href: "/proiecte", label: "Proiecte" });
+  // Cu ambele roluri, linkurile se grupează ca să nu aglomereze bara.
+  if (user.isProvider && user.isClient) items.push({ label: "Prestator", children: provider }, { label: "Client", children: client });
+  else if (user.isProvider) items.push(...provider);
+  else if (user.isClient) items.push(...client);
+  else items.push({ href: "/proiecte", label: "Proiecte" });
   if (user.role === "admin") items.push({ href: "/admin", label: "Admin" });
   return items;
 }
@@ -69,7 +81,7 @@ export async function SiteHeader() {
                 <Link
                   href="/abonament"
                   title={`Aplicări rămase în planul ${usage.plan.name}`}
-                  className="mr-1 hidden h-8 items-center gap-1.5 rounded-md border bg-card px-2.5 text-xs font-medium tabular-nums shadow-xs transition-colors hover:bg-muted md:inline-flex"
+                  className="mr-1 hidden h-8 items-center gap-1.5 rounded-md border bg-card px-2.5 text-xs font-medium whitespace-nowrap tabular-nums shadow-xs transition-colors hover:bg-muted xl:inline-flex"
                 >
                   <Send className="size-3.5 text-muted-foreground" /> <LiveApplicationsLeft initial={counts} at={at} />
                   <span className="text-muted-foreground">· {usage.plan.name}</span>

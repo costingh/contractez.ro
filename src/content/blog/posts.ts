@@ -17,6 +17,42 @@ export type Post = {
 
 export const posts: Post[] = [
   {
+    slug: "cat-costa-renovare-baie",
+    title: "Cât costă renovarea unei băi în 2026: prețuri și etape",
+    description:
+      "Cât costă renovarea unei băi de 4 mp la bloc în 2026: prețuri pe nivel de finisaj, manopera pe fiecare lucrare, etapele, durata și ce conține oferta.",
+    date: "2026-10-21",
+    readingMinutes: 9,
+    categories: ["renovari-complete", "gresie-faianta", "instalatii-sanitare"],
+  },
+  {
+    slug: "platforme-freelancing-romania",
+    title: "Platforme freelancing România 2026: comisioane și clienți",
+    description:
+      "Compară platformele de freelancing din România și străinătate: comisioane verificate în 2026, Upwork vs site-uri românești și cum găsești clienți singur.",
+    date: "2026-10-21",
+    readingMinutes: 10,
+    categories: ["dezvoltare-web", "contabilitate"],
+  },
+  {
+    slug: "traducere-autorizata-vs-legalizata",
+    title: "Traducere autorizată vs legalizată: diferențe, preț, apostilă",
+    description:
+      "Ce e traducerea autorizată și ce e cea legalizată, când îți trebuie apostila de la Haga sau supralegalizarea, cât costă pe pagină în 2026 și cât durează.",
+    date: "2026-10-21",
+    readingMinutes: 8,
+    categories: ["traduceri", "corectura", "consultanta-juridica"],
+  },
+  {
+    slug: "cat-costa-o-mutare",
+    title: "Cât costă o mutare în 2026: prețuri pe apartament și pe km",
+    description:
+      "Cât costă o mutare în 2026: prețuri pentru garsonieră, 2 sau 3 camere și casă, tarif pe km în alt oraș, costuri extra și cum alegi firma de mutări.",
+    date: "2026-10-21",
+    readingMinutes: 9,
+    categories: ["mutari", "transport-marfa", "debarasare"],
+  },
+  {
     slug: "cadastru-intabulare-acte-necesare-cost",
     title: "Acte necesare cadastru și intabulare: costuri și termene 2026",
     description:
