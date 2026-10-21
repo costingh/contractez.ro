@@ -49,7 +49,7 @@ async function ensureCustomer(userId: string) {
   return customer.id;
 }
 
-const INTEGRATION_ID = "prestio_plans_wpxtlnse";
+const INTEGRATION_ID = "contractez_plans_wpxtlnse";
 
 function managedPayments(): Pick<Stripe.Checkout.SessionCreateParams, "managed_payments"> {
   return features.managedPayments ? { managed_payments: { enabled: true } } : {};
