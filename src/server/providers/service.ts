@@ -1,5 +1,6 @@
 import { and, eq, ne, sql } from "drizzle-orm";
 import { z } from "zod";
+import { normalizeSocialUrl, SOCIAL_KEYS, type SocialKey, type SocialLinks } from "@/lib/social-links";
 import { normalizeText, slugify } from "@/lib/text";
 import { getCatalog } from "../catalog/taxonomy";
 import { getLocality } from "../catalog/localities";
@@ -7,6 +8,23 @@ import { db } from "../db";
 import { portfolioItems, providerCategories, providerProfiles, providerServices, providerSkills, skills, users } from "../db/schema";
 import { DomainError } from "../errors";
 import { enqueue } from "../queue";
+
+/**
+ * Linkurile sociale trimise din formular: cheile sunt rețelele suportate, valorile pot fi linkuri,
+ * linkuri fără „https://” sau nume de utilizator. Rezultatul conține doar linkuri https normalizate;
+ * câmpurile goale lipsesc (linkul se șterge).
+ */
+export const socialLinksSchema = z
+  .partialRecord(z.enum(SOCIAL_KEYS), z.string().nullable())
+  .transform((raw, ctx) => {
+    const out: SocialLinks = {};
+    for (const key of SOCIAL_KEYS) {
+      const r = normalizeSocialUrl(key, raw[key] ?? "");
+      if (!r.ok) ctx.addIssue({ code: "custom", message: r.error, path: [key] });
+      else if (r.url) out[key as SocialKey] = r.url;
+    }
+    return out;
+  });
 
 export const providerProfileSchema = z.object({
   headline: z.string().trim().min(5, "Scrie un titlu scurt (ex: Electrician autorizat ANRE)").max(120),
@@ -23,6 +41,8 @@ export const providerProfileSchema = z.object({
   availability: z.enum(["available", "busy", "unavailable"]).default("available"),
   hoursPerWeek: z.coerce.number().int().min(1).max(80).nullable().optional(),
   websiteUrl: z.string().url("Link invalid").max(300).nullable().optional().or(z.literal("").transform(() => null)),
+  /** Lipsă = nu modificăm linkurile (ex. formularul din onboarding nu le conține). */
+  socialLinks: socialLinksSchema.optional(),
   certifications: z.string().max(1_000).nullable().optional(),
   categoryIds: z.array(z.coerce.number().int().positive()).min(1, "Alege cel puțin o categorie").max(8),
   skills: z.array(z.string().trim().min(2).max(60)).max(30).default([]),
@@ -144,6 +164,7 @@ export async function saveProviderProfile(userId: string, raw: unknown) {
       availability: input.availability,
       hoursPerWeek: input.hoursPerWeek ?? null,
       websiteUrl: input.websiteUrl ?? null,
+      ...(input.socialLinks !== undefined ? { socialLinks: input.socialLinks } : {}),
       certifications: input.certifications ?? null,
     };
     const [existing] = await tx.select({ slug: providerProfiles.slug }).from(providerProfiles).where(eq(providerProfiles.userId, userId));
@@ -210,6 +231,17 @@ export async function addPortfolioItem(userId: string, raw: unknown, imagePath: 
 
 export async function deletePortfolioItem(userId: string, itemId: string) {
   await db.delete(portfolioItems).where(and(eq(portfolioItems.id, itemId), eq(portfolioItems.providerId, userId)));
+}
+
+/** Setează (sau, cu `null`, elimină) imaginea de copertă a profilului public. */
+export async function setProviderCover(userId: string, coverPath: string | null) {
+  const updated = await db
+    .update(providerProfiles)
+    .set({ coverPath })
+    .where(eq(providerProfiles.userId, userId))
+    .returning({ slug: providerProfiles.slug });
+  if (updated.length === 0) throw new DomainError("provider", "Completează mai întâi profilul de prestator.");
+  return updated[0].slug;
 }
 
 /** Reîmprospătează rating-ul și numărul de colaborări finalizate. */

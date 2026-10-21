@@ -19,6 +19,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { ReportDialog } from "@/components/project-detail/report-dialog";
+import { SocialLinks } from "@/components/providers/social-links";
 import { LANGUAGES } from "@/components/public-search/provider-filters-form";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -165,12 +166,26 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
       <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
         <div className="min-w-0 space-y-10">
           <header className="enter overflow-hidden rounded-[1.6rem] border bg-card shadow-sm">
-            {/* Copertă „ink” cu auroră; avatarul o încalecă */}
-            <div aria-hidden className="ink-panel h-28 sm:h-36">
-              <div className="aurora aurora-a -top-40 -left-20 size-[420px]" />
-              <div className="aurora aurora-b -right-24 -bottom-48 size-[380px] opacity-45" />
-              <div className="aurora aurora-c top-[-60%] left-[45%] size-[300px] opacity-30" />
-            </div>
+            {/* Coperta încărcată de prestator sau, implicit, panoul „ink” cu auroră; avatarul o încalecă */}
+            {p.coverPath ? (
+              <div className="relative bg-muted">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/api/files/${p.coverPath}`}
+                  alt=""
+                  fetchPriority="high"
+                  decoding="async"
+                  className="aspect-[12/5] w-full object-cover sm:aspect-[16/5] dark:brightness-[0.92]"
+                />
+                <div aria-hidden className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/25 via-black/0 to-black/0 dark:from-black/45" />
+              </div>
+            ) : (
+              <div aria-hidden className="ink-panel h-28 sm:h-36">
+                <div className="aurora aurora-a -top-40 -left-20 size-[420px]" />
+                <div className="aurora aurora-b -right-24 -bottom-48 size-[380px] opacity-45" />
+                <div className="aurora aurora-c top-[-60%] left-[45%] size-[300px] opacity-30" />
+              </div>
+            )}
             <div className="flex flex-col gap-5 px-6 pb-7 sm:flex-row sm:items-start sm:px-8">
             <Avatar className="-mt-12 size-24 shrink-0 shadow-lg ring-4 ring-card sm:-mt-14 sm:size-28">
               {u.avatarPath && <AvatarImage src={`/api/files/${u.avatarPath}`} alt={u.name} />}
@@ -204,6 +219,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
                   </span>
                 )}
               </div>
+              <SocialLinks links={p.socialLinks} />
               <div className="flex flex-wrap gap-1.5 border-t pt-4">
                 {u.emailVerifiedAt && (
                   <Badge variant="success" className="gap-1">

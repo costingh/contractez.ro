@@ -161,7 +161,7 @@ export async function deleteAccount(userId: string) {
         referralCode: null,
       })
       .where(eq(users.id, userId));
-    await tx.update(providerProfiles).set({ isPublic: false, bio: "", headline: "", websiteUrl: null, searchText: "" }).where(eq(providerProfiles.userId, userId));
+    await tx.update(providerProfiles).set({ isPublic: false, bio: "", headline: "", websiteUrl: null, socialLinks: {}, coverPath: null, searchText: "" }).where(eq(providerProfiles.userId, userId));
     await tx
       .update(projects)
       .set({ status: "cancelled", closedAt: new Date() })
@@ -191,6 +191,7 @@ export async function getProviderFormData(userId: string) {
     exists: Boolean(p),
     slug: p?.slug ?? null,
     isPublic: p?.isPublic ?? true,
+    coverPath: p?.coverPath ?? null,
     initial: {
       headline: p?.headline ?? "",
       bio: p?.bio ?? "",
@@ -206,6 +207,7 @@ export async function getProviderFormData(userId: string) {
       availability: p?.availability ?? ("available" as const),
       hoursPerWeek: p?.hoursPerWeek ?? null,
       websiteUrl: p?.websiteUrl ?? null,
+      socialLinks: p?.socialLinks ?? {},
       certifications: p?.certifications ?? null,
       categoryIds: cats.map((c) => c.category_id),
       skills: sk.map((s) => s.name),

@@ -24,7 +24,7 @@ function sniff(buf: Buffer): string | null {
 
 /**
  * Salvează un fișier încărcat. `scope`:
- *  - "public/avatars", "public/portfolio": accesibile oricui;
+ *  - "public/avatars", "public/portfolio", "public/covers": accesibile oricui;
  *  - "chat/<conversationId>": doar participanților conversației.
  */
 export async function saveUpload(file: File, scope: string, allow: "image" | "document" = "image") {

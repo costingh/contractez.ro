@@ -5,7 +5,7 @@ import { formBool, formNum, formStr, toActionError, type ActionState } from "@/l
 import { setProfilePublic, updateBasicInfo } from "@/server/account";
 import { requireUser } from "@/server/auth/guards";
 import { DomainError } from "@/server/errors";
-import { addPortfolioItem, deletePortfolioItem, deleteService } from "@/server/providers/service";
+import { addPortfolioItem, deletePortfolioItem, deleteService, setProviderCover } from "@/server/providers/service";
 import { replyToReview } from "@/server/trust/service";
 import { saveUpload } from "@/server/uploads";
 import { rateLimit } from "@/server/rate-limit";
@@ -62,6 +62,35 @@ export async function deletePortfolioAction(itemId: string): Promise<ActionState
     await deletePortfolioItem(user.id, itemId);
     refresh();
     return { ok: true, message: "Lucrarea a fost ștearsă." };
+  } catch (err) {
+    return toActionError(err);
+  }
+}
+
+/** Încarcă sau înlocuiește imaginea de copertă a profilului public. */
+export async function saveCoverAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const user = await requireUser("/profil");
+    if (!user.isProvider) throw new DomainError("provider", "Completează mai întâi profilul de prestator.");
+    const file = fd.get("cover");
+    if (!(file instanceof File) || file.size === 0) throw new DomainError("empty", "Alege o imagine pentru copertă.");
+    const { path } = await saveUpload(file, "public/covers", "image");
+    const slug = await setProviderCover(user.id, path);
+    refresh();
+    revalidatePath(`/prestatori/${slug}`);
+    return { ok: true, message: "Coperta a fost salvată." };
+  } catch (err) {
+    return toActionError(err);
+  }
+}
+
+export async function removeCoverAction(): Promise<ActionState> {
+  try {
+    const user = await requireUser("/profil");
+    const slug = await setProviderCover(user.id, null);
+    refresh();
+    revalidatePath(`/prestatori/${slug}`);
+    return { ok: true, message: "Coperta a fost eliminată." };
   } catch (err) {
     return toActionError(err);
   }

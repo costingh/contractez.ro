@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { formBool, formNum, formStr, toActionError, type ActionState } from "@/lib/action";
+import { SOCIAL_KEYS } from "@/lib/social-links";
 import { requireUser } from "@/server/auth/guards";
 import { getCatalog, skillsForCategory } from "@/server/catalog/taxonomy";
 import { db } from "@/server/db";
@@ -11,6 +12,25 @@ import { users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { finishOnboarding, saveBasics, saveProviderStep } from "@/server/onboarding";
 import { addService } from "@/server/providers/service";
+
+/**
+ * Câmpurile `social.<rețea>` (doar în formularul din /profil). Dacă lipsesc cu totul, linkurile
+ * existente rămân neschimbate. Valorile multiple pentru aceeași rețea sunt unite, ca validarea să
+ * le respingă (un singur link per rețea).
+ */
+function parseSocialLinks(fd: FormData) {
+  if (!SOCIAL_KEYS.some((k) => fd.has(`social.${k}`))) return undefined;
+  return Object.fromEntries(
+    SOCIAL_KEYS.map((k) => [
+      k,
+      fd
+        .getAll(`social.${k}`)
+        .map((v) => (typeof v === "string" ? v.trim() : ""))
+        .filter(Boolean)
+        .join(" "),
+    ]),
+  );
+}
 
 /** Transformă formularul de profil prestator în obiectul validat de `providerProfileSchema`. */
 function parseProviderForm(fd: FormData) {
@@ -33,6 +53,7 @@ function parseProviderForm(fd: FormData) {
     availability: formStr(fd, "availability") || "available",
     hoursPerWeek: formNum(fd, "hoursPerWeek"),
     websiteUrl: str("websiteUrl"),
+    socialLinks: parseSocialLinks(fd),
     certifications: str("certifications"),
     categoryIds: fd.getAll("categoryIds").map(Number).filter((n) => Number.isFinite(n) && n > 0),
     skills: fd.getAll("skills").map(String).filter(Boolean),

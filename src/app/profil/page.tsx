@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ServiceForm } from "@/components/onboarding/first-service-form";
 import { ProviderProfileForm } from "@/components/onboarding/provider-profile-form";
 import { BasicInfoForm } from "@/components/profile/basic-info-form";
+import { CoverManager } from "@/components/profile/cover-manager";
 import { PortfolioManager } from "@/components/profile/portfolio-manager";
 import { PublicToggle } from "@/components/profile/public-toggle";
 import { ReviewReply } from "@/components/profile/review-reply";
@@ -173,6 +174,17 @@ export default async function ProfilePage() {
                 <h2 className="text-xl font-semibold tracking-[-0.02em]">Profil prestator</h2>
                 <PublicToggle initial={providerData.isPublic} />
               </div>
+              {providerData.exists && (
+                <Card id="coperta" className="scroll-mt-28 rounded-2xl">
+                  <CardHeader className="border-b">
+                    <CardTitle>Imagine de copertă</CardTitle>
+                    <CardDescription>Bannerul lat din capul profilului public. O fotografie cu lucrările tale face profilul mai ușor de recunoscut.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <CoverManager coverPath={providerData.coverPath} />
+                  </CardContent>
+                </Card>
+              )}
               <ProviderProfileForm categories={categories} initial={providerData.initial} context="profile" />
             </section>
 

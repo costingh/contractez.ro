@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import type { SocialLinks } from "../../lib/social-links";
 import {
   bigserial,
   boolean,
@@ -312,6 +313,10 @@ export const providerProfiles = pgTable(
     availability: availability("availability").notNull().default("available"),
     hoursPerWeek: integer("hours_per_week"),
     websiteUrl: text("website_url"),
+    /** Profiluri sociale/profesionale, deja validate și normalizate (un link per rețea). */
+    socialLinks: jsonb("social_links").$type<SocialLinks>().notNull().default({}),
+    /** Imaginea de copertă (banner) de pe profilul public, în `public/covers`. */
+    coverPath: text("cover_path"),
     certifications: text("certifications"),
     responseTimeMinutes: integer("response_time_minutes"),
     ratingAvg: doublePrecision("rating_avg"),

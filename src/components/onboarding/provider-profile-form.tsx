@@ -9,12 +9,14 @@ import { SubmitButton } from "@/components/forms/submit-button";
 import type { CategoryOption } from "@/components/shared/category-select";
 import { LocalityCombobox, type LocalityValue } from "@/components/shared/locality-combobox";
 import { NativeSelect } from "@/components/shared/native-select";
+import { SocialIcon } from "@/components/providers/social-links";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { labels } from "@/config/site";
+import { SOCIAL_KEYS, SOCIAL_NETWORKS, type SocialLinks } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
 
 export type ProviderFormInitial = {
@@ -32,6 +34,7 @@ export type ProviderFormInitial = {
   availability: "available" | "busy" | "unavailable";
   hoursPerWeek: number | null;
   websiteUrl: string | null;
+  socialLinks: SocialLinks;
   certifications: string | null;
   categoryIds: number[];
   skills: string[];
@@ -56,6 +59,7 @@ export const emptyProviderForm: ProviderFormInitial = {
   availability: "available",
   hoursPerWeek: null,
   websiteUrl: null,
+  socialLinks: {},
   certifications: null,
   categoryIds: [],
   skills: [],
@@ -251,6 +255,54 @@ function SkillsPicker({ categoryIds, value, onChange }: { categoryIds: number[];
   );
 }
 
+/** Câte un câmp pentru fiecare rețea; un câmp gol șterge linkul. Validarea se face pe server. */
+function SocialLinksFields({ initial, errors }: { initial: SocialLinks; errors: Record<string, string> }) {
+  return (
+    <fieldset className="space-y-3 rounded-xl border bg-surface p-4 dark:bg-muted/30">
+      <legend className="sr-only">Rețele sociale și profiluri profesionale</legend>
+      <div aria-hidden className="text-sm font-medium">
+        Rețele sociale și profiluri profesionale <span className="font-normal text-muted-foreground">(opțional)</span>
+      </div>
+      <p className="-mt-1 text-xs leading-relaxed text-muted-foreground">
+        Apar ca iconițe pe profilul public. Lipește linkul profilului sau doar numele de utilizator (ex: @nume). Lasă câmpul gol ca să elimini linkul.
+      </p>
+      <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
+        {SOCIAL_KEYS.map((key) => {
+          const net = SOCIAL_NETWORKS[key];
+          const value = initial[key] ?? "";
+          return (
+            <Field
+              key={key}
+              htmlFor={`social-${key}`}
+              error={errors[`socialLinks.${key}`]}
+              label={
+                <span className="inline-flex items-center gap-1.5">
+                  <SocialIcon network={key} className="size-3.5 text-muted-foreground" /> {net.label}
+                </span>
+              }
+            >
+              <Input
+                // Remontăm câmpul după salvare, ca să afișeze linkul normalizat.
+                key={value}
+                id={`social-${key}`}
+                name={`social.${key}`}
+                defaultValue={value}
+                placeholder={net.placeholder}
+                inputMode="url"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                maxLength={300}
+                aria-invalid={errors[`socialLinks.${key}`] ? true : undefined}
+              />
+            </Field>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
 /** Formularul complet de profil prestator — folosit în onboarding (pasul 2) și în /profil. */
 export function ProviderProfileForm({
   categories,
@@ -315,6 +367,7 @@ export function ProviderProfileForm({
             <Input id="websiteUrl" name="websiteUrl" type="url" placeholder="https://" defaultValue={initial.websiteUrl ?? ""} />
           </Field>
         </div>
+        {context === "profile" && <SocialLinksFields initial={initial.socialLinks} errors={fe} />}
         <Field label="Certificări / autorizații" htmlFor="certifications" optional hint="Ex: ANRE grad II, Google Ads certified, traducător autorizat MJ">
           <Input id="certifications" name="certifications" defaultValue={initial.certifications ?? ""} maxLength={1000} />
         </Field>
