@@ -211,6 +211,19 @@ export async function addService(userId: string, raw: unknown) {
   await refreshProviderSearchText(userId);
 }
 
+/** Editează un serviciu: aceeași validare ca la adăugare; doar proprietarul îl poate modifica. */
+export async function updateService(userId: string, serviceId: string, raw: unknown) {
+  const input = serviceSchema.parse(raw);
+  const [row] = await db
+    .update(providerServices)
+    .set({ ...input, priceFrom: input.priceFrom ?? null })
+    .where(and(eq(providerServices.id, serviceId), eq(providerServices.providerId, userId)))
+    .returning({ id: providerServices.id });
+  if (!row) throw new DomainError("not_found", "Serviciul nu există sau nu îți aparține.");
+  await db.insert(providerCategories).values({ providerId: userId, categoryId: input.categoryId }).onConflictDoNothing();
+  await refreshProviderSearchText(userId);
+}
+
 export async function deleteService(userId: string, serviceId: string) {
   await db.delete(providerServices).where(and(eq(providerServices.id, serviceId), eq(providerServices.providerId, userId)));
   await refreshProviderSearchText(userId);

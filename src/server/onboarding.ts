@@ -4,7 +4,7 @@ import { track } from "./analytics";
 import { maybeActivateProvider } from "./auth/service";
 import { getLocality } from "./catalog/localities";
 import { db } from "./db";
-import { notificationPreferences, providerProfiles, users } from "./db/schema";
+import { notificationPreferences, providerProfiles, users, type User } from "./db/schema";
 import { DomainError } from "./errors";
 import { saveProviderProfile } from "./providers/service";
 
@@ -25,13 +25,29 @@ export async function saveBasics(userId: string, raw: unknown) {
     .set({
       name: input.name,
       isClient: input.isClient,
-      // Rolul de prestator devine activ după completarea profilului (pasul 2).
+      // Rolul de prestator devine activ după completarea profilului (pasul 2); până atunci ținem minte intenția.
+      wantsProvider: input.isProvider,
       localityId: loc?.id ?? null,
       lat: loc?.lat ?? null,
       lng: loc?.lng ?? null,
     })
     .where(eq(users.id, userId));
   await db.insert(notificationPreferences).values({ userId }).onConflictDoNothing();
+}
+
+export type OnboardingStep = 1 | 2 | 3;
+
+/**
+ * Ce pași are și ce a salvat deja utilizatorul (fiecare pas se salvează la „Continuă”):
+ * pasul 1 (roluri) e gata dacă a ales un rol; pasul 2 (profil prestator) există doar pentru prestatori și e gata
+ * când profilul a fost salvat (`isProvider`). `pendingProviderCookie`: cookie-ul vechi `onb_rol`, înainte de `wantsProvider`.
+ */
+export function onboardingProgress(u: Pick<User, "isClient" | "isProvider" | "wantsProvider">, pendingProviderCookie = false) {
+  const wantsProvider = u.isProvider || u.wantsProvider || pendingProviderCookie;
+  const basicsDone = u.isClient || wantsProvider;
+  const providerDone = u.isProvider;
+  const firstIncomplete: OnboardingStep = !basicsDone ? 1 : wantsProvider && !providerDone ? 2 : 3;
+  return { wantsProvider, basicsDone, providerDone, firstIncomplete };
 }
 
 /** Pasul 2 (doar prestatori): profil, servicii, tarif, zonă, facturare. */

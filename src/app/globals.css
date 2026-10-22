@@ -191,6 +191,9 @@
   body {
     @apply bg-background text-foreground;
     text-rendering: optimizeLegibility;
+    /* viewport-fit=cover: în landscape pe iPhone, conținutul nu intră sub decupajul camerei */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
   h1,
   h2,
@@ -215,6 +218,26 @@
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
     }
+  }
+}
+
+/* Bară derulabilă orizontal fără scrollbar vizibil (tab-uri, filtre). */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/*
+ * iOS mărește pagina când focusezi un câmp cu text sub 16px. Pe ecrane tactile, câmpurile au minimum 16px.
+ * Regula e în afara oricărui @layer ca să bată utilitarele (text-sm, md:text-sm etc.).
+ */
+@media (pointer: coarse) {
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [class*="text-lg"], [class*="text-xl"], [class*="text-2xl"]),
+  select:not([class*="text-lg"], [class*="text-xl"]),
+  textarea:not([class*="text-lg"], [class*="text-xl"], [class*="text-2xl"]) {
+    font-size: 16px;
   }
 }
 

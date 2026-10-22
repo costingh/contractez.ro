@@ -23,15 +23,15 @@ export function GuideIntro({ guide, name }: { guide: CategoryGuide; name: string
 /** Tabelul de prețuri orientative (pagina de categorie și /ghid-preturi). */
 export function PriceTable({ rows, caption }: { rows: NonNullable<CategoryGuide["prices"]>; caption?: string }) {
   return (
-    <div className="overflow-hidden rounded-2xl border bg-card shadow-xs">
+    <div className="overflow-x-auto rounded-2xl border bg-card shadow-xs">
       <table className="w-full text-left text-sm">
         {caption && <caption className="sr-only">{caption}</caption>}
         <thead className="bg-muted/60 text-xs text-muted-foreground">
           <tr>
-            <th scope="col" className="px-5 py-3 font-medium">
+            <th scope="col" className="px-4 py-3 font-medium sm:px-5">
               Lucrare
             </th>
-            <th scope="col" className="px-5 py-3 text-right font-medium whitespace-nowrap">
+            <th scope="col" className="px-4 py-3 text-right font-medium whitespace-nowrap sm:px-5">
               Preț orientativ
             </th>
           </tr>
@@ -39,11 +39,11 @@ export function PriceTable({ rows, caption }: { rows: NonNullable<CategoryGuide[
         <tbody className="divide-y">
           {rows.map((row) => (
             <tr key={row.item}>
-              <td className="px-5 py-3.5 align-top">
+              <td className="px-4 py-3.5 align-top sm:px-5">
                 <div className="font-medium">{row.item}</div>
                 {row.note && <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{row.note}</div>}
               </td>
-              <td className="px-5 py-3.5 text-right align-top font-semibold whitespace-nowrap tabular-nums">{row.range}</td>
+              <td className="px-4 py-3.5 text-right align-top font-semibold whitespace-nowrap tabular-nums sm:px-5">{row.range}</td>
             </tr>
           ))}
         </tbody>

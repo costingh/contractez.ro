@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { formBool, formNum, formStr, toActionError, type ActionState } from "@/lib/action";
+import { parseServiceForm } from "@/lib/service-form";
 import { SOCIAL_KEYS } from "@/lib/social-links";
 import { requireUser } from "@/server/auth/guards";
 import { getCatalog, skillsForCategory } from "@/server/catalog/taxonomy";
@@ -74,12 +75,10 @@ export async function saveBasicsAction(_: ActionState, fd: FormData): Promise<Ac
       isProvider,
       localityId: formNum(fd, "localityId"),
     });
-    // Ținem minte că vrea să fie prestator până își salvează profilul (rolul se activează abia atunci).
-    const jar = await cookies();
-    if (isProvider) jar.set("onb_rol", "prestator", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 30 * 86_400 });
-    else jar.delete("onb_rol");
+    // Intenția de prestator e salvată în cont (`wantsProvider`); cookie-ul vechi nu mai e necesar.
+    (await cookies()).delete("onb_rol");
     revalidatePath("/onboarding");
-    redirect(isProvider ? "/onboarding?pas=2" : "/onboarding?pas=3");
+    redirect(isProvider ? "/onboarding?pas=2&salvat=1" : "/onboarding?pas=3&salvat=1");
   } catch (err) {
     return toActionError(err);
   }
@@ -93,7 +92,7 @@ export async function saveProviderProfileAction(_: ActionState, fd: FormData): P
     revalidatePath("/profil");
     revalidatePath("/panou");
     (await cookies()).delete("onb_rol");
-    if (formStr(fd, "context") === "onboarding") redirect("/onboarding?pas=3");
+    if (formStr(fd, "context") === "onboarding") redirect("/onboarding?pas=3&salvat=2");
     return { ok: true, message: "Profilul a fost salvat." };
   } catch (err) {
     return toActionError(err);
@@ -114,16 +113,10 @@ export async function suggestSkillsAction(categoryIds: number[]): Promise<string
 export async function addFirstServiceAction(_: ActionState, fd: FormData): Promise<ActionState> {
   try {
     const user = await requireUser("/onboarding");
-    await addService(user.id, {
-      categoryId: formNum(fd, "categoryId"),
-      title: formStr(fd, "title"),
-      description: formStr(fd, "description"),
-      priceFrom: formNum(fd, "priceFrom"),
-      priceUnit: formStr(fd, "priceUnit") || "hour",
-    });
+    await addService(user.id, parseServiceForm(fd));
     revalidatePath("/onboarding");
     revalidatePath("/profil");
-    return { ok: true, message: "Serviciul a fost adăugat. Poți adăuga altele din profil." };
+    return { ok: true, message: "Serviciul a fost adăugat." };
   } catch (err) {
     return toActionError(err);
   }

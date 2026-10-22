@@ -77,9 +77,9 @@ describe("autentificare cu Google", () => {
     expect(res.user.passwordHash).toBe("oauth");
   });
 
-  it("leagă contul existent cu același email și păstrează parola", async () => {
+  it("leagă contul existent cu email confirmat și păstrează parola", async () => {
     const email = `existing-${randomUUID()}@gmail.com`;
-    const [u] = await db.insert(users).values({ email, name: "Existent", passwordHash: "scrypt$x$y" }).returning();
+    const [u] = await db.insert(users).values({ email, name: "Existent", passwordHash: "scrypt$x$y", emailVerifiedAt: new Date() }).returning();
     const { state, nonce } = await start({ next: "/proiecte/nou" });
     const sub = randomUUID();
     mockGoogle(base(nonce, email.toUpperCase(), sub));
@@ -90,6 +90,18 @@ describe("autentificare cu Google", () => {
     const [after] = await db.select().from(users).where(eq(users.id, u.id));
     expect(after.googleId).toBe(sub);
     expect(after.passwordHash).toBe("scrypt$x$y");
+    expect(after.emailVerifiedAt).not.toBeNull();
+  });
+
+  it("la un cont cu email neconfirmat anulează parola (pre-înregistrare de către altcineva)", async () => {
+    const email = `unverified-${randomUUID()}@gmail.com`;
+    const [u] = await db.insert(users).values({ email, name: "Neconfirmat", passwordHash: "scrypt$atacator$y" }).returning();
+    const { state, nonce } = await start();
+    mockGoogle(base(nonce, email, randomUUID()));
+    const res = await google.finishGoogleLogin("code", state);
+    expect(res.user.id).toBe(u.id);
+    const [after] = await db.select().from(users).where(eq(users.id, u.id));
+    expect(after.passwordHash).not.toBe("scrypt$atacator$y");
     expect(after.emailVerifiedAt).not.toBeNull();
   });
 

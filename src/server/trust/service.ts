@@ -64,7 +64,16 @@ export async function completeCollaboration(id: string, userId: string) {
   const c = await loadCollab(id, userId);
   if (c.status === "completed") return;
   if (c.status === "cancelled") throw new DomainError("state", "Colaborarea a fost anulată.");
-  await db.update(collaborations).set({ status: "completed", completedAt: new Date(), confirmedAt: c.confirmedAt ?? new Date() }).where(eq(collaborations.id, id));
+  // Doar o colaborare confirmată de prestator poate fi finalizată (altfel clientul ar putea „verifica” singur o recenzie).
+  if (c.status !== "active" || !c.confirmedAt) {
+    throw new DomainError("state", "Colaborarea trebuie confirmată de prestator înainte de a fi finalizată.");
+  }
+  const [done] = await db
+    .update(collaborations)
+    .set({ status: "completed", completedAt: new Date() })
+    .where(and(eq(collaborations.id, id), eq(collaborations.status, "active")))
+    .returning({ id: collaborations.id });
+  if (!done) return;
   const [p] = await db.select().from(projects).where(eq(projects.id, c.projectId));
   if (p && p.status === "in_progress") {
     await db.update(projects).set({ status: "closed", closedAt: new Date() }).where(eq(projects.id, p.id));
@@ -104,7 +113,9 @@ export const reviewSchema = z.object({
 export async function leaveReview(collaborationId: string, authorId: string, raw: unknown) {
   const input = reviewSchema.parse(raw);
   const c = await loadCollab(collaborationId, authorId);
-  if (!["active", "completed"].includes(c.status)) throw new DomainError("state", "Poți lăsa recenzie după ce colaborarea este confirmată.");
+  if (!["active", "completed"].includes(c.status) || !c.confirmedAt) {
+    throw new DomainError("state", "Poți lăsa recenzie după ce colaborarea este confirmată.");
+  }
   const targetId = authorId === c.clientId ? c.providerId : c.clientId;
   const [row] = await db
     .insert(reviews)

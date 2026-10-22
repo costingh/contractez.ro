@@ -149,9 +149,10 @@ export default async function MyProjectsPage() {
         />
       ) : (
         <Tabs defaultValue={initial} className="gap-6">
-          <TabsList className="h-auto w-full flex-wrap justify-start sm:w-auto">
+          {/* Pe telefon, cele 4 tab-uri nu încap pe un rând: bara se derulează orizontal în loc să se rupă peste chenar. */}
+          <TabsList className="no-scrollbar w-full touch-pan-x justify-start overflow-x-auto overflow-y-hidden overscroll-x-contain sm:w-auto">
             {grouped.map((g) => (
-              <TabsTrigger key={g.key} value={g.key}>
+              <TabsTrigger key={g.key} value={g.key} className="flex-none">
                 {g.label}
                 <span className="ml-0.5 rounded-sm bg-foreground/8 px-1.5 text-xs font-medium text-muted-foreground tabular-nums">{g.rows.length}</span>
               </TabsTrigger>

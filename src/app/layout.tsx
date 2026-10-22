@@ -24,6 +24,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // Pe iPhone, pagina ocupă tot ecranul; barele lipite jos folosesc env(safe-area-inset-bottom) ca să stea deasupra barei Home.
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f7f7f5" },
     { media: "(prefers-color-scheme: dark)", color: "#0a0f18" },

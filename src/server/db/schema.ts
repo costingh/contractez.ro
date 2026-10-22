@@ -162,6 +162,8 @@ export const users = pgTable(
     role: userRole("role").notNull().default("user"),
     isClient: boolean("is_client").notNull().default(false),
     isProvider: boolean("is_provider").notNull().default(false),
+    /** A ales „Ofer servicii” la onboarding (pasul 1); `isProvider` devine true abia după salvarea profilului (pasul 2). */
+    wantsProvider: boolean("wants_provider").notNull().default(false),
     onboardedAt: timestamp("onboarded_at", { withTimezone: true }),
     avatarPath: text("avatar_path"),
     localityId: integer("locality_id").references(() => localities.id),

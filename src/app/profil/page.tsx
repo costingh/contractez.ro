@@ -13,13 +13,14 @@ import { ServiceList } from "@/components/profile/service-list";
 import { CompanyVerification } from "@/components/profile/company-verification";
 import { profileShortUrl, qrDataUrl } from "@/server/share";
 import { PageHeader } from "@/components/shared/page-header";
+import { SectionTabs, type SectionTab } from "@/components/shared/section-tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/format";
 import { getProviderFormData } from "@/server/account";
 import { requireOnboardedUser } from "@/server/auth/guards";
 import { getLocality } from "@/server/catalog/localities";
-import { categoryOptions } from "@/server/catalog/options";
+import { categoryOptions, serviceCategoryOptions } from "@/server/catalog/options";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { db } from "@/server/db";
 import { portfolioItems, providerServices } from "@/server/db/schema";
@@ -54,18 +55,19 @@ export default async function ProfilePage() {
     : [[], []];
   const shortUrl = providerData?.slug ? profileShortUrl(providerData.slug) : null;
   const qr = shortUrl ? await qrDataUrl(shortUrl, 240) : null;
-  const providerCats = (providerData?.initial.categoryIds ?? []).map((id) => ({ id, name: catalog.byId.get(id)?.name ?? "" })).filter((c) => c.name);
-  const nav = [
+  const providerCats = await serviceCategoryOptions(providerData?.initial.categoryIds ?? []);
+  const nav: SectionTab[] = [
+    // Aceeași ordine ca secțiunile din pagină, ca tab-ul activ să avanseze odată cu scroll-ul.
     { href: "#date", label: "Date de bază" },
+    ...(user.isProvider && providerData?.slug ? [{ href: "#distribuie", label: "Distribuie" }] : []),
+    { href: "#firma", label: "Firmă (opțional)" },
     ...(user.isProvider
       ? [
-          { href: "#distribuie", label: "Distribuie" },
           { href: "#prestator", label: "Profil prestator" },
           { href: "#servicii", label: "Servicii" },
           { href: "#portofoliu", label: "Portofoliu" },
         ]
       : []),
-    { href: "#firma", label: "Firmă (opțional)" },
     { href: "#recenzii", label: `Recenzii (${reviews.length})` },
   ];
 
@@ -85,13 +87,7 @@ export default async function ProfilePage() {
           ) : undefined
         }
       />
-      <nav aria-label="Secțiuni profil" className="sticky top-15 z-10 -mx-4 mb-8 flex gap-1 overflow-x-auto border-b bg-background/90 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/75 sm:mx-0 sm:px-0">
-        {nav.map((n) => (
-          <a key={n.href} href={n.href} className="-mb-px shrink-0 border-b-2 border-transparent px-3 py-3 text-sm text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground">
-            {n.label}
-          </a>
-        ))}
-      </nav>
+      <SectionTabs items={nav} label="Secțiuni profil" className="mb-8" />
 
       <div className="space-y-8 [&>[data-slot=card]]:rounded-2xl">
         <Card id="date" className="scroll-mt-28">
@@ -194,7 +190,7 @@ export default async function ProfilePage() {
                 <CardDescription>Listează serviciile cu prețuri orientative (max 20).</CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
-                <ServiceList services={services.map((s) => ({ ...s, categoryName: catalog.byId.get(s.categoryId)?.name ?? "" }))} />
+                <ServiceList services={services.map((s) => ({ ...s, categoryName: catalog.byId.get(s.categoryId)?.name ?? "" }))} categories={providerCats} />
                 {providerCats.length > 0 && <ServiceForm categories={providerCats} />}
               </CardContent>
             </Card>

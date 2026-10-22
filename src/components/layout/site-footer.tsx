@@ -60,7 +60,8 @@ export function SiteFooter() {
         ))}
       </div>
       <div className="border-t">
-        <div className="container-page flex flex-col gap-4 py-5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        {/* Spațiu sub ultimul rând, ca butonul plutitor de chat (dreapta-jos) să nu acopere comutatorul de temă la capătul paginii. */}
+        <div className="container-page flex flex-col gap-4 pt-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))] text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <div className="max-w-2xl space-y-1.5 leading-relaxed">
             <p>
               © {new Date().getFullYear()} {site.name} · operat de {site.operator}. Platforma nu intermediază plata lucrărilor; clientul și prestatorul

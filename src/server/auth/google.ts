@@ -7,6 +7,8 @@ import { notificationPreferences, users, type User } from "../db/schema";
 import { adminEmails, env, features } from "../env";
 import { DomainError } from "../errors";
 import { randomToken } from "./crypto";
+import { destroyAllSessions } from "./session";
+import { safeNext } from "@/lib/safe-next";
 
 /*
  * „Continuă cu Google” — OAuth 2.0 Authorization Code + PKCE (OpenID Connect).
@@ -30,10 +32,6 @@ function redirectUri() {
 
 function sign(payload: string) {
   return createHmac("sha256", env.APP_SECRET).update(payload).digest("base64url");
-}
-
-function safeNext(next: string | null | undefined) {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
 }
 
 export async function startGoogleLogin(opts: { next?: string | null; rol?: string | null; ref?: string | null }) {
@@ -138,9 +136,18 @@ async function upsertGoogleUser(p: { sub: string; email: string; name: string; r
   // Emailul este verificat de Google → putem lega în siguranță contul existent.
   const [byEmail] = await db.select().from(users).where(sql`lower(${users.email}) = ${p.email}`);
   if (byEmail) {
+    // Cont creat cu parolă, dar emailul n-a fost confirmat niciodată: nu știm cine a ales parola (cineva poate
+    // pre-înregistra emailul altcuiva). Proprietarul real dovedește acum adresa prin Google → anulăm parola și sesiunile.
+    const unverified = !byEmail.emailVerifiedAt;
+    if (unverified) await destroyAllSessions(byEmail.id);
     const [linked] = await db
       .update(users)
-      .set({ googleId: p.sub, emailVerifiedAt: byEmail.emailVerifiedAt ?? new Date(), lastSeenAt: new Date() })
+      .set({
+        googleId: p.sub,
+        emailVerifiedAt: byEmail.emailVerifiedAt ?? new Date(),
+        lastSeenAt: new Date(),
+        ...(unverified ? { passwordHash: OAUTH_PASSWORD_MARKER } : {}),
+      })
       .where(eq(users.id, byEmail.id))
       .returning();
     await track("user.google_linked", byEmail.id);

@@ -17,7 +17,7 @@ const items = [
 export function AdminNav() {
   const pathname = usePathname();
   return (
-    <nav aria-label="Administrare" className="-mx-4 flex gap-1 overflow-x-auto border-b px-4 lg:mx-0 lg:flex-col lg:gap-0.5 lg:border-0 lg:px-0">
+    <nav aria-label="Administrare" className="no-scrollbar -mx-4 flex touch-pan-x gap-1 overflow-x-auto overflow-y-hidden overscroll-x-contain border-b px-4 lg:mx-0 lg:touch-auto lg:flex-col lg:gap-0.5 lg:overflow-visible lg:border-0 lg:px-0">
       {items.map((i) => {
         const active = i.href === "/admin" ? pathname === "/admin" : pathname.startsWith(i.href);
         return (
@@ -26,7 +26,7 @@ export function AdminNav() {
             href={i.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "-mb-px shrink-0 border-b-2 border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground lg:mb-0 lg:rounded-md lg:border-0 lg:py-2 lg:hover:bg-muted",
+              "shrink-0 border-b-2 border-transparent px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground lg:rounded-md lg:border-0 lg:py-2 lg:hover:bg-muted",
               active && "border-foreground font-medium text-foreground lg:bg-card lg:shadow-xs lg:ring-1 lg:ring-border",
             )}
           >

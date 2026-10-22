@@ -103,7 +103,7 @@ export function BasicsForm({
       </div>
       <FormMessage state={state} />
       <SubmitButton size="lg" className="w-full sm:w-auto" disabled={!isClient && !isProvider} pendingText="Se salvează…">
-        Continuă
+        Salvează și continuă
       </SubmitButton>
     </form>
   );

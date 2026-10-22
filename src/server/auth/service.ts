@@ -63,10 +63,14 @@ export async function authenticate(email: string, password: string) {
 
 async function createToken(userId: string, type: "email_verify" | "password_reset" | "phone_otp", ttlMinutes: number, target?: string) {
   const token = type === "phone_otp" ? randomOtp() : randomToken();
-  await db
-    .update(verificationTokens)
-    .set({ usedAt: new Date() })
-    .where(and(eq(verificationTokens.userId, userId), eq(verificationTokens.type, type), isNull(verificationTokens.usedAt)));
+  // Resetarea parolei și codurile SMS: doar ultimul e valabil. Linkurile de confirmare a emailului rămân
+  // valabile până expiră, ca un email mai vechi (sau unul deschis după „Retrimite”) să funcționeze în continuare.
+  if (type !== "email_verify") {
+    await db
+      .update(verificationTokens)
+      .set({ usedAt: new Date() })
+      .where(and(eq(verificationTokens.userId, userId), eq(verificationTokens.type, type), isNull(verificationTokens.usedAt)));
+  }
   await db.insert(verificationTokens).values({
     userId,
     type,
@@ -80,31 +84,58 @@ async function createToken(userId: string, type: "email_verify" | "password_rese
 export async function sendVerificationEmail(userId: string) {
   const [u] = await db.select().from(users).where(eq(users.id, userId));
   if (!u || u.emailVerifiedAt) return;
-  const token = await createToken(userId, "email_verify", 60 * 48);
+  // `target` = adresa la care a plecat linkul: linkul confirmă doar această adresă.
+  const token = await createToken(userId, "email_verify", 60 * 48, u.email.toLowerCase());
   const link = `${env.APP_URL}/verifica-email?token=${token}`;
   if (env.NODE_ENV !== "production") console.log(`[auth:dev] Link verificare pentru ${u.email}: ${link}`);
   const { subject, html, text } = verifyEmailTemplate({ firstName: u.name.split(" ")[0], link });
   await queueEmail({ to: u.email, userId, template: "verify-email", subject, html, text });
 }
 
-export async function verifyEmailToken(token: string) {
+/**
+ * - `verified`: emailul a fost confirmat acum;
+ * - `already`: contul linkului era deja confirmat (ex. linkul a fost deschis înainte de un scanner de securitate
+ *   al emailului, de previzualizarea linkului sau de un clic anterior) — tot succes;
+ * - `expired` / `invalid`: linkul nu (mai) poate confirma nimic. `userId` e setat dacă linkul aparține unui cont.
+ */
+export type EmailVerificationResult =
+  | { status: "verified" | "already"; userId: string }
+  | { status: "expired" | "invalid"; userId: string | null };
+
+/**
+ * Confirmă emailul din link. Idempotent: același link (sau unul mai vechi, încă valabil) poate fi deschis de mai
+ * multe ori. Scannerele de linkuri (Gmail, Outlook Safe Links, previzualizări iOS) deschid linkul înaintea omului;
+ * dacă primul GET l-ar „consuma”, clicul real ar afișa o eroare deși contul tocmai a fost confirmat.
+ */
+export async function verifyEmailToken(token: string): Promise<EmailVerificationResult> {
+  if (!token || token.length > 200) return { status: "invalid", userId: null };
   const [row] = await db
     .select()
     .from(verificationTokens)
-    .where(
-      and(
-        eq(verificationTokens.type, "email_verify"),
-        eq(verificationTokens.tokenHash, sha256(token)),
-        isNull(verificationTokens.usedAt),
-        gt(verificationTokens.expiresAt, new Date()),
-      ),
-    );
-  if (!row) throw new DomainError("invalid_token", "Linkul de confirmare este invalid sau a expirat.");
-  await db.update(verificationTokens).set({ usedAt: new Date() }).where(eq(verificationTokens.id, row.id));
-  await db.update(users).set({ emailVerifiedAt: new Date() }).where(and(eq(users.id, row.userId), isNull(users.emailVerifiedAt)));
-  await maybeActivateProvider(row.userId);
-  await track("user.email_verified", row.userId);
-  return row.userId;
+    .where(and(eq(verificationTokens.type, "email_verify"), eq(verificationTokens.tokenHash, sha256(token))))
+    .limit(1);
+  if (!row) return { status: "invalid", userId: null };
+  const [u] = await db.select().from(users).where(eq(users.id, row.userId));
+  if (!u || u.deletedAt) return { status: "invalid", userId: null };
+  if (u.emailVerifiedAt) {
+    if (!row.usedAt) await db.update(verificationTokens).set({ usedAt: new Date() }).where(eq(verificationTokens.id, row.id));
+    return { status: "already", userId: u.id };
+  }
+  // Linkul confirmă doar adresa la care a fost trimis.
+  if (row.target && row.target !== u.email.toLowerCase()) return { status: "invalid", userId: u.id };
+  if (row.expiresAt <= new Date()) return { status: "expired", userId: u.id };
+
+  const [flipped] = await db
+    .update(users)
+    .set({ emailVerifiedAt: new Date() })
+    .where(and(eq(users.id, u.id), isNull(users.emailVerifiedAt)))
+    .returning({ id: users.id });
+  await db.update(verificationTokens).set({ usedAt: new Date() }).where(and(eq(verificationTokens.id, row.id), isNull(verificationTokens.usedAt)));
+  // Două deschideri simultane (scanner + om): doar prima face efectele secundare; ambele văd succes.
+  if (!flipped) return { status: "already", userId: u.id };
+  await maybeActivateProvider(u.id);
+  await track("user.email_verified", u.id);
+  return { status: "verified", userId: u.id };
 }
 
 /**

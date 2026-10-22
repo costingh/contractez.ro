@@ -231,9 +231,10 @@ export default async function ManageProjectPage({
                   l: p.status === "open" ? "expiră" : "expirare",
                 },
               ].map((x, n) => (
-                <div key={x.l} className={cn("px-5 py-4 sm:px-6", n > 0 && "border-l")}>
-                  <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <x.icon className="size-3.5 shrink-0" /> <span className="truncate">{x.l}</span>
+                <div key={x.l} className={cn("min-w-0 px-3 py-4 sm:px-6", n > 0 && "border-l")}>
+                  {/* Pe telefon, o treime de ecran e prea îngustă pentru „prestatori compatibili” pe un rând: eticheta se rupe, nu se taie. */}
+                  <dt className="flex items-start gap-1.5 text-xs leading-snug text-muted-foreground">
+                    <x.icon className="mt-px size-3.5 shrink-0" /> <span className="min-w-0">{x.l}</span>
                   </dt>
                   <dd className="mt-1.5 text-lg font-semibold tracking-[-0.02em] tabular-nums">{x.v}</dd>
                 </div>

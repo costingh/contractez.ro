@@ -7,10 +7,7 @@ import { createSession, destroyAllSessions, destroySession, getCurrentUser } fro
 import { DomainError } from "@/server/errors";
 import { rateLimit } from "@/server/rate-limit";
 import { clientIp } from "@/server/request";
-
-function safeNext(next: string | null | undefined) {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
-}
+import { safeNext } from "@/lib/safe-next";
 
 export async function loginAction(_: ActionState, fd: FormData): Promise<ActionState> {
   try {

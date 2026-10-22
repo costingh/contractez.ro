@@ -2,10 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { formBool, formNum, formStr, toActionError, type ActionState } from "@/lib/action";
+import { parseServiceForm } from "@/lib/service-form";
 import { setProfilePublic, updateBasicInfo } from "@/server/account";
 import { requireUser } from "@/server/auth/guards";
 import { DomainError } from "@/server/errors";
-import { addPortfolioItem, deletePortfolioItem, deleteService, setProviderCover } from "@/server/providers/service";
+import { addPortfolioItem, deletePortfolioItem, deleteService, setProviderCover, updateService } from "@/server/providers/service";
 import { replyToReview } from "@/server/trust/service";
 import { saveUpload } from "@/server/uploads";
 import { rateLimit } from "@/server/rate-limit";
@@ -14,6 +15,12 @@ import { removeCompanyVerification, verifyCompany } from "@/server/verification/
 function refresh() {
   revalidatePath("/profil");
   revalidatePath("/panou");
+}
+
+/** Serviciile apar și în onboarding (pasul 3). */
+function refreshServices() {
+  refresh();
+  revalidatePath("/onboarding");
 }
 
 export async function saveBasicInfoAction(_: ActionState, fd: FormData): Promise<ActionState> {
@@ -35,8 +42,19 @@ export async function deleteServiceAction(serviceId: string): Promise<ActionStat
   try {
     const user = await requireUser("/profil");
     await deleteService(user.id, serviceId);
-    refresh();
+    refreshServices();
     return { ok: true, message: "Serviciul a fost șters." };
+  } catch (err) {
+    return toActionError(err);
+  }
+}
+
+export async function updateServiceAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const user = await requireUser("/profil");
+    await updateService(user.id, formStr(fd, "serviceId"), parseServiceForm(fd));
+    refreshServices();
+    return { ok: true, message: "Serviciul a fost actualizat." };
   } catch (err) {
     return toActionError(err);
   }

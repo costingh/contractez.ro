@@ -192,7 +192,10 @@ export function ChatView({
                 }
               }}
               rows={1}
-              placeholder="Scrie un mesaj… (Enter trimite, Shift+Enter rând nou)"
+              // Indiciul de tastatură stă în title: pe telefon, placeholder-ul lung se rupea pe 3 rânduri și umfla câmpul.
+              placeholder="Scrie un mesaj…"
+              title="Enter trimite, Shift+Enter rând nou"
+              enterKeyHint="send"
               className="max-h-40 min-h-10 resize-none"
             />
             <Button type="button" size="icon" className="size-10" onClick={send} disabled={pending || (!body.trim() && !file)} aria-label="Trimite">

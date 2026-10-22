@@ -164,13 +164,13 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                 {results.total === 1 ? "1 proiect" : `${results.total.toLocaleString("ro-RO")} proiecte`}
               </span>
             </div>
-            <div className="flex max-w-full gap-0.5 overflow-x-auto rounded-lg border bg-muted/60 p-0.5" role="navigation" aria-label="Sortare">
+            <div className="no-scrollbar flex max-w-full touch-pan-x gap-0.5 overflow-x-auto overflow-y-hidden overscroll-x-contain rounded-lg border bg-muted/60 p-0.5" role="navigation" aria-label="Sortare">
               {SORTS.filter((s) => s.value !== "distance" || filters.loc).map((s) => (
                 <Link
                   key={s.value}
                   href={`/proiecte?${toQuery({ ...paramsForLinks, sort: s.value, page: undefined })}`}
                   aria-current={filters.sort === s.value ? "true" : undefined}
-                  className={`shrink-0 rounded-md px-2.5 py-1 text-xs whitespace-nowrap transition-colors ${filters.sort === s.value ? "bg-card font-medium text-foreground shadow-xs dark:bg-input" : "text-muted-foreground hover:text-foreground"}`}
+                  className={`flex shrink-0 items-center rounded-md px-2.5 py-1 text-xs whitespace-nowrap transition-colors pointer-coarse:min-h-9 ${filters.sort === s.value ? "bg-card font-medium text-foreground shadow-xs dark:bg-input" : "text-muted-foreground hover:text-foreground"}`}
                 >
                   {s.label}
                 </Link>

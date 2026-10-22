@@ -91,7 +91,7 @@ function Fact({ label, children, className }: { label: string; children: React.R
   return (
     <div className={className}>
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-1 flex items-center gap-1.5 text-sm font-medium">{children}</dd>
+      <dd className="mt-1 flex items-start gap-1.5 text-sm font-medium [&>svg]:mt-0.5 [&>svg]:shrink-0">{children}</dd>
     </div>
   );
 }

@@ -3,46 +3,58 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { eq, sql } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { BasicsForm } from "@/components/onboarding/basics-form";
 import { FinishButton } from "@/components/onboarding/finish-button";
 import { ServiceForm } from "@/components/onboarding/first-service-form";
 import { ProviderProfileForm, emptyProviderForm } from "@/components/onboarding/provider-profile-form";
+import { SavedToast } from "@/components/onboarding/saved-toast";
 import { OnboardingSteps } from "@/components/onboarding/steps";
 import { ContactPhoneForm } from "@/components/profile/contact-phone-form";
 import { EmailStatus } from "@/components/profile/email-status";
+import { ServiceList, type ServiceRow } from "@/components/profile/service-list";
 import { PhoneVerification } from "@/components/profile/phone-verification";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { freePlan, labels } from "@/config/site";
+import { freePlan } from "@/config/site";
 import { CONTACT_PHONE_HINT } from "@/lib/phone";
 import { getProviderFormData } from "@/server/account";
 import { requireUser } from "@/server/auth/guards";
 import { smsConfigured } from "@/server/auth/sms";
 import { getLocality } from "@/server/catalog/localities";
-import { categoryOptions } from "@/server/catalog/options";
+import { categoryOptions, serviceCategoryOptions, type ServiceCategoryOption } from "@/server/catalog/options";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { db } from "@/server/db";
 import { providerServices } from "@/server/db/schema";
 import { features } from "@/server/features";
+import { onboardingProgress, type OnboardingStep } from "@/server/onboarding";
 
 export const metadata: Metadata = { title: "Configurează contul" };
 
-export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ pas?: string; rol?: string }> }) {
-  const { pas, rol: rolParam } = await searchParams;
+export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ pas?: string; rol?: string; salvat?: string }> }) {
+  const { pas, rol: rolParam, salvat } = await searchParams;
   const user = await requireUser("/onboarding");
-  // Intenția „prestator” rămâne salvată (cookie) până la completarea profilului.
-  const pendingProvider = !user.isProvider && (await cookies()).get("onb_rol")?.value === "prestator";
+  // Fiecare pas se salvează la „Continuă”; progresul se deduce din datele salvate (merge și după re-login, pe alt dispozitiv).
+  const progress = onboardingProgress(user, (await cookies()).get("onb_rol")?.value === "prestator");
+  const pendingProvider = progress.wantsProvider && !progress.providerDone;
   const rol = rolParam ?? (pendingProvider ? "prestator" : undefined);
   if (user.onboardedAt && !pas && !rol) redirect("/panou");
 
-  const step = pas === "2" ? 2 : pas === "3" ? 3 : 1;
+  // Fără `pas` (după autentificare, din bannere etc.): continuăm de la primul pas nesalvat.
+  // Excepție: un cont deja configurat care cere explicit alt rol (ex. clientul care devine prestator) pornește de la pasul 1.
+  const resume =
+    !pas &&
+    !(user.onboardedAt && progress.firstIncomplete === 3) &&
+    (!rolParam || (rolParam === "prestator" ? progress.wantsProvider : user.isClient));
+  const step = pas === "1" ? 1 : pas === "2" ? 2 : pas === "3" ? 3 : resume ? progress.firstIncomplete : 1;
   if (step === 3 && pendingProvider) redirect("/onboarding?pas=2");
-  if (step === 3 && !user.isClient && !user.isProvider) redirect("/onboarding");
-  // Revine după ce a ales „ofer servicii” dar n-a salvat profilul: continuăm direct cu profilul.
-  if (step === 1 && !pas && !rolParam && pendingProvider && (user.name || user.localityId)) redirect("/onboarding?pas=2");
-  const wantsProvider = rol === "prestator" || user.isProvider || step === 2;
+  if (step === 3 && !progress.basicsDone) redirect("/onboarding?pas=1");
+  const wantsProvider = rol === "prestator" || progress.wantsProvider || step === 2;
   const steps = wantsProvider ? ["Despre tine", "Profil prestator", "Gata"] : ["Despre tine", "Gata"];
-  const current = step === 1 ? 1 : step === 2 ? 2 : steps.length;
+  const stepNumbers: OnboardingStep[] = wantsProvider ? [1, 2, 3] : [1, 3];
+  const current = stepNumbers.indexOf(step) + 1 || 1;
+  const done = stepNumbers.map((n) => (n === 1 ? progress.basicsDone : n === 2 ? progress.providerDone : Boolean(user.onboardedAt)));
+  // Se poate reveni la pașii salvați și la primul pas nesalvat, dar nu se poate sări peste unul.
+  const hrefs = stepNumbers.map((n) => (n <= progress.firstIncomplete || done[stepNumbers.indexOf(n)] ? `/onboarding?pas=${n}` : null));
 
   return (
     <div className="container-page max-w-3xl pt-8 pb-16 sm:pt-12">
@@ -91,11 +103,14 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
                 : "Verifică-ți contul și ești gata de primul proiect."}
           </p>
           <div className="mt-7">
-            <OnboardingSteps steps={steps} current={current} tone="ink" />
+            <OnboardingSteps steps={steps} current={current} done={done} hrefs={hrefs} tone="ink" />
           </div>
+          <p className="mt-4 text-xs leading-relaxed text-white/50">Fiecare pas se salvează când treci la următorul. Poți reveni oricând la pașii bifați.</p>
         </div>
       </section>
 
+      {/* Cheie per pas: componenta rămâne montată între redirecționări, iar fiecare pas salvat își arată confirmarea. */}
+      {salvat && <SavedToast key={`${step}-${salvat}`} description={salvat === "2" ? "Profilul de prestator a fost salvat." : "Datele tale au fost salvate."} />}
       {step === 1 && <StepBasics user={user} preselect={rol} />}
       {step === 2 && <StepProvider userId={user.id} />}
       {step === 3 && (
@@ -116,7 +131,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
 
 async function StepBasics({ user, preselect }: { user: Awaited<ReturnType<typeof requireUser>>; preselect?: string }) {
   const loc = user.localityId ? await getLocality(user.localityId) : null;
-  const fresh = !user.onboardedAt && !user.isClient && !user.isProvider;
+  const fresh = !user.onboardedAt && !user.isClient && !user.isProvider && !user.wantsProvider;
   return (
     <Card>
       <CardHeader className="border-b">
@@ -129,7 +144,7 @@ async function StepBasics({ user, preselect }: { user: Awaited<ReturnType<typeof
           initial={{
             name: user.name,
             isClient: user.isClient || preselect === "client" || (fresh && preselect !== "prestator"),
-            isProvider: user.isProvider || preselect === "prestator",
+            isProvider: user.isProvider || user.wantsProvider || preselect === "prestator",
             locality: loc ? { id: loc.id, name: loc.name, county: loc.county, countyCode: loc.countyCode } : null,
           }}
         />
@@ -167,15 +182,14 @@ async function StepFinish(props: {
   welcomeGranted: boolean;
 }) {
   const catalog = await getCatalog();
-  let providerCats: { id: number; name: string }[] = [];
-  let services: { title: string; priceFrom: number | null; priceUnit: keyof typeof labels.priceUnit }[] = [];
+  let providerCats: ServiceCategoryOption[] = [];
+  let services: ServiceRow[] = [];
   if (props.isProvider) {
     const rows = (await db.execute(sql`SELECT category_id FROM provider_categories WHERE provider_id = ${props.userId}`)) as unknown as { category_id: number }[];
-    providerCats = rows.map((r) => ({ id: r.category_id, name: catalog.byId.get(r.category_id)?.name ?? "" })).filter((c) => c.name);
-    services = await db
-      .select({ title: providerServices.title, priceFrom: providerServices.priceFrom, priceUnit: providerServices.priceUnit })
-      .from(providerServices)
-      .where(eq(providerServices.providerId, props.userId));
+    providerCats = await serviceCategoryOptions(rows.map((r) => r.category_id));
+    services = (
+      await db.select().from(providerServices).where(eq(providerServices.providerId, props.userId)).orderBy(asc(providerServices.sortOrder))
+    ).map((s) => ({ ...s, categoryName: catalog.byId.get(s.categoryId)?.name ?? "" }));
   }
   return (
     <div className="space-y-5">
@@ -228,20 +242,7 @@ async function StepFinish(props: {
             <CardDescription>Opțional. Serviciile cu preț orientativ apar pe profilul public și ajută clienții să te aleagă.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {services.length > 0 && (
-              <ul className="space-y-1.5 text-sm">
-                {services.map((s) => (
-                  <li key={s.title} className="flex justify-between gap-3 rounded-lg border bg-surface px-3.5 py-2.5 dark:bg-muted/30">
-                    <span>{s.title}</span>
-                    {s.priceFrom != null && (
-                      <span className="text-muted-foreground tabular-nums">
-                        de la {s.priceFrom.toLocaleString("ro-RO")} lei / {labels.priceUnit[s.priceUnit]}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
+            {services.length > 0 && <ServiceList services={services} categories={providerCats} />}
             <ServiceForm categories={providerCats} submitLabel={services.length ? "Adaugă încă un serviciu" : "Adaugă serviciul"} />
           </CardContent>
         </Card>

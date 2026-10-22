@@ -22,10 +22,13 @@ export function CollaborationActions({ id, status, isProvider }: { id: string; s
           <CheckCircle2 /> Confirm colaborarea
         </Button>
       )}
-      {(status === "active" || status === "pending_confirmation") && (
+      {status === "active" && (
         <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => completeAction(id))}>
           <Flag /> Marchează finalizată
         </Button>
+      )}
+      {status === "pending_confirmation" && !isProvider && (
+        <span className="self-center text-xs text-muted-foreground">Așteaptă confirmarea prestatorului.</span>
       )}
       {(status === "active" || status === "pending_confirmation") && (
         <Button

@@ -118,7 +118,7 @@ export default function PriceGuidePage() {
                 Ghidul pentru {g.name} <ArrowRight className="size-3.5" />
               </Link>
             </div>
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {g.general.length > 0 && (
                 <div className="reveal space-y-3">
                   <h3 className="font-semibold tracking-[-0.01em]">

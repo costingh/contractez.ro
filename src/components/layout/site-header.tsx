@@ -106,7 +106,11 @@ export async function SiteHeader() {
           ) : (
             <>
               <Button asChild variant="ghost" size="sm" className="px-2 sm:px-3">
-                <Link href="/autentificare">Intră în cont</Link>
+                <Link href="/autentificare">
+                  {/* Pe telefoanele înguste (360–399px) eticheta lungă împinge „Creează cont” în afara ecranului. */}
+                  <span className="min-[400px]:hidden">Intră</span>
+                  <span className="hidden min-[400px]:inline">Intră în cont</span>
+                </Link>
               </Button>
               <Button asChild size="sm" className="px-2.5 sm:px-3">
                 <Link href="/inregistrare">Creează cont</Link>

@@ -49,14 +49,14 @@ function Bullets({ items, icon: Icon }: { items: string[]; icon: typeof ShieldCh
 
 function Section({ id, eyebrow, heading, children }: { id: string; eyebrow: string; heading: string; children: React.ReactNode }) {
   return (
-    <section id={id} aria-labelledby={`${id}-titlu`} className="reveal grid scroll-mt-24 gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+    <section id={id} aria-labelledby={`${id}-titlu`} className="reveal grid scroll-mt-24 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
       <div>
         <div className="eyebrow">{eyebrow}</div>
         <h2 id={`${id}-titlu`} className="display-md mt-3">
           {heading}
         </h2>
       </div>
-      <div className="max-w-prose">{children}</div>
+      <div className="max-w-prose min-w-0">{children}</div>
     </section>
   );
 }

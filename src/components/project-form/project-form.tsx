@@ -371,7 +371,7 @@ export function ProjectForm({ categories, value: v, onChange, projectId, status,
         </p>
       ))}
 
-      <div className="sticky bottom-0 z-10 -mx-4 flex flex-col-reverse gap-2 border-t bg-card/95 px-4 py-3 backdrop-blur sm:bottom-4 sm:mx-0 sm:flex-row sm:justify-end sm:rounded-xl sm:border sm:shadow-lg">
+      <div className="sticky bottom-0 z-10 -mx-4 flex flex-col-reverse gap-2 border-t bg-card/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur sm:bottom-[calc(1rem+env(safe-area-inset-bottom))] sm:mx-0 sm:flex-row sm:justify-end sm:rounded-xl sm:border sm:pb-3 sm:shadow-lg">
         {!isOpen && (
           <SubmitButton name="intent" value="draft" variant="outline" size="lg" pendingText="Se salvează…">
             Salvează ciornă

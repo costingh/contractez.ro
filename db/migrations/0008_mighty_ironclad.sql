@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "wants_provider" boolean DEFAULT false NOT NULL;

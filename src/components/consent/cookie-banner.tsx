@@ -28,7 +28,12 @@ export function CookieBanner({ initial }: { initial: Consent | null }) {
 
   if (!open) return null;
   return (
-    <div role="dialog" aria-label="Cookie-uri" className="fixed inset-x-3 bottom-3 z-50 sm:inset-x-auto sm:right-4 sm:bottom-4 sm:max-w-md print:hidden">
+    <div
+      role="dialog"
+      aria-label="Cookie-uri"
+      data-slot="cookie-banner"
+      className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-50 sm:inset-x-auto sm:right-4 sm:bottom-[calc(1rem+env(safe-area-inset-bottom))] sm:max-w-md print:hidden"
+    >
       <div className="rounded-2xl border bg-card p-5 shadow-lg">
         <div className="flex items-start gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">

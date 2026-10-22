@@ -73,11 +73,14 @@ export function ProjectBuilder({
       className="gap-5"
     >
       <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-grid">
+        {/* Pe telefon, etichetele lungi nu încap în jumătate de ecran și se suprapun: variantă scurtă sub `sm`. */}
         <TabsTrigger value="import">
-          <Wand2 /> Descrie liber / importă
+          <Wand2 /> <span className="sm:hidden">Descrie liber</span>
+          <span className="hidden sm:inline">Descrie liber / importă</span>
         </TabsTrigger>
         <TabsTrigger value="form">
-          <FileText /> Completează formularul
+          <FileText /> <span className="sm:hidden">Formular</span>
+          <span className="hidden sm:inline">Completează formularul</span>
         </TabsTrigger>
       </TabsList>
 

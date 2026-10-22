@@ -476,7 +476,7 @@ export function ProviderProfileForm({
         {invoice && legal === "none" && <p className="text-xs text-warning">Ai bifat că emiți factură — alege și forma juridică.</p>}
       </Section>
 
-      <div className="sticky bottom-0 -mx-1 space-y-3 border-t bg-background/95 px-1 py-4 backdrop-blur">
+      <div className="sticky bottom-0 z-10 -mx-1 space-y-3 border-t bg-background/95 px-1 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur">
         <FormMessage state={state} />
         <SubmitButton size="lg" className="w-full sm:w-auto" pendingText="Se salvează…">
           {submitLabel}

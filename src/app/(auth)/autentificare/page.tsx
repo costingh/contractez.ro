@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/server/auth/session";
 import { features } from "@/server/env";
+import { safeNext } from "@/lib/safe-next";
 import { AuthCard } from "../auth-card";
 import { GoogleButton } from "../google-button";
 import { LoginForm } from "./login-form";
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: "Intră în cont" };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; eroare?: string; cont?: string }> }) {
   const { next, eroare } = await searchParams;
-  if (await getCurrentUser()) redirect(next ?? "/panou");
+  if (await getCurrentUser()) redirect(safeNext(next) ?? "/panou");
   return (
     <AuthCard
       headline={

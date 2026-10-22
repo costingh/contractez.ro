@@ -1,6 +1,7 @@
 import { MailWarning, Smartphone, UserCog } from "lucide-react";
 import Link from "next/link";
 import { ResendButton } from "@/app/(auth)/verifica-email/resend-button";
+import { EmailVerifiedWatcher } from "@/components/profile/email-verification-sync";
 import { Button } from "@/components/ui/button";
 
 export function DashboardBanners({
@@ -22,6 +23,7 @@ export function DashboardBanners({
     <div className="space-y-3">
       {!emailVerified && (
         <div className="flex flex-col gap-3 enter rounded-2xl border border-warning/30 bg-warning/8 p-4 sm:flex-row sm:px-5 sm:items-center sm:justify-between">
+          <EmailVerifiedWatcher />
           <div className="flex gap-3.5 text-sm">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-warning/12 text-warning">
               <MailWarning className="size-[1.125rem]" />
