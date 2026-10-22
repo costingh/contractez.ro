@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/marketing/legal-page";
 import { site } from "@/config/site";
 
-export const metadata: Metadata = { title: "Politica de confidențialitate" };
+export const metadata: Metadata = {
+  title: "Politica de confidențialitate",
+  description: "Ce date personale colectează Contractez, de ce, cât timp le păstrăm, cu cine le împărtășim și cum îți exerciți drepturile prevăzute de GDPR.",
+  alternates: { canonical: "/confidentialitate" },
+};
 
 export default function PrivacyPage() {
   return (

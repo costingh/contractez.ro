@@ -26,6 +26,54 @@ export type Post = {
 
 export const posts: Post[] = [
   {
+    slug: "cat-costa-montaj-centrala-termica",
+    title: "Cât costă montajul unei centrale termice în 2026: prețuri",
+    description:
+      "Cât costă montajul unei centrale termice în 2026: manoperă, PIF și ISCIR, proiect de gaze la înlocuire, centrală în condensare, coș de fum și durată.",
+    date: "2026-10-22",
+    updated: "2026-10-22",
+    summary:
+      "Montajul unei centrale termice pe gaz într-un apartament costă în 2026, orientativ, 800–1.800 lei manopera, plus 200–500 lei pentru punerea în funcțiune și admiterea funcționării ISCIR. Cu o centrală în condensare de 24–28 kW (2.700–7.500 lei), kit de evacuare și accesorii, o înlocuire pe același loc ajunge la 4.000–8.000 lei în total. Dacă muți centrala sau modifici instalația de gaze, ai nevoie de un proiect tehnic făcut de o firmă autorizată ANRE (500–1.000 lei), iar la debranșarea de la termoficare totalul urcă la 8.000–20.000 lei.",
+    readingMinutes: 11,
+    categories: ["instalatii-termice"],
+  },
+  {
+    slug: "pret-manopera-gresie-faianta-mp",
+    title: "Preț manoperă gresie și faianță pe mp în 2026, cu exemple",
+    description:
+      "Preț manoperă gresie și faianță pe mp în 2026: plăci mari, faianță de baie, hidroizolație, colțuri la 45°, chit epoxidic, cât material iei și cât durează.",
+    date: "2026-10-22",
+    updated: "2026-10-22",
+    summary:
+      "În 2026, manopera pentru gresie de format obișnuit costă orientativ 70–120 lei/mp, iar pentru faianță 75–130 lei/mp, fără plăci, adeziv și chit. La plăci mari, de 60×120 cm sau peste, prețul urcă la 110–180 lei/mp, iar decopertarea (25–45 lei/mp) și hidroizolația (40–100 lei/mp) se plătesc separat. Pentru o baie de bloc de 4 mp, doar placarea costă de obicei 1.500–4.000 lei, iar plăcile se cumpără cu 10% în plus pentru pierderi.",
+    readingMinutes: 9,
+    categories: ["gresie-faianta", "renovari-complete"],
+  },
+  {
+    slug: "cum-verifici-un-mester-inainte-sa-l-angajezi",
+    title: "Cum verifici un meșter înainte să-l angajezi: ghid 2026",
+    description:
+      "Cum verifici un meșter sau o firmă de construcții înainte să plătești: CUI la ANAF și ONRC, electrician ANRE, firmă ISCIR, recenzii, factură și avans.",
+    date: "2026-10-22",
+    updated: "2026-10-22",
+    summary:
+      "Verificarea unui meșter sau a unei firme de construcții e gratuită: cauți CUI-ul pe anaf.ro și în Recom online (ONRC), ca să vezi că firma există și nu e inactivă fiscal sau radiată. Pentru instalația electrică verifici autorizația pe spv.anre.ro (la un apartament, cel puțin gradul IIB), pentru gaze lista firmelor autorizate ANRE, iar pentru centrală listele ISCIR. Apoi semnezi un contract cu deviz, ceri factură sau bon pentru fiecare plată și nu dai un avans mai mare de 10–20% din manoperă.",
+    readingMinutes: 11,
+    categories: ["renovari-complete", "instalatii-electrice", "instalatii-termice"],
+  },
+  {
+    slug: "pret-fotograf-nunta-2027",
+    title: "Cât costă un fotograf de nuntă în 2027: prețuri și pachete",
+    description:
+      "Cât costă un fotograf de nuntă în 2027: prețuri pe pachete, foto și video, save the date, avans, câte poze primești, livrare și ce scrii în contract.",
+    date: "2026-10-22",
+    updated: "2026-10-22",
+    summary:
+      "În 2026, un fotograf de nuntă costă de obicei 2.500–7.500 lei pentru o zi întreagă, iar pachetele premium din orașele mari trec de 10.000 lei; pentru 2027 estimăm prețuri cu 5–10% mai mari. Un pachet foto și video la același prestator costă orientativ 5.000–12.000 lei, iar extra-urile (save the date, album, al doilea fotograf) adaugă de obicei 300–2.000 lei fiecare. Rezervarea se face cu 6–12 luni înainte, cu un avans de 10–30% din pachet, iar fotografiile editate (400–900 pentru o zi întreagă) vin în 4–8 săptămâni.",
+    readingMinutes: 9,
+    categories: ["fotografie", "filmare", "muzica-dj"],
+  },
+  {
     slug: "cat-costa-renovare-baie",
     title: "Cât costă renovarea unei băi în 2026: prețuri și etape",
     description:
@@ -42,6 +90,7 @@ export const posts: Post[] = [
     description:
       "Compară platformele de freelancing din România și străinătate: comisioane verificate în 2026, Upwork vs site-uri românești și cum găsești clienți singur.",
     date: "2026-10-21",
+    updated: "2026-10-22",
     summary: `Platformele internaționale (Upwork, Fiverr, Freelancer.com) au cel mai mare volum de proiecte remote, dar iau comision: 0–15% pe contract la Upwork, circa 20% la Fiverr și 10% la Freelancer.com (verificat în octombrie 2026). Pentru clienți din România și lucrări la fața locului, platformele de cereri de ofertă (HomeRun, Daibau, CautAjutor.ro, Contractez) taxează pe ofertă sau prin abonament, nu cu un procent din lucrare. Contractez are un plan ${freePlan.name} cu ${freePlan.monthlyApplications} aplicări pe lună, ${proPlan.name} la ${proPlan.priceLei} lei și ${businessPlan.name} la ${businessPlan.priceLei} lei pe lună, fără comision.`,
     readingMinutes: 10,
     categories: ["dezvoltare-web", "contabilitate"],

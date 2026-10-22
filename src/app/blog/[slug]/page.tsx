@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { cssVars } from "@/components/home/css-vars";
 import { site } from "@/config/site";
 import { posts, postsBySlug } from "@/content/blog/posts";
+import { postSources } from "@/content/blog/sources";
+import { pageTitle } from "@/lib/seo";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { env } from "@/server/env";
 
@@ -23,7 +25,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const post = postsBySlug.get(slug);
   if (!post) return {};
   return {
-    title: post.title,
+    title: pageTitle(post.title),
     description: post.description,
     alternates: { canonical: `/blog/${slug}`, types: { "text/markdown": `/blog/${slug}/md` } },
     openGraph: { type: "article", title: post.title, description: post.description, publishedTime: post.date, modifiedTime: post.updated ?? post.date },
@@ -36,7 +38,15 @@ export default async function BlogPostPage({ params }: { params: Params }) {
   if (!post) notFound();
   const [{ default: Body }, catalog] = await Promise.all([import(`@/content/blog/${slug}.mdx`), getCatalog()]);
   const related = post.categories.map((s) => catalog.bySlug.get(s)).filter((c) => c !== undefined);
-  const more = posts.filter((p) => p.slug !== slug).slice(0, 3);
+  // Întâi articolele cu o categorie comună (linkuri interne în același cluster), apoi cele mai noi.
+  const shared = (p: (typeof posts)[number]) => p.categories.filter((c) => post.categories.includes(c)).length;
+  const more = posts
+    .filter((p) => p.slug !== slug)
+    .map((p, i) => ({ p, score: shared(p), i }))
+    .sort((a, b) => b.score - a.score || a.i - b.i)
+    .slice(0, 3)
+    .map((x) => x.p);
+  const sources = postSources[slug] ?? [];
 
   const url = `${env.APP_URL}/blog/${slug}`;
   const modified = post.updated ?? post.date;
@@ -56,6 +66,11 @@ export default async function BlogPostPage({ params }: { params: Params }) {
         image: `${env.APP_URL}/opengraph-image.png`,
         author: org,
         publisher: { ...org, logo: { "@type": "ImageObject", url: `${env.APP_URL}/icon-512.png` } },
+        ...(sources.length
+          ? {
+              citation: sources.map((s) => ({ "@type": "CreativeWork", name: s.title, url: s.url, publisher: { "@type": "Organization", name: s.publisher } })),
+            }
+          : {}),
       },
       {
         "@type": "BreadcrumbList",
@@ -121,6 +136,23 @@ export default async function BlogPostPage({ params }: { params: Params }) {
             </section>
           )}
           <Body />
+          {sources.length > 0 && (
+            <section aria-labelledby="surse" className="mt-12 border-t pt-8">
+              <h2 id="surse" className="eyebrow">
+                Surse
+              </h2>
+              <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-muted-foreground marker:text-muted-foreground/70">
+                {sources.map((s) => (
+                  <li key={s.url}>
+                    <a href={s.url} target="_blank" rel="noopener noreferrer" className="font-medium text-foreground/85 underline-offset-4 hover:underline">
+                      {s.title}
+                    </a>
+                    , {s.publisher} (verificat la {dateFmt.format(new Date(s.accessed))})
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
           <div aria-hidden data-vt-scroll="blog_read_end" />
         </article>
 

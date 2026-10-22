@@ -47,7 +47,9 @@ import { reviewsFor } from "@/server/trust/service";
 import { AnafBadge } from "@/components/shared/anaf-badge";
 import { isFirstViewToday } from "@/server/views";
 import { isSlug } from "@/lib/ids";
+import { pageTitle } from "@/lib/seo";
 import { safeWebUrl } from "@/lib/web-url";
+import { env } from "@/server/env";
 
 const loadProfile = cache(async (slug: string) => {
   const [row] = await db
@@ -92,7 +94,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!row || !isVisible(row)) return { title: "Prestator" };
   const title = `${row.user.name} — ${row.profile.headline}`;
   const description = truncate(row.profile.bio, 160);
-  return { title, description, alternates: { canonical: `/prestatori/${slug}` }, openGraph: { title, description, type: "profile" } };
+  return { title: pageTitle(title), description, alternates: { canonical: `/prestatori/${slug}` }, openGraph: { title, description, type: "profile" } };
 }
 
 function Stars({ value }: { value: number }) {
@@ -141,8 +143,59 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
   const response = formatResponseTime(p.responseTimeMinutes);
   const langNames = p.languages.map((code) => LANGUAGES.find((l) => l.code === code)?.name ?? code.toUpperCase());
 
+  // Date structurate: pagina de profil (ProfilePage) și prestatorul ca serviciu profesional, cu media recenziilor
+  // lăsate de clienți după colaborări confirmate (recenzii despre un terț, nu despre Contractez).
+  const base = env.APP_URL;
+  const profileUrl = `${base}/prestatori/${p.slug}`;
+  const address = row.localityName
+    ? { "@type": "PostalAddress", addressLocality: row.localityName, ...(row.county ? { addressRegion: row.county } : {}), addressCountry: "RO" }
+    : undefined;
+  const website = safeWebUrl(p.websiteUrl);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "ProfilePage",
+        "@id": profileUrl,
+        url: profileUrl,
+        name: `${u.name}: ${p.headline}`,
+        inLanguage: "ro-RO",
+        dateCreated: u.createdAt.toISOString(),
+        dateModified: p.updatedAt.toISOString(),
+        isPartOf: { "@id": `${base}/#website` },
+        mainEntity: { "@id": `${profileUrl}#person` },
+      },
+      {
+        "@type": "Person",
+        "@id": `${profileUrl}#person`,
+        name: u.name,
+        description: p.headline,
+        url: profileUrl,
+        ...(u.avatarPath ? { image: `${base}/api/files/${u.avatarPath}` } : {}),
+        ...(address ? { address } : {}),
+        ...(categoriesList.length ? { knowsAbout: categoriesList.map((c) => c.name) } : {}),
+        ...(website ? { sameAs: [website] } : {}),
+      },
+      {
+        "@type": "ProfessionalService",
+        "@id": `${profileUrl}#service`,
+        name: u.companyName && u.companyVerifiedAt ? u.companyName : u.name,
+        description: truncate(p.bio, 300),
+        url: profileUrl,
+        founder: { "@id": `${profileUrl}#person` },
+        ...(u.companyCui && u.companyVerifiedAt ? { taxID: u.companyCui } : {}),
+        ...(address ? { address, areaServed: { "@type": "AdministrativeArea", name: row.county ?? row.localityName } } : {}),
+        ...(categoriesList.length ? { serviceType: categoriesList.map((c) => c.name) } : {}),
+        ...(p.ratingCount > 0 && p.ratingAvg
+          ? { aggregateRating: { "@type": "AggregateRating", ratingValue: Number(p.ratingAvg.toFixed(1)), reviewCount: p.ratingCount, bestRating: 5, worstRating: 1 } }
+          : {}),
+      },
+    ],
+  };
+
   return (
     <div className="container-page pt-6 pb-16 sm:pt-8">
+      {isVisible(row) && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />}
       <nav aria-label="Breadcrumb" className="mb-6 text-sm text-muted-foreground">
         <Link href="/prestatori" className="hover:text-foreground">Prestatori</Link>
         {categoriesList[0] && (

@@ -1,7 +1,9 @@
 import { ArrowRight, CircleCheck, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import { Faq } from "@/components/marketing/faq";
-import { guidesUpdated, type CategoryGuide } from "@/content/category-guides";
+import { site } from "@/config/site";
+import { guidesUpdated, guidesUpdatedIso, type CategoryGuide } from "@/content/category-guides";
+import { parsePriceRange } from "@/content/category-guides/price-spec";
 
 /** Ce este serviciul și cum funcționează pe platformă. */
 export function GuideIntro({ guide, name }: { guide: CategoryGuide; name: string }) {
@@ -124,22 +126,73 @@ export function GuideFaq({ guide, name }: { guide: CategoryGuide; name: string }
   );
 }
 
-/** Date structurate: firimituri de navigare și întrebări frecvente. */
+/** Date structurate: pagina (cu data actualizării), serviciul cu prețurile orientative, firimituri și întrebări frecvente. */
 export function GuideJsonLd({
   guide,
   baseUrl,
   crumbs,
+  service,
 }: {
   guide: CategoryGuide | undefined;
   baseUrl: string;
   crumbs: { name: string; path: string }[];
+  /** Serviciul descris de pagină; `city` restrânge aria deservită la oraș. */
+  service?: { name: string; description?: string; city?: string };
 }) {
+  const url = `${baseUrl}${crumbs[crumbs.length - 1]?.path ?? "/"}`;
   const graph: object[] = [
     {
       "@type": "BreadcrumbList",
       itemListElement: crumbs.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: c.name, item: `${baseUrl}${c.path}` })),
     },
   ];
+  if (service) {
+    const offers = (guide?.prices ?? []).flatMap((p) => {
+      const spec = parsePriceRange(p.range);
+      if (!spec) return [];
+      return [
+        {
+          "@type": "Offer",
+          name: p.item,
+          ...(p.note ? { description: p.note } : {}),
+          priceCurrency: "RON",
+          priceSpecification: {
+            "@type": "UnitPriceSpecification",
+            priceCurrency: "RON",
+            minPrice: spec.min,
+            ...(spec.max !== null ? { maxPrice: spec.max } : {}),
+            ...(spec.unit ? { unitText: spec.unit } : {}),
+          },
+        },
+      ];
+    });
+    graph.push(
+      {
+        "@type": "WebPage",
+        "@id": url,
+        url,
+        name: service.city ? `${service.name} în ${service.city}` : service.name,
+        inLanguage: "ro-RO",
+        isPartOf: { "@id": `${baseUrl}/#website` },
+        about: { "@id": `${url}#service` },
+        ...(guide ? { dateModified: guidesUpdatedIso } : {}),
+      },
+      {
+        "@type": "Service",
+        "@id": `${url}#service`,
+        name: service.name,
+        serviceType: service.name,
+        ...(service.description ? { description: service.description } : {}),
+        url,
+        // Contractez pune în legătură clienții cu prestatorii; nu prestează el serviciul.
+        broker: { "@type": "Organization", "@id": `${baseUrl}/#org`, name: site.name, url: baseUrl },
+        areaServed: service.city
+          ? { "@type": "City", name: service.city, containedInPlace: { "@type": "Country", name: "România" } }
+          : { "@type": "Country", name: "România" },
+        ...(offers.length ? { offers } : {}),
+      },
+    );
+  }
   if (guide?.faq.length) {
     graph.push({
       "@type": "FAQPage",

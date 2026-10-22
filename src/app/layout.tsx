@@ -10,10 +10,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { site } from "@/config/site";
 import "./globals.css";
 
-const instrumentSans = Instrument_Sans({ variable: "--font-sans", subsets: ["latin", "latin-ext"], axes: ["wdth"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin", "latin-ext"] });
-/** Serif italic pentru cuvintele evidențiate din titluri (hero, secțiuni de marketing). */
-const instrumentSerif = Instrument_Serif({ variable: "--font-serif", subsets: ["latin", "latin-ext"], weight: "400", style: ["normal", "italic"] });
+// Fără axa `wdth` (nu folosim font-stretch): fișierul latin scade de la ~57 KB la ~30 KB.
+const instrumentSans = Instrument_Sans({ variable: "--font-sans", subsets: ["latin", "latin-ext"] });
+// Monospace apare doar în câteva etichete mici: nu îl preîncărcăm, ca să nu concureze cu resursele critice.
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin", "latin-ext"], preload: false });
+/** Serif italic pentru cuvintele evidențiate din titluri (hero, secțiuni de marketing); varianta dreaptă nu e folosită. */
+const instrumentSerif = Instrument_Serif({ variable: "--font-serif", subsets: ["latin", "latin-ext"], weight: "400", style: "italic" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),

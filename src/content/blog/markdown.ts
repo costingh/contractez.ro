@@ -9,6 +9,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { site } from "@/config/site";
 import type { Post } from "./posts";
+import { postSources } from "./sources";
 
 const BLOG_DIR = path.join(process.cwd(), "src/content/blog");
 
@@ -75,5 +76,7 @@ export function postToMarkdown(post: Post, baseUrl: string): string {
     post.summary ? `> **Pe scurt:** ${post.summary}` : `> ${post.description}`,
     mdxToMarkdown(readPostSource(post.slug), baseUrl),
   ];
+  const sources = postSources[post.slug];
+  if (sources?.length) parts.push(`## Surse\n\n${sources.map((s) => `- [${s.title}](${s.url}), ${s.publisher}`).join("\n")}`);
   return parts.join("\n\n") + "\n";
 }

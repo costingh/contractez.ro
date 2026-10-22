@@ -12,6 +12,7 @@ import { labels } from "@/config/site";
 import { postsForCategory } from "@/content/blog/posts";
 import { getCategoryGuide, guideAnswer } from "@/content/category-guides";
 import { cities, cityServices, isCityPageIndexedByDefault } from "@/content/cities";
+import { pageTitle } from "@/lib/seo";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { env } from "@/server/env";
 import { categoryDemand } from "@/server/insights";
@@ -37,9 +38,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     r.category.description ??
     `Găsește prestatori pentru ${r.category.name.toLowerCase()} sau proiecte deschise în această categorie.`;
   return {
-    title,
+    title: pageTitle(title),
     description,
-    alternates: { canonical: `/categorii/${slug}` },
+    alternates: { canonical: `/categorii/${slug}`, ...(guide ? { types: { "text/markdown": `/categorii/${slug}/md` } } : {}) },
     openGraph: { title, description, url: `/categorii/${slug}` },
   };
 }
@@ -53,6 +54,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const guide = getCategoryGuide(category.slug);
   const crumbs = [
     { name: "Acasă", path: "/" },
+    { name: "Categorii", path: "/categorii" },
     ...(!isRoot && root ? [{ name: root.name, path: `/categorii/${root.slug}` }] : []),
     { name: category.name, path: `/categorii/${category.slug}` },
   ];
@@ -67,7 +69,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="pb-16">
-      <GuideJsonLd guide={guide} baseUrl={env.APP_URL} crumbs={crumbs} />
+      <GuideJsonLd guide={guide} baseUrl={env.APP_URL} crumbs={crumbs} service={{ name: category.name, description: guide ? guideAnswer(guide) : (category.description ?? undefined) }} />
       <section className="px-2 pt-2 sm:px-3 sm:pt-3">
         <div className="ink-panel rounded-[1.75rem] sm:rounded-[2.25rem]">
           <div aria-hidden className="aurora aurora-a -top-48 -left-24 size-[560px]" />
@@ -77,6 +79,10 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
               <nav className="enter text-sm text-white/50" style={cssVars({ i: 0 })}>
                 <Link href="/" className="hover:text-white">
                   Acasă
+                </Link>
+                <span className="mx-2 text-white/25">/</span>
+                <Link href="/categorii" className="hover:text-white">
+                  Categorii
                 </Link>
                 {!isRoot && root && (
                   <>

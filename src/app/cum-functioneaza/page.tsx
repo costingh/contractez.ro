@@ -51,9 +51,39 @@ function Steps({ steps, tone }: { steps: { icon: typeof Search; t: string; d: st
   );
 }
 
+/** Întrebările frecvente, afișate în pagină și ca FAQPage în JSON-LD (`text` = răspunsul fără linkuri). */
+const faq: { q: string; a: React.ReactNode; text?: string }[] = [
+  { q: "Cum se calculează scorul de compatibilitate?", a: "Printr-o formulă transparentă: potrivirea categoriei (max 30 puncte), competențele (25), bugetul (15), distanța (10), reputația (10) și disponibilitatea (10). AI-ul ajută doar la înțelegerea cererii, nu inventează procente." },
+  { q: "Platforma intermediază plata lucrării?", a: "Nu. Clientul și prestatorul stabilesc direct prețul, termenele și plata. Prestatorii plătesc doar un abonament opțional (Pro sau Business) dacă au nevoie de mai multe aplicări." },
+  { q: "Pot fi și client, și prestator?", a: "Da. Un cont poate avea ambele roluri; le activezi din onboarding sau din meniul contului." },
+  { q: "De ce maximum 5 oferte?", a: "Ca fiecare ofertă să fie citită și ca prestatorii să aibă șanse reale. Clientul poate redeschide selecția dacă are nevoie de mai multe variante." },
+  {
+    q: "Ce verificați despre un client?",
+    a: features.phoneVerification
+      ? "Emailul este obligatoriu; telefonul verificat apare ca insignă. Nu verificăm identitatea sau existența fondurilor, iar acest lucru este afișat transparent pe fiecare proiect."
+      : "Emailul confirmat este obligatoriu, iar firmele pot fi confirmate în registrul ANAF. Nu verificăm identitatea sau existența fondurilor, iar acest lucru este afișat transparent pe fiecare proiect. Numărul de telefon și emailul apar doar după ce prestatorul confirmă colaborarea.",
+  },
+  {
+    q: "Cum raportez o problemă?",
+    text: "Folosește butonul „Raportează” de pe proiect, profil sau din chat, ori scrie-ne din pagina de contact.",
+    a: (
+      <>
+        Folosește butonul „Raportează” de pe proiect, profil sau din chat, ori scrie-ne din pagina de{" "}
+        <Link href="/contact" className="font-medium text-brand underline-offset-4 hover:underline">contact</Link>.
+      </>
+    ),
+  },
+];
+
 export default function HowItWorksPage() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.text ?? String(f.a) } })),
+  };
   return (
     <div className="pb-16">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <section className="px-2 pt-2 sm:px-3 sm:pt-3">
         <div className="ink-panel rounded-[1.75rem] sm:rounded-[2.25rem]">
           <div aria-hidden className="aurora aurora-a -top-48 -left-24 size-[600px]" />
@@ -219,29 +249,7 @@ export default function HowItWorksPage() {
           <div className="eyebrow">Întrebări frecvente</div>
           <h2 className="display-md mt-3">Răspunsuri clare, fără litere mici.</h2>
         </div>
-        <Faq
-          items={[
-            { q: "Cum se calculează scorul de compatibilitate?", a: "Printr-o formulă transparentă: potrivirea categoriei (max 30 puncte), competențele (25), bugetul (15), distanța (10), reputația (10) și disponibilitatea (10). AI-ul ajută doar la înțelegerea cererii, nu inventează procente." },
-            { q: "Platforma intermediază plata lucrării?", a: "Nu. Clientul și prestatorul stabilesc direct prețul, termenele și plata. Prestatorii plătesc doar un abonament opțional (Pro sau Business) dacă au nevoie de mai multe aplicări." },
-            { q: "Pot fi și client, și prestator?", a: "Da. Un cont poate avea ambele roluri; le activezi din onboarding sau din meniul contului." },
-            { q: "De ce maximum 5 oferte?", a: "Ca fiecare ofertă să fie citită și ca prestatorii să aibă șanse reale. Clientul poate redeschide selecția dacă are nevoie de mai multe variante." },
-            {
-              q: "Ce verificați despre un client?",
-              a: features.phoneVerification
-                ? "Emailul este obligatoriu; telefonul verificat apare ca insignă. Nu verificăm identitatea sau existența fondurilor, iar acest lucru este afișat transparent pe fiecare proiect."
-                : "Emailul confirmat este obligatoriu, iar firmele pot fi confirmate în registrul ANAF. Nu verificăm identitatea sau existența fondurilor, iar acest lucru este afișat transparent pe fiecare proiect. Numărul de telefon și emailul apar doar după ce prestatorul confirmă colaborarea.",
-            },
-            {
-              q: "Cum raportez o problemă?",
-              a: (
-                <>
-                  Folosește butonul „Raportează” de pe proiect, profil sau din chat, ori scrie-ne din pagina de{" "}
-                  <Link href="/contact" className="font-medium text-brand underline-offset-4 hover:underline">contact</Link>.
-                </>
-              ),
-            },
-          ]}
-        />
+        <Faq items={faq} />
       </section>
       </div>
     </div>

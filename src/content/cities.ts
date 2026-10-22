@@ -146,6 +146,12 @@ export const indexedCityPages = new Set([
   "instalatii-sanitare/ploiesti",
   "topografie-cadastru/craiova",
   "renovari-complete/sibiu",
+  // Valul 2 (22.10.2026): doar serviciile cu un bloc local concret pe fiecare oraș.
+  // Cadastru: OCPI-ul județean cu adresă (city-facts.ts); centrale: distribuitorul de gaze și inspecția teritorială ISCIR
+  // (city-authorities.ts); traduceri: curtea de apel (city-authorities.ts), doar în orașele mari.
+  ...cities.filter((c) => c.slug !== "bucuresti").map((c) => `topografie-cadastru/${c.slug}`),
+  ...cities.filter((c) => c.slug !== "bucuresti").map((c) => `instalatii-termice/${c.slug}`),
+  ...["cluj-napoca", "timisoara", "iasi", "constanta", "brasov", "craiova", "galati", "ploiesti", "oradea", "sibiu"].map((c) => `traduceri/${c}`),
 ]);
 
 export function isCityPageIndexedByDefault(categorySlug: string, city: City) {

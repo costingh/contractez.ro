@@ -476,7 +476,7 @@ export const buildInstallGuides: CategoryGuides = {
     ],
     checklist: [
       "Pentru racordul la gaze, alege un instalator sau o firmă autorizată ANRE pentru gaze naturale.",
-      "Punerea în funcțiune a centralei trebuie făcută de un service autorizat ISCIR, ca să ai garanție.",
+      "Punerea în funcțiune a centralei se face obligatoriu de un service autorizat ISCIR (o cere și producătorul pentru garanție).",
       "La pompele de căldură cu agent frigorific, cere un tehnician certificat pentru gaze fluorurate (F-gaz).",
       "Cere un deviz scris cu manopera, materialele și avizele separate.",
       "Cere factură și certificat de garanție pentru lucrare și echipament.",
@@ -488,7 +488,7 @@ export const buildInstallGuides: CategoryGuides = {
       },
       {
         q: "Am nevoie de autorizație pentru montajul centralei?",
-        a: "Da. Lucrările la instalația de gaze se fac doar de instalatori autorizați ANRE, iar pentru o centrală nouă e nevoie de proiect și de acordul distribuitorului de gaze. Punerea în funcțiune se face de un service autorizat ISCIR, iar centrala trebuie verificată periodic.",
+        a: "Lucrările la instalația de gaze se fac doar de instalatori autorizați ANRE. Dacă înlocuiești centrala pe același loc, fără să schimbi debitul, presiunea, traseul conductelor sau poziția, lucrarea se face pe documentația existentă; e nevoie de proiect nou (și, la debit mai mare, de avizul distribuitorului) doar când se schimbă ceva. Punerea în funcțiune o face obligatoriu un service autorizat ISCIR, iar centrala se verifică periodic.",
       },
       {
         q: "Cât costă încălzirea în pardoseală?",

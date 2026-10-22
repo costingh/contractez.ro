@@ -6,6 +6,7 @@ import { cssVars } from "@/components/home/css-vars";
 import { rules, site } from "@/config/site";
 import { guidesUpdated, guidesUpdatedIso } from "@/content/category-guides";
 import { priceGuideGroups, priceGuideStats } from "@/content/price-guide";
+import { pageTitle } from "@/lib/seo";
 import { pluralRo } from "@/lib/text";
 import { env } from "@/server/env";
 
@@ -14,7 +15,7 @@ const description =
   "Prețuri orientative 2026 pentru renovări, instalații, mutări, IT, evenimente, contabilitate și alte servicii din România, pe o singură pagină.";
 
 export const metadata: Metadata = {
-  title,
+  title: pageTitle(title),
   description,
   alternates: { canonical: "/ghid-preturi" },
   openGraph: { title, description, url: "/ghid-preturi" },

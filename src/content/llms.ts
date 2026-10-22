@@ -71,6 +71,7 @@ export function buildLlmsTxt(baseUrl: string): string {
     link("Despre Contractez", u("/despre"), "ce este platforma, cine o operează, cum funcționează, verificare, abonamente"),
     link("Cum funcționează", u("/cum-functioneaza"), "pașii pentru clienți și prestatori, scorul de compatibilitate, regulile de încredere"),
     link("Abonamente pentru prestatori", u("/preturi"), "planurile Gratuit, Pro și Business"),
+    link("Toate categoriile de servicii", u("/categorii"), "lista completă a serviciilor, cu primul preț orientativ din fiecare ghid"),
     link(`Ghid de prețuri 2026`, u("/ghid-preturi"), `toate prețurile orientative pentru servicii din România, pe o singură pagină (actualizate ${guidesUpdated})`),
     link("Blog: ghiduri și prețuri", u("/blog")),
     link("Proiecte deschise", u("/proiecte"), "cererile publicate de clienți"),
@@ -79,11 +80,12 @@ export function buildLlmsTxt(baseUrl: string): string {
     link("Text complet pentru asistenți AI", u("/llms-full.txt"), "toate articolele și ghidurile de categorie, în markdown"),
   ];
   const blog = sortedPosts().map((p) => link(p.title, u(`/blog/${p.slug}`), `${p.summary ?? p.description} Markdown: ${u(`/blog/${p.slug}/md`)}`));
-  const roots = taxonomy.map((r) => link(r.name, u(`/categorii/${r.slug}`), answerFor(r.slug) ?? r.description));
+  const md = (slug: string) => (getCategoryGuide(slug) ? ` Markdown: ${u(`/categorii/${slug}/md`)}` : "");
+  const roots = taxonomy.map((r) => link(r.name, u(`/categorii/${r.slug}`), `${answerFor(r.slug) ?? r.description}${md(r.slug)}`));
   const popular = popularSubcategories.flatMap((slug) => {
     const s = subsBySlug.get(slug);
     if (!s) return [];
-    return [link(`${s.name} (${s.root.name})`, u(`/categorii/${slug}`), answerFor(slug))];
+    return [link(`${s.name} (${s.root.name})`, u(`/categorii/${slug}`), `${answerFor(slug) ?? s.name}${md(slug)}`)];
   });
   const hubs = cities.filter(isCityHubIndexed).map((c) => {
     const services = Object.keys(cityServices).filter((slug) => isCityPageIndexedByDefault(slug, c));

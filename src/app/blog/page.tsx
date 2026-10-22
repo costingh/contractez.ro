@@ -2,7 +2,9 @@ import { ArrowRight, Clock } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cssVars } from "@/components/home/css-vars";
+import { site } from "@/config/site";
 import { posts } from "@/content/blog/posts";
+import { env } from "@/server/env";
 
 export const metadata: Metadata = {
   title: "Ghiduri și prețuri pentru servicii",
@@ -14,8 +16,27 @@ const dateFmt = new Intl.DateTimeFormat("ro-RO", { day: "numeric", month: "long"
 
 export default function BlogIndexPage() {
   const sorted = [...posts].sort((a, b) => (b.updated ?? b.date).localeCompare(a.updated ?? a.date));
+  const base = env.APP_URL;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "@id": `${base}/blog`,
+    url: `${base}/blog`,
+    name: `Blog ${site.name}: ghiduri și prețuri pentru servicii`,
+    inLanguage: "ro-RO",
+    publisher: { "@id": `${base}/#org` },
+    blogPost: sorted.map((p) => ({
+      "@type": "BlogPosting",
+      headline: p.title,
+      description: p.summary ?? p.description,
+      url: `${base}/blog/${p.slug}`,
+      datePublished: p.date,
+      dateModified: p.updated ?? p.date,
+    })),
+  };
   return (
     <div className="pb-16">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <header className="border-b">
         <div className="container-page py-14 sm:py-20">
           <div className="enter eyebrow" style={cssVars({ i: 0 })}>

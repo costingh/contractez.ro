@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cities, citiesBySlug, cityServices, indexedCityPages } from "@/content/cities";
+import { cityAuthorities } from "@/content/city-authorities";
 import { cityFacts } from "@/content/city-facts";
 import { taxonomy } from "../db/seed-data/taxonomy";
 
@@ -29,6 +30,24 @@ describe("datele locale ale orașelor", () => {
       expect(cityFacts[c.slug], c.slug).toBeDefined();
       expect(cityFacts[c.slug].neighborhoods.length, c.slug).toBeGreaterThanOrEqual(5);
       expect(cityFacts[c.slug].ocpi, c.slug).toMatch(/^OCPI /);
+    }
+  });
+
+  it("autoritățile locale există pentru fiecare oraș", () => {
+    for (const c of cities) expect(cityAuthorities[c.slug], c.slug).toBeDefined();
+  });
+});
+
+describe("combinațiile indexate au un bloc local concret", () => {
+  it("cadastru: OCPI cu adresă; centrale: distribuitor de gaze și ISCIR; traduceri: curtea de apel", () => {
+    for (const key of indexedCityPages) {
+      const [cat, slug] = key.split("/");
+      if (cat === "topografie-cadastru") expect(cityFacts[slug]?.ocpiAddress, key).toBeTruthy();
+      if (cat === "instalatii-termice") {
+        expect(cityFacts[slug]?.gasDistributor, key).toBeTruthy();
+        expect(cityAuthorities[slug]?.iscir.name, key).toMatch(/^ISCIR/);
+      }
+      if (cat === "traduceri") expect(cityAuthorities[slug]?.courtOfAppeal, key).toMatch(/^Curtea de Apel /);
     }
   });
 });

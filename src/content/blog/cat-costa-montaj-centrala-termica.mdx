@@ -1,0 +1,188 @@
+{/* SURSE (verificate 22.10.2026): (1) Normele tehnice NTPEE-2018, aprobate prin Ordinul ANRE nr. 89/2018 (MO 462/05.06.2018), formă actualizată cu Ordinul ANRE nr. 2/2023 (PDF publicat de Distrigaz Sud Rețele, distrigazsud-retele.ro/wp-content/uploads/2023/08/Ordinul-ANRE-nr-89-din-2018-actualizat-1.pdf): art. 340 alin. (1) pentru modificări ale instalației de utilizare clientul final realizează documentația tehnică prin operatori autorizați ANRE pentru proiectare; art. 340 alin. (2) înlocuirea fără modificări de debit instalat, presiune, măsurare, traseu sau loc de amplasare a aparatelor se face pe baza documentației tehnice existente; art. 341 repunerea în funcțiune în aceleași condiții ca pentru instalațiile noi; art. 339 remedierile le fac operatori autorizați ANRE, pe cheltuiala clientului; art. 130-131 în băi nu se admit centrale cu tiraj natural, ci doar cu cameră etanșă și tiraj forțat; art. 144 alin. (1) detectoare automate cu electroventil în încăperile cu risc; art. 294 verificarea evacuării gazelor arse la punerea în funcțiune; art. 295 aparatele racordate la coș se pun în funcțiune doar cu dovada, nu mai veche de 30 de zile, a verificării și curățării coșului. (2) Procedura privind proiectarea, verificarea proiectului tehnic, execuția, recepția tehnică și punerea în funcțiune a instalației de utilizare a gazelor naturale, Ordinul ANRE nr. 156/2020 (MO 799/01.09.2020), formă aplicabilă la 14.12.2025 (PDF gazest.ro): art. 20 alin. (1) modificare în limita debitelor din avizul tehnic de racordare: proiect tehnic, verificat de verificator atestat Ig, probe, PV de recepție, PIF la distribuitor; art. 20 alin. (2) peste debitul aprobat: aviz tehnic de racordare nou; art. 23 executantul cere programarea PIF în 3 zile lucrătoare de la recepție; art. 24 alin. (1) lit. d) tarif de PIF plătit distribuitorului; art. 25 alin. (1) lit. b) distribuitorul face PIF în 5 zile lucrătoare când contorul există; art. 25 alin. (3) refuz dacă proiectarea sau execuția e făcută de firme fără autorizație PDIB/PT sau EDIB/ET. (3) ISCIR PT A1-2010 (Ordinul MECMA 1.007/2010, MO 513 bis/23.07.2010; PDF iscir.ro/wp-content/uploads/2026/08/PT-A1-2010.pdf): art. 8 alin. (2) instalarea/montarea de producător sau de persoane juridice autorizate ISCIR; art. 12 deținătorul solicită punerea în funcțiune și obține admiterea funcționării; art. 13 PIF și admiterea funcționării de producător sau de persoane juridice autorizate ISCIR; art. 14 documente, inclusiv avizul privind furnizarea gazelor, unde e cazul; art. 17 RVT completează livretul, ADMIS/RESPINS; VTP la 2 ani. PT CR 2-2025 (MO 666/12.08.2026) menționată ca schimbare în curs, vezi articolul ISCIR. (4) Regulamentul (UE) nr. 813/2013, anexa II pct. 1: din 26.09.2015 eficiența energetică sezonieră a cazanelor pe combustibil ≤ 70 kW nu poate fi sub 86%, cu excepția cazanelor de tip B1 ≤ 10 kW și a cazanelor combinate B1 ≤ 30 kW (75%); text citit pe legislation.gov.uk/eur/2013/813/annex/II. (5) Prețuri: Playtech 19.09.2025 (manoperă 800-1.500 lei, ISCIR 160-250 lei, proiect și avize 200-600 lei, total 7.500-17.000 lei); Playtech 13.05.2026 (total la debranșare în București 15.000-20.000 lei); Newsweek 16.10.2025 (manoperă înlocuire până la 28 kW 1.000-1.500 lei, kit instalare ~400 lei, autorizare ISCIR ~400 lei); Ziarul Profit 29.09.2026 (centrală în condensare ~4.000 lei, termostat 150-200 lei, smart până la 800 lei, total de la 7.500 la peste 20.000 lei, creștere 20-30% în 2 ani); Capital 29.03.2026 (proiect tehnic nou ~900 lei, detector cu electroventil 200-400 lei); brig.ro/montaj-centrala-termica/deva și rezultate brig.ro (manoperă 900-1.100 lei sub 28 kW, înlocuire 1.400-1.600 lei, condensare 1.500-2.000 lei, kit evacuare 200-500 lei, filtru magnetic 200-300 lei, PIF 300-600 lei, ISCIR 200-410 lei; pompă de căldură aer-apă 10 kW casă 120 mp 30.000-50.000 lei montată, manoperă de la 3.500-4.500 lei); prețuri centrale 24-25 kW în condensare la Hornbach, Dedeman, Altex (2.650-5.000 lei; Viessmann Vitodens 050-W 4.499 lei, Vitodens 100-W 32 kW 7.199 lei); Hornbach extensie coaxială 60/100 1 m 112 lei, cot 74-111 lei. (6) Programe: Newsweek 01.08.2026, Casa Verde Fotovoltaice lipsește din proiectul de buget AFM 2026; nu am găsit un program AFM 2026 pentru centrale pe gaz; engie.ro publică un contract de înlocuire a centralei în 3 rate. NEVERIFICAT: tariful exact de PIF al fiecărui distribuitor. (7) Coerență internă: src/content/category-guides/build-install.ts (instalatii-termice). */}
+
+Montajul unei centrale termice pe gaz într-un apartament costă în 2026, orientativ, 800–1.800 lei manopera, plus 200–500 lei pentru punerea în funcțiune cu admiterea funcționării ISCIR și câteva sute de lei pentru kitul de evacuare și accesorii. Cu tot cu o centrală în condensare de 24–28 kW (2.700–7.500 lei), o înlocuire pe același loc ajunge de regulă la 4.000–8.000 lei în total. Dacă muți centrala, schimbi traseul de gaz sau te debranșezi de la termoficare, bugetul urcă la 8.000–20.000 lei, din cauza proiectului de gaze, a țevilor și a caloriferelor.
+
+## Cât costă montajul unei centrale termice: prețuri pe lucrare în 2026
+
+Manopera pentru montajul unei centrale de apartament este de 800–1.800 lei, iar restul costurilor vin din echipament, punerea în funcțiune și accesorii. Prețurile de mai jos sunt orientative, adunate din oferte publice și presă din 2025–2026. Nu există tarife oficiale: fiecare firmă își stabilește prețul.
+
+| Lucrare sau produs | Preț orientativ 2026 | Observații |
+|---|---|---|
+| Manoperă înlocuire centrală pe același loc (24–28 kW) | 800–1.500 lei | demontarea centralei vechi, montaj, racorduri, probe |
+| Manoperă montaj centrală în condensare, cu mici modificări | 1.200–1.800 lei | kit de evacuare nou, scurgerea condensului, adaptări de racorduri |
+| Punerea în funcțiune (PIF) și admiterea funcționării ISCIR | 200–500 lei | uneori inclusă în prețul montajului |
+| Centrală în condensare 24–28 kW, gama economică sau medie | 2.700–4.500 lei | prețuri de raft, cu sau fără kit |
+| Centrală în condensare, mărci premium | 4.500–7.500 lei | modele cu boiler sau cu putere mai mare costă mai mult |
+| Kit de evacuare coaxial (material) | 200–500 lei | o prelungire de 1 m costă în jur de 110 lei |
+| Proiect tehnic de gaze, cu verificare | 500–1.000 lei | doar dacă muți centrala sau modifici instalația |
+| Detector de gaze cu electroventil | 200–400 lei | dacă lipsește sau i-a expirat durata de folosire |
+| Filtru antimagnetită | 200–300 lei | recomandat la instalațiile vechi |
+| Termostat de cameră | 150–200 lei | modelele smart ajung la 800 lei |
+
+În București și în orașele mari, ofertele se apropie de capătul de sus al intervalelor. Presa economică notează că montajul s-a scumpit cu 20–30% față de acum doi ani, mai ales la manoperă și la avize.
+
+<Callout type="tip" title="Cere oferta defalcată">
+Cere ca oferta să separe manopera, centrala, kitul de evacuare, PIF-ul și eventualul proiect de gaze. Un preț „la cheie” fără detalii nu îți spune dacă PIF-ul, detectorul sau scurgerea condensului sunt incluse.
+</Callout>
+
+## Cât costă în total: trei situații frecvente
+
+Costul total depinde mai ales de cât de mult se schimbă instalația existentă. Tabelul de mai jos adună centrala, manopera și costurile obișnuite pentru un apartament de 2–3 camere.
+
+| Situația | Ce include | Total orientativ 2026 |
+|---|---|---|
+| Înlocuire pe același loc, fără modificări de traseu | centrală nouă, manoperă, kit, PIF și ISCIR | 4.000–8.000 lei |
+| Înlocuire cu mutarea centralei sau modificări la gaz | plus proiect de gaze, țevi noi, detector, PIF la distribuitor | 6.000–11.000 lei |
+| Debranșare de la termoficare, instalație nouă | plus trasee de încălzire, calorifere, avize | 8.000–20.000 lei |
+
+La debranșarea de la termoficare, prețul variază cel mai mult. Locatarii din București raportau în 2026 costuri totale de 15.000–20.000 lei, pentru că pe lângă centrală trebuie refăcute traseele și adesea schimbate caloriferele. Manopera pentru o instalație termică completă de apartament este, separat, de 3.000–7.000 lei.
+
+## Ce intră în manopera de montaj
+
+Manopera standard acoperă demontarea centralei vechi, montajul celei noi și racordarea ei la apă, încălzire, gaz și curent, plus probele de etanșeitate. Verifică totuși, în scris, dacă oferta include:
+
+- golirea și umplerea instalației, aerisirea caloriferelor;
+- montajul kitului de evacuare și etanșarea trecerii prin perete;
+- racordul pentru scurgerea condensului la canalizare (la centralele în condensare);
+- robinetul de gaz, racordul flexibil sau rigid și proba de etanșeitate;
+- spălarea instalației și montajul filtrului, dacă instalația e veche;
+- reglajul inițial și explicațiile de folosire;
+- ridicarea centralei vechi.
+
+Producătorii cer de obicei ca montajul și punerea în funcțiune să fie făcute de firme autorizate, ca să acorde garanția. Prescripția ISCIR PT A1-2010 (art. 8) spune explicit că instalarea aparatelor se face de producător sau de persoane juridice autorizate ISCIR.
+
+## Înlocuire centrală termică: ai nevoie de proiect și de aviz de gaze?
+
+Nu întotdeauna. Dacă pui centrala nouă pe același loc, fără să schimbi debitul de gaz, presiunea, traseul instalației sau locul aparatului, înlocuirea se face pe baza documentației tehnice existente. Dacă schimbi oricare dintre aceste elemente, ai nevoie de proiect tehnic nou, iar instalația se pune din nou în funcțiune prin distribuitor.
+
+Regulile vin din două acte ale **Autorității Naționale de Reglementare în Domeniul Energiei (ANRE)**:
+
+- **Normele tehnice NTPEE-2018** (Ordinul ANRE nr. 89/2018), art. 340: pentru modificări ale instalației de utilizare a gazelor, clientul face documentația tehnică printr-o firmă autorizată ANRE pentru proiectare; înlocuirea fără modificări de debit, presiune, măsurare, traseu sau loc de amplasare a aparatelor se face pe baza documentației existente.
+- **Procedura aprobată prin Ordinul ANRE nr. 156/2020**, art. 20: la o modificare care rămâne în limita debitului din avizul tehnic de racordare, proiectul se verifică de un verificator atestat, firma face probele și procesul-verbal de recepție, apoi cere distribuitorului punerea în funcțiune. Dacă depășești debitul aprobat, îți trebuie mai întâi un **aviz tehnic de racordare nou** de la distribuitor.
+
+Ce înseamnă în practică:
+
+- **Aceeași poziție, putere apropiată, același traseu:** de regulă fără proiect nou. Lucrarea la gaz o face un instalator autorizat ANRE (autorizație de execuție EDIB pentru instalațiile de joasă presiune).
+- **Muți centrala din baie în bucătărie sau pe balcon, prelungești țeava de gaz:** proiect tehnic nou, verificat, și punere în funcțiune la distribuitor (Distrigaz Sud Rețele, Delgaz Grid sau operatorul din zona ta).
+- **Treci de la un aragaz singur la aragaz plus centrală (debranșare de la termoficare):** de obicei crește debitul instalat, deci ai nevoie de aviz tehnic de racordare nou și de proiect.
+
+Distribuitorul are termene clare: firma cere programarea în cel mult 3 zile lucrătoare de la recepție, iar distribuitorul face punerea în funcțiune în 5 zile lucrătoare de la cererea completă, dacă ai deja contor (art. 23 și 25 din procedură). Punerea în funcțiune are un tarif separat, plătit distribuitorului. Distribuitorul refuză punerea în funcțiune dacă proiectul sau execuția sunt făcute de o firmă fără autorizația ANRE potrivită.
+
+<Callout type="warning" title="Nu muta centrala fără proiect">
+O centrală mutată fără proiect și fără recepție nu poate fi pusă legal în funcțiune, iar la următoarea verificare a instalației de gaze riști sistarea alimentării. Întreabă instalatorul, înainte de ofertă, dacă lucrarea ta este o înlocuire simplă sau o modificare a instalației.
+</Callout>
+
+## Punerea în funcțiune (PIF) și ISCIR: două lucruri diferite
+
+La o centrală nouă există două „puneri în funcțiune”, făcute de instituții diferite. Distribuitorul de gaze pune în funcțiune **instalația de gaze**, doar când aceasta a fost modificată. Firma autorizată ISCIR pune în funcțiune **centrala** și emite admiterea funcționării, la fiecare centrală nouă.
+
+Pentru centrală, regula este în prescripția ISCIR PT A1-2010:
+
+- deținătorul are obligația să ceară punerea în funcțiune și să obțină admiterea funcționării (art. 12);
+- le face producătorul sau o firmă autorizată ISCIR pentru verificări tehnice în utilizare (art. 13);
+- tehnicianul RVT completează livretul aparatului cu mențiunea „ADMIS” sau „RESPINS” (art. 17);
+- de la această dată curge termenul de 2 ani pentru verificarea tehnică periodică.
+
+La pornire, tehnicianul verifică și evacuarea gazelor arse. Normele ANRE (art. 294) cer amânarea punerii în funcțiune și sigilarea robinetului aparatului dacă evacuarea nu funcționează corect.
+
+Ce urmează după montaj, cu revizia anuală, verificarea ISCIR la 2 ani și verificările instalației de gaze, găsești în articolul despre [verificarea ISCIR și revizia centralei termice](/blog/verificare-iscir-revizie-centrala-termica). Regulile ISCIR sunt în schimbare în 2026, după publicarea PT CR 2-2025, așa că merită verificat pe iscir.ro ce prescripție se aplică la data montajului.
+
+<Cta href="/categorii/instalatii-termice" title="Îți schimbi centrala?">Descrie locuința și centrala actuală și primești până la 5 oferte de la instalatori autorizați din zona ta.</Cta>
+
+## Montaj centrală în condensare: ce e diferit
+
+Practic, orice centrală pe gaz nouă pentru apartament este acum în condensare. Regulamentul (UE) nr. 813/2013 cere, din 26 septembrie 2015, o eficiență sezonieră de cel puțin 86% pentru centralele de până la 70 kW, prag pe care doar tehnologia cu condensare îl atinge. Excepția este îngustă: cazanele de tip B1 (cu tiraj natural, pentru coșuri comune) de până la 10 kW, respectiv 30 kW la cele care fac și apă caldă, cu un prag de 75%.
+
+La montaj, centrala în condensare cere câteva lucruri în plus față de una clasică:
+
+- **scurgerea condensului:** centrala produce apă acidă, care trebuie dusă printr-un sifon la canalizare;
+- **evacuare din materiale rezistente la condens:** de regulă un kit coaxial din polipropilenă, de obicei cu diametrul 60/100 mm;
+- **verificarea traseelor și a caloriferelor:** randamentul maxim apare la temperaturi mai mici ale apei din calorifere, deci o instalație bine aerisită și echilibrată contează;
+- **termostat de cameră:** fără el, centrala pornește și se oprește des și consumă mai mult.
+
+Din aceste motive, manopera la o centrală în condensare este de obicei cu câteva sute de lei mai mare decât la o înlocuire simplă.
+
+## Coșul de fum și tubulatura de evacuare
+
+Centralele de apartament de azi au cameră de ardere etanșă și tiraj forțat. Iau aerul și evacuează gazele arse printr-o tubulatură coaxială, scoasă de obicei prin perete. Kitul standard costă 200–500 lei, iar fiecare prelungire sau cot adaugă în jur de 70–110 lei.
+
+Câteva reguli din normele ANRE (NTPEE-2018) contează la alegerea locului:
+
+- în baie nu se admit centrale cu tiraj natural, ci doar cele cu cameră etanșă și tiraj forțat (art. 130–131);
+- aparatele racordate la un **coș de fum** se pun în funcțiune doar dacă prezinți o dovadă, nu mai veche de 30 de zile, că o firmă calificată a verificat și curățat coșul (art. 295);
+- la încăperile cu risc de acumulare a gazelor se montează detector automat cu electroventil (art. 144).
+
+Dacă vrei să folosești un coș de zidărie existent pentru o centrală în condensare, de regulă trebuie tubat cu un sistem rezistent la condens, pe toată înălțimea. Prețul depinde de înălțimea coșului și de acces, așa că cere-l separat în ofertă.
+
+## Centrală pe gaz sau pompă de căldură?
+
+Pentru un apartament la bloc, centrala pe gaz rămâne varianta cu cel mai mic cost de montaj. O pompă de căldură aer-apă are sens mai ales la o casă bine izolată, iar investiția este de câteva ori mai mare.
+
+| | Centrală pe gaz în condensare | Pompă de căldură aer-apă |
+|---|---|---|
+| Echipament plus montaj, orientativ | 4.000–8.000 lei la o înlocuire în apartament | 30.000–50.000 lei pentru o casă de circa 120 mp |
+| Manoperă | 800–1.800 lei | 4.000–10.000 lei |
+| Unde se potrivește | apartament, casă cu racord la gaz | casă izolată, cu încălzire în pardoseală sau calorifere mari |
+| Autorizări | ISCIR pentru centrală, ANRE pentru gaz | tehnician certificat pentru gaze fluorurate (F-gaz) la modelele split |
+
+Pompa de căldură elimină consumul de gaz, dar crește consumul de curent și poate cere mărirea puterii aprobate la distribuitorul de energie. Pentru o comparație corectă, cere fiecărei firme un calcul al necesarului de căldură pentru locuința ta.
+
+## Rabla, Casa Verde și alte programe de finanțare
+
+În octombrie 2026 nu am găsit un program al Administrației Fondului pentru Mediu (AFM) care să finanțeze centrale pe gaz pentru persoane fizice. Casa Verde Fotovoltaice, cel mai cunoscut program pentru locuințe, nu mai apare, potrivit presei, în proiectul de buget AFM pe 2026. Programele se schimbă de la an la an, așa că verifică pe afm.ro ghidurile active înainte să cumperi.
+
+Unii furnizori de gaze oferă în schimb înlocuirea centralei cu plata în rate. Compară prețul total cu o ofertă separată de la un instalator.
+
+## Cât durează montajul unei centrale termice
+
+Înlocuirea pe același loc se face de obicei într-o singură zi. Dacă ai nevoie de proiect de gaze, aviz sau punere în funcțiune la distribuitor, procesul durează câteva săptămâni, din cauza documentelor.
+
+1. **Vizita de evaluare și oferta (1–7 zile):** instalatorul vede locul, coșul sau traseul de evacuare și instalația de gaz.
+2. **Proiect și aviz, dacă e cazul (1–4 săptămâni):** proiectul tehnic, verificarea lui și, la creșterea debitului, avizul tehnic de racordare.
+3. **Montajul (1 zi, uneori 2):** demontare, montaj, racorduri, evacuare, condens, probe.
+4. **Recepția și punerea în funcțiune la distribuitor (până la circa 1–2 săptămâni):** doar dacă instalația de gaz a fost modificată.
+5. **PIF-ul centralei și admiterea funcționării ISCIR (de obicei în aceeași zi cu montajul sau la câteva zile):** firma completează livretul.
+
+În sezonul rece, instalatorii buni au liste de așteptare de 2–3 săptămâni, așa că o înlocuire planificată vara sau toamna devreme e mai simplu de programat.
+
+## Cum alegi instalatorul și ce verifici în ofertă
+
+Un singur meseriaș poate face tot, dar doar dacă firma lui are autorizațiile potrivite pentru fiecare parte a lucrării.
+
+- [ ] Firma are autorizație ANRE pentru execuția instalațiilor de gaze (verifici pe anre.ro) și, pentru proiect, autorizație de proiectare.
+- [ ] Firma care face PIF-ul și admiterea funcționării este autorizată ISCIR (listele sunt pe iscir.ro) sau este service-ul autorizat al producătorului.
+- [ ] Oferta separă manopera, echipamentul, kitul de evacuare, PIF-ul, proiectul și eventualele avize.
+- [ ] Scrie cine plătește tariful distribuitorului pentru punerea în funcțiune.
+- [ ] Sunt incluse scurgerea condensului, filtrul, detectorul și termostatul, sau se plătesc separat.
+- [ ] Ai termen de execuție, garanție pentru manoperă și factură.
+- [ ] Primești livretul completat, procesul-verbal de recepție și certificatul de garanție.
+
+Pentru prețuri reale din orașul tău, poți compara instalatorii din [Ploiești](/categorii/instalatii-termice/ploiesti), [Brașov](/categorii/instalatii-termice/brasov) sau [Iași](/categorii/instalatii-termice/iasi). Ca să primești oferte comparabile, [publică gratuit proiectul](/proiecte/nou) cu poze cu centrala actuală, cu locul de montaj și cu traseul de evacuare. Dacă lucrarea face parte dintr-o renovare mai mare, citește și [ce clauze pui în contractul cu meseriașul](/blog/model-contract-renovare-avans-mesterias).
+
+<Cta href="/categorii/instalatii-termice" title="Vrei oferte pentru montajul centralei?">Primești până la 5 oferte de la instalatori autorizați, cu prețul defalcat pe manoperă, PIF și materiale.</Cta>
+
+## Întrebări frecvente
+
+### Cât costă montajul unei centrale termice în apartament?
+
+Manopera costă de obicei 800–1.800 lei. Cu centrala în condensare, kitul de evacuare și punerea în funcțiune cu ISCIR, o înlocuire pe același loc ajunge la 4.000–8.000 lei în total, în 2026.
+
+### Cât costă înlocuirea unei centrale termice vechi?
+
+Dacă centrala nouă stă pe același loc și traseele rămân aceleași, manopera este de 800–1.500 lei, iar totalul cu centrală de 4.000–8.000 lei. Dacă o muți sau modifici instalația de gaz, se adaugă proiectul tehnic (500–1.000 lei), țevile și tariful distribuitorului.
+
+### Am nevoie de proiect de gaze ca să schimb centrala?
+
+Nu, dacă nu modifici debitul, presiunea, traseul instalației sau locul centralei: înlocuirea se face pe documentația existentă (art. 340 din normele ANRE). Dacă schimbi oricare dintre acestea, ai nevoie de proiect tehnic, iar la creșterea debitului și de aviz tehnic de racordare nou.
+
+### Cât costă punerea în funcțiune (PIF) a centralei?
+
+Punerea în funcțiune și admiterea funcționării ISCIR costă orientativ 200–500 lei, iar unele firme le includ în prețul montajului. Dacă instalația de gaz a fost modificată, plătești separat și tariful distribuitorului pentru punerea în funcțiune a instalației.
+
+### Cine are voie să monteze o centrală termică?
+
+Centrala o montează producătorul sau o firmă autorizată ISCIR, iar partea de gaz o execută un operator autorizat ANRE. Punerea în funcțiune și admiterea funcționării le face producătorul sau o firmă autorizată ISCIR pentru verificări tehnice.
+
+### Mai pot monta o centrală care nu e în condensare?
+
+În practică, nu. Din 26 septembrie 2015, Regulamentul (UE) nr. 813/2013 cere o eficiență sezonieră minimă de 86% pentru centralele pe gaz de până la 70 kW, iar excepțiile (cazane de tip B1, pentru coșuri comune) sunt rare și limitate ca putere.

@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { freePlan, labels } from "@/config/site";
 import { describeBudget, formatDate, timeAgo } from "@/lib/format";
+import { pageTitle } from "@/lib/seo";
 import { pluralRo, truncate } from "@/lib/text";
 import { isFirstViewToday } from "@/server/views";
 import { getCurrentUser } from "@/server/auth/session";
@@ -80,7 +81,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!row || !PUBLIC_STATUSES.has(row.project.status)) return { title: "Proiect" };
   const desc = truncate(row.project.description.replace(/\s+/g, " "), 160);
   return {
-    title: row.project.title,
+    // Titlurile proiectelor sunt scrise de clienți (până la ~120 de caractere): le tăiem pentru Google.
+    title: pageTitle(truncate(row.project.title, 65)),
     description: desc,
     alternates: { canonical: `/proiecte/${id}` },
     openGraph: { title: row.project.title, description: desc },

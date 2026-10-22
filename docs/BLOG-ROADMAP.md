@@ -14,6 +14,10 @@ Document viu: ce publicăm, când, ce urmărim după publicare. Cercetarea de ba
 | cat-costa-renovare-baie | cât costă renovarea unei băi | renovari-complete | oct 2026 | ianuarie 2027 |
 | traducere-autorizata-vs-legalizata | traducere autorizată vs legalizată | traduceri | oct 2026 | anual; la orice schimbare privind apostila |
 | cat-costa-o-mutare | cât costă o mutare | mutari | oct 2026 | martie 2027 (înainte de sezon) |
+| cat-costa-montaj-centrala-termica | cât costă montajul unei centrale termice | instalatii-termice | oct 2026 | sept 2027; la schimbarea PT ISCIR (PT CR 2-2025) |
+| pret-manopera-gresie-faianta-mp | preț manoperă gresie faianță mp | gresie-faianta | oct 2026 | ianuarie 2027 (prețuri) |
+| cum-verifici-un-mester-inainte-sa-l-angajezi | cum verifici un meșter / o firmă | renovari-complete | oct 2026 | anual; la schimbări ONRC/ANAF/ANRE |
+| pret-fotograf-nunta-2027 | cât costă un fotograf de nuntă 2027 | fotografie | oct 2026 | decembrie 2026 (înainte de vârful ian–mar); apoi `pret-fotograf-nunta-2028` |
 
 ## 2. Calendar editorial (următoarele articole)
 
@@ -21,10 +25,7 @@ Regulă: un articol pe săptămână în primele 3 luni, apoi 2 pe lună plus re
 
 | Când publicăm | Subiect (slug propus) | De ce acum | Leagă la |
 |---|---|---|---|
-| nov 2026 | `cat-costa-montaj-centrala-termica` | sezon rece, cerere de înlocuiri | instalatii-termice + orașe |
-| nov 2026 | `cum-verifici-un-mester-inainte-sa-l-angajezi` (ONRC, ANRE, ISCIR, recenzii) | subiect de încredere, potrivit cu promisiunea platformei | renovari-complete, instalatii-electrice |
-| nov 2026 | `pret-manopera-gresie-faianta-mp` | căutare comercială constantă, SERP doar cu șabloane | gresie-faianta + orașe |
-| dec 2026 | `pret-fotograf-nunta-2027` și `pret-dj-nunta-2027` | rezervările de nuntă au vârf în ian–mar | fotografie, muzica-dj |
+| dec 2026 | `pret-dj-nunta-2027` (fotograful e publicat) | rezervările de nuntă au vârf în ian–mar | muzica-dj |
 | dec 2026 | `cat-costa-cadastru-teren` (separat de apartament) | cerere mare în rural/periurban | topografie-cadastru |
 | ian 2027 | `barometru-preturi-renovari-2027` (date proprii din oferte) | link bait pentru presă, după primele 2–3 luni de date | renovari-complete |
 | ian 2027 | `contabil-pfa-cat-costa` | început de an fiscal, declarația unică | contabilitate |
@@ -68,6 +69,10 @@ Idei de rezervă: renovare bucătărie, schimbare țevi bloc, termoizolație cas
 ## 5. Paginile pe oraș: reguli de extindere
 
 - Configurația e în `src/content/cities.ts`; combinațiile indexate din start sunt în `indexedCityPages`.
+- **Valul 2 (22.10.2026)**: cadastru și centrale termice în toate cele 19 orașe din afara Bucureștiului, traduceri în 10 orașe mari.
+  Fiecare are un bloc local concret și o întrebare frecventă locală: OCPI cu adresă (`city-facts.ts`), distribuitorul de gaze și
+  inspecția teritorială ISCIR, curtea de apel pentru traducători (`city-authorities.ts`). Un test verifică că orice combinație indexată
+  pentru aceste servicii are datele locale. Regula rămâne: **un serviciu nou intră în index pe toate orașele doar cu un fapt local verificat**.
 - **Promovăm o combinație în index** când: are afișări în GSC deși e `noindex` (oamenii o caută), SAU are prestatori reali în zonă (se indexează automat), SAU putem adăuga informație locală reală (cartiere, distribuitor, OCPI).
 - **Scoatem din index** o combinație care după 3 luni are 0 afișări și 0 prestatori.
 - Valul 2 de orașe (după 3 luni): Alba Iulia, Deva, Râmnicu Vâlcea, Focșani, Piatra Neamț, Botoșani, Târgoviște, plus localitățile periurbane (Florești, Bragadiru, Chiajna, Dumbrăvița, Popești-Leordeni).
@@ -75,7 +80,8 @@ Idei de rezervă: renovare bucătărie, schimbare țevi bloc, termoizolație cas
 
 ## 6. Reîmprospătare
 
-- **Ianuarie, în fiecare an**: actualizăm prețurile din `src/content/category-guides/` și din articolele „cât costă”, plus `guidesUpdated` și câmpul `updated` din `posts.ts`.
+- **Ianuarie, în fiecare an**: actualizăm prețurile din `src/content/category-guides/` și din articolele „cât costă”, plus `guidesUpdated`, `guidesUpdatedIso` (devine `lastmod` în sitemap și `dateModified` în JSON-LD) și câmpul `updated` din `posts.ts`.
+- De verificat la reîmprospătarea din ianuarie 2027 (semnalate la scrierea articolelor din 22.10.2026): `fotografie` (pachetul de o zi ar putea urca la 8.000–9.000 lei), `filmare` (videograf nuntă 2.500–5.000 lei pare sub sondajul Fotografi-Cameramani.ro), `gresie-faianta` (demontarea plăcilor 25–45 lei/mp vs. 13–25 în alte surse; lipsesc rândurile pentru porțelanat rectificat și mozaic).
 - **La schimbări legislative** (ISCIR, ANRE, ANCPI, prag cerere cu valoare redusă): actualizăm articolul în aceeași săptămână. Sunt tocmai subiectele unde concurența rămâne în urmă.
 - După primele 3 luni de date reale: înlocuim treptat intervalele „din oferte publice” cu medianele din ofertele de pe Contractez (și o spunem explicit, e un avantaj de încredere).
 

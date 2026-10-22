@@ -1,7 +1,8 @@
 import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import type { MetadataRoute } from "next";
 import { posts } from "@/content/blog/posts";
-import { cities, cityServices, isCityPageIndexedByDefault } from "@/content/cities";
+import { guidesUpdatedIso } from "@/content/category-guides";
+import { cities, cityServices, isCityHubIndexed, isCityPageIndexedByDefault } from "@/content/cities";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { db } from "@/server/db";
 import { projects, providerProfiles, users } from "@/server/db/schema";
@@ -10,7 +11,6 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = process.env.APP_URL ?? "http://localhost:3000";
-  const now = new Date();
   const [catalog, openProjects, providers] = await Promise.all([
     getCatalog(),
     db
@@ -36,28 +36,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .limit(10000),
   ]);
 
-  const staticPages = ["", "/proiecte", "/prestatori", "/preturi", "/cum-functioneaza", "/contact", "/termeni", "/confidentialitate", "/blog", "/orase", "/despre", "/ghid-preturi"].map((p) => ({
-    url: `${base}${p}`,
-    lastModified: now,
-    changeFrequency: (p === "" || p === "/proiecte" ? "daily" : "weekly") as "daily" | "weekly",
-    priority: p === "" ? 1 : 0.7,
-  }));
-  const categories = [...catalog.byId.values()].map((c) => ({
-    url: `${base}/categorii/${c.slug}`,
-    lastModified: now,
-    changeFrequency: "daily" as const,
-    priority: c.parentId ? 0.6 : 0.8,
-  }));
+  // lastmod doar unde îl știm cu adevărat: Google ignoră lastmod-ul unui sitemap care pretinde mereu „acum”.
+  const guidesDate = new Date(guidesUpdatedIso);
+  const latestPost = posts.reduce((d, p) => ((p.updated ?? p.date) > d ? (p.updated ?? p.date) : d), "");
+  const latestProject = openProjects[0]?.updatedAt;
+  const latestProvider = providers.reduce<Date | undefined>((d, p) => (!d || p.updatedAt > d ? p.updatedAt : d), undefined);
+  const page = (path: string, lastModified: Date | undefined, changeFrequency: "daily" | "weekly" | "monthly", priority: number) => ({
+    url: `${base}${path}`,
+    ...(lastModified ? { lastModified } : {}),
+    changeFrequency,
+    priority,
+  });
+
+  const staticPages = [
+    page("", latestProject, "daily", 1),
+    page("/proiecte", latestProject, "daily", 0.7),
+    page("/prestatori", latestProvider, "daily", 0.7),
+    page("/categorii", guidesDate, "weekly", 0.8),
+    page("/ghid-preturi", guidesDate, "monthly", 0.8),
+    page("/blog", latestPost ? new Date(latestPost) : undefined, "weekly", 0.7),
+    page("/orase", guidesDate, "weekly", 0.7),
+    ...["/preturi", "/cum-functioneaza", "/despre", "/contact", "/termeni", "/confidentialitate"].map((p) => page(p, undefined, "monthly", 0.5)),
+  ];
+  const categories = [...catalog.byId.values()].map((c) => page(`/categorii/${c.slug}`, guidesDate, "weekly", c.parentId ? 0.6 : 0.8));
   const cityPages = Object.keys(cityServices)
     .filter((slug) => catalog.bySlug.has(slug))
-    .flatMap((slug) =>
-      cities
-        .filter((c) => isCityPageIndexedByDefault(slug, c))
-        .map((c) => ({ url: `${base}/categorii/${slug}/${c.slug}`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.6 })),
-    );
-  const cityHubs = cities
-    .filter((c) => Object.keys(cityServices).some((s) => isCityPageIndexedByDefault(s, c)))
-    .map((c) => ({ url: `${base}/orase/${c.slug}`, lastModified: now, changeFrequency: "weekly" as const, priority: 0.6 }));
+    .flatMap((slug) => cities.filter((c) => isCityPageIndexedByDefault(slug, c)).map((c) => page(`/categorii/${slug}/${c.slug}`, guidesDate, "weekly", 0.6)));
+  const cityHubs = cities.filter(isCityHubIndexed).map((c) => page(`/orase/${c.slug}`, guidesDate, "weekly", 0.6));
   return [
     ...staticPages,
     ...cityHubs,

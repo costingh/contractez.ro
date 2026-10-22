@@ -4,7 +4,11 @@ import { LegalPage } from "@/components/marketing/legal-page";
 import { freePlan, paidPlans, rules, site } from "@/config/site";
 import { features } from "@/server/env";
 
-export const metadata: Metadata = { title: "Termeni și condiții" };
+export const metadata: Metadata = {
+  title: "Termeni și condiții",
+  description: "Termenii de utilizare Contractez: cum funcționează publicarea proiectelor, ofertele, abonamentele pentru prestatori, recenziile și răspunderea părților.",
+  alternates: { canonical: "/termeni" },
+};
 
 export default function TermsPage() {
   return (

@@ -11,8 +11,10 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { site } from "@/config/site";
 import { getCategoryGuide } from "@/content/category-guides";
-import { areaLabel, cities, citiesBySlug, cityServices, gasRelatedServices, isCityPageIndexedByDefault, powerRelatedServices } from "@/content/cities";
+import { cityAuthorities } from "@/content/city-authorities";
+import { areaLabel, cities, citiesBySlug, cityServices, countyLabel, gasRelatedServices, isCityPageIndexedByDefault, powerRelatedServices } from "@/content/cities";
 import { cityFacts } from "@/content/city-facts";
+import { pageTitle } from "@/lib/seo";
 import { findLocalityByName, nearbyLocalities } from "@/server/catalog/localities";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { env } from "@/server/env";
@@ -54,9 +56,11 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const indexable = isCityPageIndexedByDefault(slug, city) || providers.total > 0 || projects.total > 0;
   const base = `${service.noun} ${city.name}: prețuri și oferte`;
   const title = base.length <= 46 ? `${base} verificate` : base;
-  const description = `Cauți ${service.noun.toLowerCase()} în ${city.name}? Publică gratuit proiectul și primești până la 5 oferte de la ${service.plural} verificați din ${city.name} și împrejurimi.`;
+  const long = `Cauți ${service.noun.toLowerCase()} în ${city.name}? Publică gratuit proiectul și primești până la 5 oferte de la ${service.plural} verificați din ${city.name} și împrejurimi.`;
+  // Pentru denumirile lungi („Instalator centrale termice Cluj-Napoca”), varianta fără „și împrejurimi” încape în ~160 de caractere.
+  const description = long.length <= 160 ? long : `Cauți ${service.noun.toLowerCase()} în ${city.name}? Publică gratuit proiectul și primești până la 5 oferte de la ${service.plural} verificați.`;
   return {
-    title,
+    title: pageTitle(title),
     description,
     alternates: { canonical: `/categorii/${slug}/${oras}` },
     openGraph: { title, description, url: `/categorii/${slug}/${oras}` },
@@ -73,6 +77,7 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
 
   const nounLower = service.noun.toLowerCase();
   const facts = cityFacts[city.slug];
+  const authorities = cityAuthorities[city.slug];
   const firstPrice = guide?.prices?.[0];
   const faq = [
     {
@@ -105,11 +110,36 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
           },
         ]
       : []),
+    ...(slug === "topografie-cadastru" && facts?.ocpiAddress
+      ? [
+          {
+            q: `Unde se depune dosarul de cadastru în ${city.name}?`,
+            a: `La ${facts.ocpi}, ${facts.ocpiAddress}. Documentația o întocmește și o depune un expert topograf autorizat ANCPI, care o poate depune și online; ${facts.ocpi} face recepția și înscrierea în cartea funciară.`,
+          },
+        ]
+      : []),
+    ...(slug === "instalatii-termice" && authorities
+      ? [
+          {
+            q: `Ce instituție se ocupă de ISCIR pentru centralele din ${city.name}?`,
+            a: `Pentru ${countyLabel(city)}, autoritatea teritorială este ${authorities.iscir.name}${authorities.iscir.address ? ` (${authorities.iscir.address})` : ""}. Verificarea tehnică periodică a centralei o face o firmă autorizată ISCIR, nu instituția; lista firmelor autorizate e publică pe iscir.ro.`,
+          },
+        ]
+      : []),
+    ...(slug === "traduceri" && authorities
+      ? [
+          {
+            q: `Unde găsesc traducători autorizați în ${city.name}?`,
+            a: `Traducătorii autorizați sunt autorizați de Ministerul Justiției și apar în tabelul ținut pe fiecare curte de apel; ${city.name} ține de ${authorities.courtOfAppeal}. Pentru o traducere legalizată, notarul legalizează semnătura traducătorului, deci ai nevoie de un traducător autorizat și de un birou notarial.`,
+          },
+        ]
+      : []),
     ...(guide?.faq.slice(0, 2) ?? []),
   ];
 
   const crumbs = [
     { name: "Acasă", path: "/" },
+    { name: "Categorii", path: "/categorii" },
     ...(root ? [{ name: root.name, path: `/categorii/${root.slug}` }] : []),
     { name: category.name, path: `/categorii/${category.slug}` },
     { name: city.name, path: `/categorii/${category.slug}/${city.slug}` },
@@ -120,7 +150,7 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
 
   return (
     <div className="pb-16">
-      <GuideJsonLd guide={guide ? { ...guide, faq } : undefined} baseUrl={env.APP_URL} crumbs={crumbs} />
+      <GuideJsonLd guide={guide ? { ...guide, faq } : undefined} baseUrl={env.APP_URL} crumbs={crumbs} service={{ name: service.noun, city: city.name }} />
       <section className="px-2 pt-2 sm:px-3 sm:pt-3">
         <div className="ink-panel rounded-[1.75rem] sm:rounded-[2.25rem]">
           <div aria-hidden className="aurora aurora-a -top-48 -left-24 size-[560px]" />
@@ -209,6 +239,20 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
               <p>
                 Documentația cadastrală întocmită de un expert autorizat ANCPI se depune la {facts?.ocpi ?? `OCPI ${city.county}`} (Oficiul de Cadastru
                 și Publicitate Imobiliară){facts?.ocpiAddress ? `, ${facts.ocpiAddress}` : ""}, care face și înscrierea în cartea funciară.
+              </p>
+            )}
+            {slug === "instalatii-termice" && authorities && (
+              <p>
+                Verificarea tehnică periodică a centralelor e făcută de firme autorizate ISCIR. Pentru {countyLabel(city)}, autoritatea teritorială
+                este {authorities.iscir.name}
+                {authorities.iscir.address ? `, ${authorities.iscir.address}` : ""}; acolo te poți adresa dacă ai o problemă cu un operator.
+              </p>
+            )}
+            {slug === "traduceri" && authorities && (
+              <p>
+                Traducătorii autorizați primesc autorizația de la Ministerul Justiției și sunt listați pe curți de apel; {city.name} ține de{" "}
+                {authorities.courtOfAppeal}. Pentru acte cu traducere legalizată, semnătura traducătorului se legalizează la un notar public, de
+                obicei în aceeași zi.
               </p>
             )}
             {facts?.neighborhoods.length ? (
