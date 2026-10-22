@@ -278,3 +278,32 @@ export async function setLeadStatus(leadId: string, status: "skipped" | "replied
 export async function pendingLeads(limit: number) {
   return db.select().from(outreachLeads).where(eq(outreachLeads.status, "new")).orderBy(asc(outreachLeads.createdAt)).limit(limit);
 }
+
+/**
+ * Coada „mod rapid”: următorul lead de contactat — scorat, cu persoană identificabilă (link Messenger),
+ * fără ca persoana să fi fost contactată vreodată. Clienții (au nevoie acum de cineva) înaintea prestatorilor la scor egal.
+ */
+export async function nextQueueLead(opts: { type?: "client" | "provider" | null; minScore?: number; excludeIds?: string[] }) {
+  const where = [
+    eq(outreachLeads.status, "scored"),
+    inArray(outreachLeads.type, opts.type ? [opts.type] : ["client", "provider"]),
+    sql`${outreachLeads.personKey} IS NOT NULL`,
+    sql`coalesce(${outreachLeads.score}, 0) >= ${opts.minScore ?? 0}`,
+    sql`NOT EXISTS (
+      SELECT 1 FROM outreach_leads o2
+      WHERE o2.person_key = ${outreachLeads.personKey} AND o2.id <> ${outreachLeads.id}
+        AND o2.status IN ('contacted', 'replied', 'signed_up', 'already_contacted'))`,
+  ];
+  if (opts.excludeIds?.length) where.push(notInArray(outreachLeads.id, opts.excludeIds));
+  const [lead] = await db
+    .select()
+    .from(outreachLeads)
+    .where(and(...where))
+    .orderBy(sql`${outreachLeads.score} DESC NULLS LAST`, sql`(${outreachLeads.type} = 'client') DESC`, desc(outreachLeads.createdAt))
+    .limit(1);
+  const [{ n: remaining }] = await db
+    .select({ n: sql<number>`count(DISTINCT ${outreachLeads.personKey})::int` })
+    .from(outreachLeads)
+    .where(and(...where));
+  return { lead: lead ?? null, remaining };
+}

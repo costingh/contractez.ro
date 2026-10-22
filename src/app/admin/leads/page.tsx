@@ -118,6 +118,11 @@ export default async function AdminLeadsPage({ searchParams }: { searchParams: P
       <PageHeader
         title="Lead-uri outreach"
         description="Postări și comentarii din grupurile de Facebook, clasificate de AI. Copiezi mesajul, îl trimiți tu din Messenger, apoi marchezi aici. Nimic nu se trimite automat."
+        actions={
+          <Button asChild size="sm">
+            <Link href="/admin/leads/coada">Coadă rapidă →</Link>
+          </Button>
+        }
         className="pt-0"
       />
 
