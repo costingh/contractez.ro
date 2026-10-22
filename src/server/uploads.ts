@@ -44,7 +44,19 @@ export async function saveUpload(file: File, scope: string, allow: "image" | "do
   return { path: rel, type, size: file.size, name: file.name.slice(0, 200) };
 }
 
+const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+/** Singurele căi de fișiere servite: exact forma produsă de saveUpload (fără „..”, „%”, „\\” sau alte segmente). */
+const UPLOAD_PATH = new RegExp(`^(?:public/(?:avatars|portfolio|covers)|chat/${UUID})/${UUID}\\.(?:jpg|png|webp|pdf)$`);
+
+/** Validează o cale relativă de upload; întoarce scope-ul (public / chat + id conversație) sau null. */
+export function parseUploadPath(rel: string): { kind: "public" } | { kind: "chat"; conversationId: string } | null {
+  if (!UPLOAD_PATH.test(rel)) return null;
+  const parts = rel.split("/");
+  return parts[0] === "chat" ? { kind: "chat", conversationId: parts[1] } : { kind: "public" };
+}
+
 export async function readUpload(rel: string) {
+  if (!parseUploadPath(rel)) return null;
   const abs = path.resolve(root(), rel);
   if (!abs.startsWith(root() + path.sep)) return null; // path traversal
   try {
