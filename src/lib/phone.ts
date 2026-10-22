@@ -1,5 +1,5 @@
 /** Textul de sub câmpul de telefon: cine îl poate vedea. */
-export const CONTACT_PHONE_HINT = "Vizibil doar clienților sau prestatorilor cu care ai o colaborare acceptată.";
+export const CONTACT_PHONE_HINT = "Vizibil doar celeilalte părți dintr-o colaborare, după ce prestatorul o confirmă.";
 
 /**
  * Numărul de telefon de contact (fără verificare SMS): acceptăm formatele românești uzuale

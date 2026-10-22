@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { formBool, formNum, formStr, toActionError, type ActionState } from "@/lib/action";
+import { isUuid } from "@/lib/ids";
 import { requireProvider } from "@/server/auth/guards";
 import { confirmProposal, declineProposal } from "@/server/autobid/engine";
 import { db } from "@/server/db";
@@ -84,6 +85,7 @@ export async function saveRuleAction(_: ActionState, fd: FormData): Promise<Acti
 
     const id = formStr(fd, "id");
     if (id) {
+      if (!isUuid(id)) throw new DomainError("not_found", "Regula nu există.");
       const res = await db
         .update(autoBidRules)
         .set(input)
@@ -105,6 +107,7 @@ export async function saveRuleAction(_: ActionState, fd: FormData): Promise<Acti
 export async function toggleRuleAction(ruleId: string, enabled: boolean): Promise<ActionState> {
   try {
     const user = await requireProvider();
+    if (!isUuid(ruleId)) throw new DomainError("not_found", "Regula nu există.");
     await db.update(autoBidRules).set({ enabled }).where(and(eq(autoBidRules.id, ruleId), eq(autoBidRules.providerId, user.id)));
     revalidatePath("/auto-bid");
     return { ok: true, message: enabled ? "Regula este activă." : "Regula este oprită." };
@@ -116,6 +119,7 @@ export async function toggleRuleAction(ruleId: string, enabled: boolean): Promis
 export async function deleteRuleAction(ruleId: string): Promise<ActionState> {
   try {
     const user = await requireProvider();
+    if (!isUuid(ruleId)) throw new DomainError("not_found", "Regula nu există.");
     await db.delete(autoBidRules).where(and(eq(autoBidRules.id, ruleId), eq(autoBidRules.providerId, user.id)));
     revalidatePath("/auto-bid");
     return { ok: true, message: "Regula a fost ștearsă." };
@@ -138,6 +142,7 @@ export async function stopAllRulesAction(): Promise<ActionState> {
 export async function confirmProposalAction(executionId: string, message: string): Promise<ActionState> {
   try {
     const user = await requireProvider();
+    if (!isUuid(executionId)) throw new DomainError("not_found", "Propunerea nu există.");
     await confirmProposal(executionId, user.id, message);
     revalidatePath("/auto-bid");
     revalidatePath("/aplicarile-mele");
@@ -150,6 +155,7 @@ export async function confirmProposalAction(executionId: string, message: string
 export async function declineProposalAction(executionId: string): Promise<ActionState> {
   try {
     const user = await requireProvider();
+    if (!isUuid(executionId)) throw new DomainError("not_found", "Propunerea nu există.");
     await declineProposal(executionId, user.id);
     revalidatePath("/auto-bid");
     return { ok: true, message: "Propunerea a fost refuzată." };

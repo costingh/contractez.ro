@@ -17,13 +17,13 @@ export function SignupForm({ role, referral }: { role?: string; referral?: strin
       <input type="hidden" name="rol" value={role ?? ""} />
       <input type="hidden" name="ref" value={referral ?? ""} />
       <Field label="Nume și prenume" htmlFor="name" error={fe?.name}>
-        <Input id="name" name="name" autoComplete="name" required className="h-11" />
+        <Input id="name" name="name" autoComplete="name" required maxLength={80} className="h-11" />
       </Field>
       <Field label="Email" htmlFor="email" error={fe?.email}>
-        <Input id="email" name="email" type="email" autoComplete="email" required className="h-11" />
+        <Input id="email" name="email" type="email" autoComplete="email" required maxLength={200} className="h-11" />
       </Field>
       <Field label="Parolă" htmlFor="password" hint="Minimum 8 caractere." error={fe?.password}>
-        <Input id="password" name="password" type="password" autoComplete="new-password" minLength={8} required className="h-11" />
+        <Input id="password" name="password" type="password" autoComplete="new-password" minLength={8} maxLength={128} required className="h-11" />
       </Field>
       <label className="flex items-start gap-2.5 text-sm leading-relaxed">
         <Checkbox name="terms" className="mt-0.5" required />

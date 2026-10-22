@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 const ERROR_LINKS: Record<string, { href: string; label: string }> = {
-  quota: { href: "/abonament", label: "Vezi planurile" },
+  quota: { href: "/abonament#planuri", label: "Vezi planurile" },
   provider_unverified: { href: "/verifica-email", label: "Confirmă emailul" },
   invoice_required: { href: "/profil", label: "Actualizează profilul" },
   not_provider: { href: "/onboarding?rol=prestator", label: "Activează profilul de prestator" },

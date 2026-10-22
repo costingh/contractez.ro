@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 export type ContactDetailsData = { phone: string | null; email: string };
 
 /**
- * Datele de contact ale celeilalte părți. Se afișează DOAR într-o colaborare acceptată
+ * Datele de contact ale celeilalte părți. Se afișează DOAR într-o colaborare confirmată de prestator
  * (datele vin din `counterpartContacts`, care aplică regula pe server).
  */
 export function ContactDetails({ contact, label, className }: { contact: ContactDetailsData; label: string; className?: string }) {

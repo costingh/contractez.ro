@@ -3,8 +3,8 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { labels } from "@/config/site";
-import { formatDistance, formatResponseTime, initials } from "@/lib/format";
-import { truncate } from "@/lib/text";
+import { formatDistance, formatRating, formatResponseTime, initials } from "@/lib/format";
+import { pluralRo, truncate } from "@/lib/text";
 
 export type ProviderCardData = {
   profile: {
@@ -48,7 +48,7 @@ export function ProviderCard({ data, promoted }: { data: ProviderCardData; promo
   return (
     <Link
       href={`/prestatori/${p.slug}`}
-      className="group flex gap-4 rounded-xl border bg-card p-5 shadow-xs lift sm:p-6"
+      className="group flex min-w-0 gap-4 rounded-xl border bg-card p-5 shadow-xs lift sm:p-6"
     >
       <Avatar className="size-12 shrink-0">
         {data.avatarPath && <AvatarImage src={`/api/files/${data.avatarPath}`} alt="" />}
@@ -56,19 +56,19 @@ export function ProviderCard({ data, promoted }: { data: ProviderCardData; promo
       </Avatar>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h3 className="text-[1.0625rem] font-semibold tracking-[-0.012em]">{data.name}</h3>
+          <h3 className="min-w-0 text-[1.0625rem] font-semibold tracking-[-0.012em] [overflow-wrap:anywhere]">{data.name}</h3>
           {data.phoneVerified && <BadgeCheck className="size-4 text-success" aria-label="Telefon verificat" />}
           {promoted && <Badge variant="outline" className="h-[18px] px-1.5 text-[10px] tracking-[0.06em] text-muted-foreground uppercase">Promovat</Badge>}
           {p.ratingCount > 0 && p.ratingAvg && (
             <span className="flex items-center gap-1 text-sm font-medium tabular-nums">
-              <Star className="size-3.5 fill-warning text-warning" /> {p.ratingAvg.toFixed(1)}
+              <Star className="size-3.5 fill-warning text-warning" /> {formatRating(p.ratingAvg)}
               <span className="font-normal text-muted-foreground">({p.ratingCount})</span>
             </span>
           )}
           <span className="ml-auto text-sm font-semibold tabular-nums">{price}</span>
         </div>
-        <p className="mt-0.5 text-sm text-muted-foreground">{p.headline}</p>
-        <p className="mt-2 hidden text-sm leading-relaxed text-muted-foreground sm:block">{truncate(p.bio, 160)}</p>
+        <p className="mt-0.5 text-sm text-muted-foreground [overflow-wrap:anywhere]">{p.headline}</p>
+        <p className="mt-2 hidden text-sm leading-relaxed text-muted-foreground [overflow-wrap:anywhere] sm:block">{truncate(p.bio, 160)}</p>
         <div className="mt-3.5 flex flex-wrap gap-1.5">
           {data.localityName && (
             <Badge variant="outline" className="gap-1">
@@ -88,7 +88,7 @@ export function ProviderCard({ data, promoted }: { data: ProviderCardData; promo
               <Receipt /> Emite factură{data.legalEntity !== "none" ? ` (${labels.legalEntity[data.legalEntity]})` : ""}
             </Badge>
           )}
-          {p.completedCount > 0 && <Badge variant="secondary">{p.completedCount} colaborări</Badge>}
+          {p.completedCount > 0 && <Badge variant="secondary">{pluralRo(p.completedCount, "colaborare", "colaborări")}</Badge>}
           {response && (
             <Badge variant="secondary" className="gap-1">
               <Timer /> {response}

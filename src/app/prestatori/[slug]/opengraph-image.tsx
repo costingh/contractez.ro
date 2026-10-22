@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { site } from "@/config/site";
-import { initials } from "@/lib/format";
+import { formatRating, initials } from "@/lib/format";
 import { isPhoneVerified } from "@/server/features";
 import { cardPrice, getPublicCard } from "@/server/providers/public-card";
 
@@ -52,7 +52,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const location = [card.localityName, card.countyCode].filter(Boolean).join(", ");
   const meta = [
     location,
-    p.ratingCount > 0 && p.ratingAvg ? `Rating ${p.ratingAvg.toFixed(1)} · ${p.ratingCount === 1 ? "1 recenzie" : `${p.ratingCount} recenzii`}` : "",
+    p.ratingCount > 0 && p.ratingAvg ? `Rating ${formatRating(p.ratingAvg)} · ${p.ratingCount === 1 ? "1 recenzie" : `${p.ratingCount} recenzii`}` : "",
     p.yearsExperience ? `${p.yearsExperience} ani experiență` : "",
   ].filter(Boolean);
 

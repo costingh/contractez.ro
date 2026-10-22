@@ -12,7 +12,7 @@ export function ForgotPasswordForm() {
   return (
     <form action={action} className="space-y-5">
       <Field label="Email" htmlFor="email">
-        <Input id="email" name="email" type="email" autoComplete="email" required className="h-11" />
+        <Input id="email" name="email" type="email" autoComplete="email" required maxLength={200} className="h-11" />
       </Field>
       <FormMessage state={state} />
       <SubmitButton className="w-full" size="lg" pendingText="Se trimite…">

@@ -26,6 +26,7 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AccountDeletedToast } from "@/components/home/account-deleted-toast";
 import { Bento } from "@/components/home/bento";
 import { cssVars } from "@/components/home/css-vars";
 import { Hero } from "@/components/home/hero";
@@ -73,7 +74,8 @@ const steps = {
   ],
 };
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ cont?: string | string[] }> }) {
+  const { cont } = await searchParams;
   const user = await getCurrentUser();
   if (user?.onboardedAt) redirect("/panou");
   const [catalog, latest, stats, reviews] = await Promise.all([getCatalog(), latestOpenProjects(4), publicStats(), featuredReviews(3)]);
@@ -90,6 +92,7 @@ export default async function HomePage() {
 
   return (
     <div>
+      {cont === "sters" && !user && <AccountDeletedToast />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <Hero openProjects={stats?.open_projects ?? 0} />
 

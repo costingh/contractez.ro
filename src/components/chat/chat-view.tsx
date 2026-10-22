@@ -2,11 +2,13 @@
 
 import { FileText, Loader2, Paperclip, Send, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { unstable_rethrow } from "next/navigation";
 import { toast } from "sonner";
 import { sendMessageAction } from "@/app/mesaje/actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { formatDate } from "@/lib/format";
+import { formatBytes, formatDate } from "@/lib/format";
+import { FILE_TOO_LARGE, isTooLarge, UPLOAD_FAILED } from "@/lib/upload-client";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "./types";
 
@@ -39,8 +41,8 @@ function Attachment({ m, mine }: { m: ChatMessage; mine: boolean }) {
       className={cn("flex items-center gap-2 rounded-lg border px-3 py-2 text-sm", mine ? "border-primary-foreground/30" : "bg-background")}
     >
       <FileText className="size-4 shrink-0" />
-      <span className="truncate">{m.attachmentName ?? "document"}</span>
-      {m.attachmentSize && <span className="shrink-0 text-xs opacity-70">{Math.round(m.attachmentSize / 1024)} KB</span>}
+      <span className="min-w-0 truncate">{m.attachmentName ?? "document"}</span>
+      {formatBytes(m.attachmentSize) && <span className="shrink-0 text-xs opacity-70">{formatBytes(m.attachmentSize)}</span>}
     </a>
   );
 }
@@ -113,7 +115,15 @@ export function ChatView({
     fd.set("body", body);
     if (file) fd.set("file", file);
     start(async () => {
-      const res = await sendMessageAction(conversationId, fd);
+      let res: Awaited<ReturnType<typeof sendMessageAction>>;
+      try {
+        res = await sendMessageAction(conversationId, fd);
+      } catch (err) {
+        unstable_rethrow(err); // redirect (ex. sesiune expirată)
+        // Cererea a eșuat înainte de răspuns (rețea, fișier prea mare): păstrăm textul și atașamentul.
+        toast.error(file ? UPLOAD_FAILED : "Mesajul nu a putut fi trimis. Verifică conexiunea și încearcă din nou.");
+        return;
+      }
       if (res?.ok && res.data) {
         merge([res.data]);
         setBody("");
@@ -134,19 +144,19 @@ export function ChatView({
               {showDay && <div className="my-4 flex items-center gap-3 text-[11px] font-medium tracking-[0.06em] text-muted-foreground uppercase before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">{formatDate(m.createdAt, "EEEE, d MMMM")}</div>}
               {m.isSystem ? (
                 <div className="my-2 text-center">
-                  <span className="inline-block rounded-md border bg-card px-3 py-1.5 text-xs text-muted-foreground">{m.body}</span>
+                  <span className="inline-block max-w-full rounded-md border bg-card px-3 py-1.5 text-xs text-muted-foreground [overflow-wrap:anywhere]">{m.body}</span>
                 </div>
               ) : (
                 <div className={cn("flex", mine ? "justify-end" : "justify-start")}>
                   <div
                     className={cn(
-                      "max-w-[85%] space-y-1.5 rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:max-w-[70%]",
+                      "max-w-[85%] min-w-0 space-y-1.5 rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed sm:max-w-[70%]",
                       mine
                         ? "rounded-br-sm bg-primary bg-[linear-gradient(160deg,var(--primary)_55%,color-mix(in_oklab,var(--primary),var(--brand)_35%))] text-primary-foreground shadow-sm dark:bg-none"
                         : "rounded-bl-sm border bg-card shadow-xs",
                     )}
                   >
-                    {m.body && <p className="whitespace-pre-wrap break-words">{m.body}</p>}
+                    {m.body && <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{m.body}</p>}
                     <Attachment m={m} mine={mine} />
                     <div className={cn("text-right text-[10px]", mine ? "text-primary-foreground/70" : "text-muted-foreground")}>{time(m.createdAt)}</div>
                   </div>
@@ -177,7 +187,16 @@ export function ChatView({
               type="file"
               accept="image/jpeg,image/png,image/webp,application/pdf"
               className="hidden"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => {
+                const f = e.target.files?.[0] ?? null;
+                if (isTooLarge(f)) {
+                  // Textul scris rămâne; doar fișierul e refuzat.
+                  toast.error(FILE_TOO_LARGE);
+                  e.target.value = "";
+                  return;
+                }
+                setFile(f);
+              }}
             />
             <Button type="button" variant="ghost" size="icon" className="size-10" onClick={() => fileRef.current?.click()} aria-label="Atașează fișier" title="Imagine sau PDF, max. 5 MB">
               <Paperclip />

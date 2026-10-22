@@ -6,11 +6,11 @@ import { DomainError } from "./errors";
 import { features } from "./features";
 
 /**
- * Colaborare „acceptată”: clientul a ales oferta (aplicarea devine „hired” și colaborarea pornește
- * în `pending_confirmation`), apoi prestatorul o confirmă (`active`) și, la final, `completed`.
- * Doar o colaborare anulată nu mai dă acces la datele de contact.
+ * Colaborare „acceptată”: clientul a ales oferta (colaborarea pornește în `pending_confirmation`), iar
+ * prestatorul a confirmat-o (`active`), apoi, la final, `completed`. Datele de contact apar abia după
+ * confirmarea prestatorului; o colaborare neconfirmată sau anulată nu dă acces la ele.
  */
-export const ACCEPTED_COLLABORATION_STATUSES = ["pending_confirmation", "active", "completed"] as const;
+export const ACCEPTED_COLLABORATION_STATUSES = ["active", "completed"] as const;
 
 /**
  * Telefonul de contact, setat fără verificare SMS (când gateway-ul nu e configurat).

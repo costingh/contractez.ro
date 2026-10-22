@@ -42,6 +42,24 @@ export const emailPreviews: EmailPreview[] = [
     render: () => t.passwordResetTemplate({ link: url(`/resetare-parola?token=${TOKEN}`) }),
   },
   {
+    id: "email-change",
+    label: "Schimbare email: confirmare",
+    when: "La noua adresă, când utilizatorul cere schimbarea emailului din Setări.",
+    render: () => t.emailChangeConfirmTemplate({ firstName: "Ioana", newEmail: "ioana.popescu@exemplu.ro", link: url(`/schimba-email?token=${TOKEN}`) }),
+  },
+  {
+    id: "email-change-requested",
+    label: "Schimbare email: cerere (adresa veche)",
+    when: "La adresa actuală, imediat după cererea de schimbare a emailului.",
+    render: () => t.emailChangeNoticeTemplate({ firstName: "Ioana", newEmail: "ioana.popescu@exemplu.ro", stage: "requested" }),
+  },
+  {
+    id: "email-changed",
+    label: "Schimbare email: confirmată (adresa veche)",
+    when: "La adresa veche, după ce noua adresă a fost confirmată.",
+    render: () => t.emailChangeNoticeTemplate({ firstName: "Ioana", newEmail: "ioana.popescu@exemplu.ro", stage: "changed" }),
+  },
+  {
     id: "message.new",
     label: "Mesaj nou în chat",
     when: "La un mesaj nou într-o conversație (cel mult un email la 15 minute per conversație).",
@@ -284,6 +302,28 @@ export const emailPreviews: EmailPreview[] = [
       undefined,
       "/colaborari",
       t.collabCompletedTemplate({ projectTitle: "Renovare baie completă, apartament 2 camere" }),
+    ),
+  },
+  {
+    id: "collab.cancelled",
+    label: "Colaborare anulată",
+    when: "Cealaltă parte anulează colaborarea (aici: prestatorul, iar proiectul clientului se redeschide).",
+    render: notification(
+      "Prestatorul a anulat colaborarea pentru „Renovare baie completă, apartament 2 camere”",
+      "Proiectul este din nou deschis pentru oferte.",
+      `/proiectele-mele/${PROJECT_ID}`,
+      t.collabCancelledTemplate({ projectTitle: "Renovare baie completă, apartament 2 camere", byClient: false, projectReopened: true }),
+    ),
+  },
+  {
+    id: "project.reported_admin",
+    label: "Proiect blocat după raportări (admin)",
+    when: "Administratorii, când un proiect este raportat de 3 utilizatori verificați și trece în verificare.",
+    render: notification(
+      "Proiect blocat după raportări: „Renovare baie completă, apartament 2 camere”",
+      "3 utilizatori verificați au raportat proiectul.",
+      "/admin/rapoarte",
+      t.projectReportedAdminTemplate({ projectTitle: "Renovare baie completă, apartament 2 camere", reporters: 3, reasons: ["Proiect fals", "Spam"] }),
     ),
   },
   {

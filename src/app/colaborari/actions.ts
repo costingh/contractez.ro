@@ -33,7 +33,9 @@ export async function cancelAction(id: string): Promise<ActionState> {
     const user = await requireOnboardedUser("/colaborari");
     await cancelCollaboration(id, user.id);
     revalidatePath("/colaborari");
-    return { ok: true, message: "Colaborarea a fost anulată." };
+    revalidatePath("/proiectele-mele", "layout");
+    revalidatePath("/aplicarile-mele");
+    return { ok: true, message: "Colaborarea a fost anulată, iar cealaltă parte a fost anunțată." };
   } catch (err) {
     return toActionError(err);
   }

@@ -8,7 +8,7 @@ import { categories, projects, providerProfiles, users } from "@/server/db/schem
 import { features } from "@/server/features";
 import { getPublicCard } from "@/server/providers/public-card";
 import { parseProjectFilters, projectFiltersSchema, searchProjects } from "@/server/search/projects";
-import { cancelCollaboration, confirmCollaboration } from "@/server/trust/service";
+import { cancelCollaboration, completeCollaboration, confirmCollaboration } from "@/server/trust/service";
 import { createTestUser } from "./helpers";
 
 const initialFlag = features.phoneVerification;
@@ -125,10 +125,20 @@ describe("datele de contact în colaborări", () => {
     expect(await counterpartContacts(client.id, { applicationIds: [app.id] })).toEqual([]);
   });
 
-  it("după alegere, fiecare parte vede telefonul și emailul celeilalte", async () => {
+  it("după alegere, dar înainte de confirmarea prestatorului, datele de contact nu apar", async () => {
+    const { client, provider, app } = await setup();
+    const collab = await hireApplication(app.id, client.id);
+    expect(collab?.status).toBe("pending_confirmation");
+    expect(await counterpartContacts(client.id, { applicationIds: [app.id] })).toEqual([]);
+    expect(await counterpartContacts(client.id)).toEqual([]);
+    expect(await counterpartContacts(provider.id)).toEqual([]);
+  });
+
+  it("după confirmarea prestatorului, fiecare parte vede telefonul și emailul celeilalte", async () => {
     const { client, provider, app } = await setup();
     const collab = await hireApplication(app.id, client.id);
     expect(collab).toBeTruthy();
+    await confirmCollaboration(collab!.id, provider.id);
 
     const forClient = await counterpartContacts(client.id, { applicationIds: [app.id] });
     expect(forClient).toHaveLength(1);
@@ -138,15 +148,24 @@ describe("datele de contact în colaborări", () => {
     expect(forProvider).toHaveLength(1);
     expect(forProvider[0]).toMatchObject({ userId: client.id, phone: client.phone, email: client.email });
 
-    // Rămâne vizibil și după confirmarea prestatorului.
-    await confirmCollaboration(collab!.id, provider.id);
     expect(await counterpartContacts(client.id, { collaborationIds: [collab!.id] })).toHaveLength(1);
+  });
+
+  it("colaborarea finalizată păstrează accesul la datele de contact", async () => {
+    const { client, provider, app } = await setup();
+    const collab = await hireApplication(app.id, client.id);
+    await confirmCollaboration(collab!.id, provider.id);
+    await completeCollaboration(collab!.id, client.id);
+    expect(await counterpartContacts(client.id, { collaborationIds: [collab!.id] })).toHaveLength(1);
+    expect(await counterpartContacts(provider.id, { collaborationIds: [collab!.id] })).toHaveLength(1);
   });
 
   it("alți utilizatori și colaborările anulate nu primesc datele de contact", async () => {
     const { client, provider, app } = await setup();
     const outsider = await createTestUser({ isProvider: true });
     const collab = await hireApplication(app.id, client.id);
+    await confirmCollaboration(collab!.id, provider.id);
+    expect(await counterpartContacts(client.id)).toHaveLength(1);
     expect(await counterpartContacts(outsider.id)).toEqual([]);
     expect(await counterpartContacts(outsider.id, { collaborationIds: [collab!.id] })).toEqual([]);
 

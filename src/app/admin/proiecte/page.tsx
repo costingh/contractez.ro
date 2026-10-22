@@ -96,7 +96,7 @@ function ProjectRow({ r, moderation }: { r: Row; moderation?: boolean }) {
   const p = r.project;
   const removable = p.status !== "removed";
   return (
-    <div className="rounded-2xl border bg-card p-5 shadow-xs">
+    <div className="min-w-0 rounded-2xl border bg-card p-5 shadow-xs [overflow-wrap:anywhere]">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -105,6 +105,7 @@ function ProjectRow({ r, moderation }: { r: Row; moderation?: boolean }) {
             </Link>
             <Badge variant={p.status === "pending_review" ? "warning" : "secondary"}>{labels.projectStatus[p.status]}</Badge>
             {p.source === "import" && <Badge variant="outline">Import</Badge>}
+            {p.moderationLock && <Badge variant="destructive">Blocat după raportări</Badge>}
           </div>
           <div className="text-xs text-muted-foreground">
             {r.categoryName} · {describeBudget(p)} · {labels.workMode[p.workMode]} · {p.applicationsCount}/{p.maxApplications} aplicări ·{" "}

@@ -1,9 +1,11 @@
-import { and, desc, eq, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { truncate } from "@/lib/text";
 import { track } from "../analytics";
 import { db } from "../db";
 import {
+  applicationEvents,
+  applications,
   collaborations,
   conversations,
   moderationActions,
@@ -16,7 +18,7 @@ import {
 } from "../db/schema";
 import { DomainError } from "../errors";
 import { notify } from "../notifications";
-import { collabCompletedTemplate } from "../email/templates";
+import { collabCancelledTemplate, collabCompletedTemplate, projectReportedAdminTemplate } from "../email/templates";
 import { refreshProviderStats } from "../providers/service";
 import { systemMessage } from "../chat/service";
 
@@ -92,10 +94,72 @@ export async function completeCollaboration(id: string, userId: string) {
   await track("collaboration.completed", userId, { collaborationId: id });
 }
 
+export const COLLAB_CANCELLED_REASON = "Colaborare anulată";
+
+/**
+ * Oricare parte poate anula o colaborare neîncheiată. Într-o singură tranzacție (cu proiectul blocat, ca alegerea
+ * unui prestator): colaborarea devine anulată, oferta aleasă devine respinsă („Colaborare anulată”), iar proiectul
+ * revine „deschis” dacă nu a expirat (altfel se închide), cu rând în istoric. Cealaltă parte este anunțată.
+ */
 export async function cancelCollaboration(id: string, userId: string) {
   const c = await loadCollab(id, userId);
   if (c.status === "completed") throw new DomainError("state", "Colaborarea este deja finalizată.");
-  await db.update(collaborations).set({ status: "cancelled" }).where(eq(collaborations.id, id));
+  if (c.status === "cancelled") return;
+  const byClient = userId === c.clientId;
+
+  const res = await db.transaction(async (tx) => {
+    const [project] = await tx.select().from(projects).where(eq(projects.id, c.projectId)).for("update");
+    const [cancelled] = await tx
+      .update(collaborations)
+      .set({ status: "cancelled" })
+      .where(and(eq(collaborations.id, id), inArray(collaborations.status, ["pending_confirmation", "active"])))
+      .returning({ id: collaborations.id });
+    if (!cancelled) return null; // anulată sau finalizată între timp
+    await tx
+      .update(applications)
+      .set({ status: "rejected", rejectionReason: COLLAB_CANCELLED_REASON, decidedAt: new Date() })
+      .where(and(eq(applications.id, c.applicationId), eq(applications.status, "hired")));
+    await tx.insert(applicationEvents).values({ applicationId: c.applicationId, type: "collab_cancelled", actorId: userId, data: { byClient } });
+
+    let projectStatus: (typeof projects.$inferSelect)["status"] | null = null;
+    if (project?.status === "in_progress") {
+      const expired = Boolean(project.expiresAt && project.expiresAt <= new Date());
+      projectStatus = expired ? "closed" : "open";
+      await tx
+        .update(projects)
+        .set(expired ? { status: "closed", closedAt: new Date() } : { status: "open" })
+        .where(eq(projects.id, project.id));
+      await tx.insert(projectStatusHistory).values({
+        projectId: project.id,
+        fromStatus: "in_progress",
+        toStatus: projectStatus,
+        actorId: userId,
+        reason: `${COLLAB_CANCELLED_REASON} de ${byClient ? "client" : "prestator"}`,
+      });
+    }
+    return { projectTitle: project?.title ?? "", projectStatus };
+  });
+  if (!res) return;
+
+  const reopened = res.projectStatus === "open";
+  const conv = await conversationIdFor(c.applicationId);
+  if (conv) await systemMessage(conv, `Colaborarea a fost anulată de ${byClient ? "client" : "prestator"}.`);
+  const otherId = byClient ? c.providerId : c.clientId;
+  const title = truncate(res.projectTitle, 60);
+  await notify({
+    userId: otherId,
+    type: "collab.cancelled",
+    title: `${byClient ? "Clientul" : "Prestatorul"} a anulat colaborarea pentru „${title}”`,
+    body: byClient
+      ? undefined
+      : reopened
+        ? "Proiectul este din nou deschis pentru oferte."
+        : "Proiectul a expirat între timp, așa că l-am închis.",
+    link: byClient ? "/aplicarile-mele" : `/proiectele-mele/${c.projectId}`,
+    dedupeKey: `collab-cancelled:${id}`,
+    email: collabCancelledTemplate({ projectTitle: title, byClient, projectReopened: reopened }),
+  });
+  await track("collaboration.cancelled", userId, { collaborationId: id, byClient });
 }
 
 /* -------------------------------- Recenzii -------------------------------- */
@@ -167,6 +231,12 @@ export const reportSchema = z.object({
   details: z.string().trim().max(2_000).default(""),
 });
 
+/** Câți raportori distincți (de încredere) ascund automat un proiect până la verificarea unui administrator. */
+export const REPORT_LOCK_THRESHOLD = 3;
+export const REPORT_LOCK_NOTE = "Raportat de mai mulți utilizatori";
+/** Vechimea minimă a contului pentru ca o raportare să se socotească la blocarea automată. */
+const TRUSTED_REPORTER_MIN_AGE_MS = 24 * 3_600_000;
+
 export async function createReport(reporterId: string, raw: unknown) {
   const input = reportSchema.parse(raw);
   const [dup] = await db
@@ -175,16 +245,89 @@ export async function createReport(reporterId: string, raw: unknown) {
     .where(and(eq(reports.reporterId, reporterId), eq(reports.targetType, input.targetType), eq(reports.targetId, input.targetId), eq(reports.status, "open")));
   if (dup) return dup.id;
   const [r] = await db.insert(reports).values({ reporterId, ...input }).returning({ id: reports.id });
-  // Spam raportat pe o aplicare automată → o punem în moderare (marcăm proiectul pentru verificare).
-  const [{ n }] = await db
-    .select({ n: sql<number>`count(DISTINCT ${reports.reporterId})::int` })
-    .from(reports)
-    .where(and(eq(reports.targetType, input.targetType), eq(reports.targetId, input.targetId), eq(reports.status, "open")));
-  if (input.targetType === "project" && n >= 3) {
-    await db.update(projects).set({ status: "pending_review", moderationNote: "Raportat de mai mulți utilizatori" }).where(and(eq(projects.id, input.targetId), eq(projects.status, "open")));
-  }
+  if (input.targetType === "project") await maybeLockReportedProject(input.targetId);
   return r.id;
 }
+
+/**
+ * Proiect deschis raportat de cel puțin REPORT_LOCK_THRESHOLD utilizatori de încredere (email confirmat, cont configurat
+ * de peste 24 de ore, nesuspendat) → îl ascundem („în verificare”) cu blocaj de moderare: doar un administrator îl
+ * poate aproba sau elimina. Scriem istoricul și anunțăm administratorii (și clientul, în aplicație).
+ */
+async function maybeLockReportedProject(projectId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(projectId)) return;
+  const trusted = await db
+    .selectDistinct({ reporterId: reports.reporterId, reason: reports.reason })
+    .from(reports)
+    .innerJoin(users, eq(users.id, reports.reporterId))
+    .where(
+      and(
+        eq(reports.targetType, "project"),
+        eq(reports.targetId, projectId),
+        eq(reports.status, "open"),
+        isNotNull(users.emailVerifiedAt),
+        isNotNull(users.onboardedAt),
+        isNull(users.bannedAt),
+        isNull(users.deletedAt),
+        lt(users.createdAt, new Date(Date.now() - TRUSTED_REPORTER_MIN_AGE_MS)),
+      ),
+    );
+  const reporters = new Set(trusted.map((t) => t.reporterId)).size;
+  if (reporters < REPORT_LOCK_THRESHOLD) return;
+
+  const locked = await db.transaction(async (tx) => {
+    const [p] = await tx
+      .update(projects)
+      .set({ status: "pending_review", moderationLock: true, moderationNote: REPORT_LOCK_NOTE })
+      .where(and(eq(projects.id, projectId), eq(projects.status, "open")))
+      .returning({ id: projects.id, title: projects.title, clientId: projects.clientId });
+    if (!p) return null;
+    await tx.insert(projectStatusHistory).values({
+      projectId,
+      fromStatus: "open",
+      toStatus: "pending_review",
+      reason: `${REPORT_LOCK_NOTE} (${reporters} raportări)`,
+    });
+    return p;
+  });
+  if (!locked) return;
+
+  const title = truncate(locked.title, 60);
+  const reasons = [...new Set(trusted.map((t) => REPORT_REASON_LABELS[t.reason] ?? t.reason))];
+  const admins = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(and(eq(users.role, "admin"), isNull(users.bannedAt), isNull(users.deletedAt)));
+  for (const a of admins) {
+    await notify({
+      userId: a.id,
+      type: "admin.project_reported",
+      title: `Proiect blocat după raportări: „${title}”`,
+      body: `${reporters} utilizatori verificați l-au raportat. Aprobă-l sau elimină-l.`,
+      link: "/admin/rapoarte",
+      dedupeKey: `project-reported:${projectId}:${a.id}:${Date.now()}`,
+      email: projectReportedAdminTemplate({ projectTitle: title, reporters, reasons }),
+    });
+  }
+  await notify({
+    userId: locked.clientId,
+    type: "project.reported",
+    title: `Proiectul „${title}” este în verificare`,
+    body: "Mai mulți utilizatori l-au raportat. Un administrator îl va revizui și te anunțăm imediat ce ia o decizie.",
+    link: `/proiectele-mele/${projectId}`,
+    dedupeKey: `project-reported:${projectId}:${Date.now()}`,
+  });
+}
+
+export const REPORT_REASON_LABELS: Record<string, string> = {
+  spam: "Spam",
+  fraud: "Fraudă",
+  fake_project: "Proiect fals",
+  duplicate: "Duplicat",
+  abusive: "Limbaj abuziv",
+  inappropriate: "Conținut nepotrivit",
+  other: "Altceva",
+};
 
 export async function resolveReport(reportId: string, adminId: string, status: "resolved" | "dismissed", resolution: string) {
   await db.update(reports).set({ status, resolution, resolvedById: adminId, resolvedAt: new Date() }).where(eq(reports.id, reportId));

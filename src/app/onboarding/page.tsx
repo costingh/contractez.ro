@@ -30,6 +30,8 @@ import { onboardingProgress, type OnboardingStep } from "@/server/onboarding";
 
 export const metadata: Metadata = { title: "Configurează contul" };
 
+const FINAL_STEP_PARAM = "gata";
+
 export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ pas?: string; rol?: string; salvat?: string }> }) {
   const { pas, rol: rolParam, salvat } = await searchParams;
   const user = await requireUser("/onboarding");
@@ -45,7 +47,9 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
     !pas &&
     !(user.onboardedAt && progress.firstIncomplete === 3) &&
     (!rolParam || (rolParam === "prestator" ? progress.wantsProvider : user.isClient));
-  const step = pas === "1" ? 1 : pas === "2" ? 2 : pas === "3" ? 3 : resume ? progress.firstIncomplete : 1;
+  // Ultimul pas are în URL `pas=gata` (nu un număr): pentru clienți e „pasul 2 din 2”, pentru prestatori „3 din 3”.
+  // `pas=3` rămâne acceptat pentru linkurile vechi.
+  const step = pas === "1" ? 1 : pas === "2" ? 2 : pas === "3" || pas === FINAL_STEP_PARAM ? 3 : resume ? progress.firstIncomplete : 1;
   if (step === 3 && pendingProvider) redirect("/onboarding?pas=2");
   if (step === 3 && !progress.basicsDone) redirect("/onboarding?pas=1");
   const wantsProvider = rol === "prestator" || progress.wantsProvider || step === 2;
@@ -54,7 +58,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   const current = stepNumbers.indexOf(step) + 1 || 1;
   const done = stepNumbers.map((n) => (n === 1 ? progress.basicsDone : n === 2 ? progress.providerDone : Boolean(user.onboardedAt)));
   // Se poate reveni la pașii salvați și la primul pas nesalvat, dar nu se poate sări peste unul.
-  const hrefs = stepNumbers.map((n) => (n <= progress.firstIncomplete || done[stepNumbers.indexOf(n)] ? `/onboarding?pas=${n}` : null));
+  const hrefs = stepNumbers.map((n) => (n <= progress.firstIncomplete || done[stepNumbers.indexOf(n)] ? `/onboarding?pas=${n === 3 ? FINAL_STEP_PARAM : n}` : null));
 
   return (
     <div className="container-page max-w-3xl pt-8 pb-16 sm:pt-12">

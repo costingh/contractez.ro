@@ -75,7 +75,7 @@ export function NotificationItem({ n }: { n: NotificationView }) {
         <Icon className="size-4" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className={cn("block text-sm", unread ? "font-semibold" : "font-medium")}>{n.title}</span>
+        <span className={cn("block text-sm [overflow-wrap:anywhere]", unread ? "font-semibold" : "font-medium")}>{n.title}</span>
         {n.body && <span className="mt-0.5 block text-sm leading-relaxed text-muted-foreground">{n.body}</span>}
         <span suppressHydrationWarning className="mt-1 block text-xs text-muted-foreground">{timeAgo(n.createdAt)}</span>
       </span>

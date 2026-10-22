@@ -95,7 +95,7 @@ export function BasicsForm({
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Numele tău" htmlFor="name" error={fe.name}>
-          <Input id="name" name="name" defaultValue={initial.name} autoComplete="name" required />
+          <Input id="name" name="name" defaultValue={initial.name} autoComplete="name" required maxLength={80} />
         </Field>
         <Field label="Localitate" hint="Pentru proiecte și prestatori din zona ta." optional>
           <LocalityCombobox name="localityId" defaultValue={initial.locality} />

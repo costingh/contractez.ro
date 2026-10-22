@@ -12,6 +12,7 @@ const POPULATION_OVERRIDES: Record<string, number> = {
 /** Date de referință (categorii, competențe, localități). Idempotent: poate rula la fiecare deploy. */
 export async function seedReferenceData(sql: postgres.Sql) {
   await sql.begin(async (tx) => {
+    const curatedSkills: string[] = [];
     let catOrder = 0;
     for (const cat of taxonomy) {
       const [parent] = await tx<{ id: number }[]>`
@@ -29,9 +30,10 @@ export async function seedReferenceData(sql: postgres.Sql) {
             sort_order = EXCLUDED.sort_order, typical_work_mode = EXCLUDED.typical_work_mode
           RETURNING id`;
         for (const skill of sub.skills) {
+          curatedSkills.push(slugify(skill));
           await tx`
             INSERT INTO skills (slug, name, category_id) VALUES (${slugify(skill)}, ${skill}, ${child.id})
-            ON CONFLICT (slug) DO NOTHING`;
+            ON CONFLICT (slug) DO UPDATE SET category_id = EXCLUDED.category_id WHERE skills.category_id IS NULL`;
         }
         const attrs = categoryAttributeSeed[sub.slug];
         if (attrs) {
@@ -44,6 +46,11 @@ export async function seedReferenceData(sql: postgres.Sql) {
           }
         }
       }
+    }
+    // Doar competențele din taxonomie au categorie (sunt „curatoriate”). Cele scrise de prestatori erau salvate
+    // înainte sub categoria lor și apăreau ca sugestii pentru toți: le trecem la necategorisite (vezi skillsForCategory).
+    if (curatedSkills.length > 0) {
+      await tx`UPDATE skills SET category_id = NULL WHERE category_id IS NOT NULL AND slug <> ALL(${tx.array(curatedSkills)}::text[])`;
     }
   });
 

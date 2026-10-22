@@ -11,11 +11,19 @@ import { moderationActions, users } from "@/server/db/schema";
 import { DomainError } from "@/server/errors";
 import { notify } from "@/server/notifications";
 import { banUser, unbanUser } from "@/server/trust/service";
+import { isUuid } from "@/lib/ids";
+
+/** Id-ul utilizatorului vizat, validat înainte de interogări (un UUID invalid ar produce o eroare Postgres). */
+function targetUserId(fd: FormData): string {
+  const userId = formStr(fd, "userId");
+  if (!isUuid(userId)) throw new DomainError("not_found", "Utilizator inexistent.");
+  return userId;
+}
 
 export async function banUserAction(_: ActionState, fd: FormData): Promise<ActionState> {
   try {
     const admin = await requireAdmin();
-    const userId = formStr(fd, "userId");
+    const userId = targetUserId(fd);
     if (userId === admin.id) throw new DomainError("self", "Nu te poți suspenda singur.");
     const reason = formStr(fd, "reason").trim();
     if (reason.length < 3) throw new DomainError("reason", "Scrie motivul suspendării.");
@@ -30,7 +38,7 @@ export async function banUserAction(_: ActionState, fd: FormData): Promise<Actio
 export async function unbanUserAction(_: ActionState, fd: FormData): Promise<ActionState> {
   try {
     const admin = await requireAdmin();
-    await unbanUser(formStr(fd, "userId"), admin.id);
+    await unbanUser(targetUserId(fd), admin.id);
     revalidatePath("/admin/utilizatori");
     return { ok: true, message: "Cont reactivat." };
   } catch (err) {
@@ -41,7 +49,7 @@ export async function unbanUserAction(_: ActionState, fd: FormData): Promise<Act
 export async function grantPlanAction(_: ActionState, fd: FormData): Promise<ActionState> {
   try {
     const admin = await requireAdmin();
-    const userId = formStr(fd, "userId");
+    const userId = targetUserId(fd);
     const planId = formStr(fd, "planId") as PlanId;
     const days = formNum(fd, "days") ?? 0;
     const note = formStr(fd, "note").trim() || "Plan oferit de echipă";
@@ -60,7 +68,7 @@ export async function grantPlanAction(_: ActionState, fd: FormData): Promise<Act
 export async function revokePlanAction(_: ActionState, fd: FormData): Promise<ActionState> {
   try {
     const admin = await requireAdmin();
-    const userId = formStr(fd, "userId");
+    const userId = targetUserId(fd);
     const n = await revokeCompPlans(userId);
     if (n === 0) throw new DomainError("none", "Utilizatorul nu are un plan oferit activ.");
     await db.insert(moderationActions).values({ adminId: admin.id, action: "revoke_plan", targetType: "user", targetId: userId });
@@ -74,7 +82,7 @@ export async function revokePlanAction(_: ActionState, fd: FormData): Promise<Ac
 export async function toggleAdminAction(_: ActionState, fd: FormData): Promise<ActionState> {
   try {
     const admin = await requireAdmin();
-    const userId = formStr(fd, "userId");
+    const userId = targetUserId(fd);
     if (userId === admin.id) throw new DomainError("self", "Nu îți poți schimba propriul rol.");
     const [u] = await db.select({ role: users.role }).from(users).where(eq(users.id, userId));
     if (!u) throw new DomainError("not_found", "Utilizator inexistent.");

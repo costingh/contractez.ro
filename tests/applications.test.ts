@@ -1,9 +1,16 @@
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { applyToProject, hireApplication, refundAllForProject } from "@/server/applications/service";
+import {
+  applyToProject,
+  hireApplication,
+  refundAllForProject,
+  rejectApplication,
+  shortlistApplication,
+  withdrawApplication,
+} from "@/server/applications/service";
 import { applicationsUsedSince, grantCompPlan } from "@/server/billing/plans";
 import { db } from "@/server/db";
-import { categories, conversations, projects, providerProfiles } from "@/server/db/schema";
+import { applications, categories, collaborations, conversations, projects, providerProfiles } from "@/server/db/schema";
 import { createTestUser } from "./helpers";
 
 async function category() {
@@ -140,5 +147,155 @@ describe("aplicări", () => {
     expect(after.status).toBe("in_progress");
     const v3 = await provider();
     await expect(applyToProject({ providerId: v3.id, projectId: p.id, message: msg })).rejects.toMatchObject({ code: "closed" });
+  });
+});
+
+describe("alegerea prestatorului: cereri simultane", () => {
+  it("două alegeri simultane pe același proiect: exact una reușește, fără deadlock", async () => {
+    const client = await createTestUser({ isClient: true });
+    const p = await openProject(client.id);
+    const [v1, v2] = [await provider(), await provider()];
+    const a1 = await applyToProject({ providerId: v1.id, projectId: p.id, message: msg });
+    const a2 = await applyToProject({ providerId: v2.id, projectId: p.id, message: msg });
+
+    const results = await Promise.allSettled([hireApplication(a1.id, client.id), hireApplication(a2.id, client.id)]);
+    const ok = results.filter((r) => r.status === "fulfilled");
+    const failed = results.filter((r): r is PromiseRejectedResult => r.status === "rejected");
+    expect(ok).toHaveLength(1);
+    expect(failed).toHaveLength(1);
+    // Eroare de business afișabilă, nu o eroare Postgres (deadlock / unique violation).
+    expect(failed[0].reason).toMatchObject({ name: "DomainError", code: "state" });
+
+    const collabs = await db.select().from(collaborations).where(eq(collaborations.projectId, p.id));
+    expect(collabs).toHaveLength(1);
+    const hired = await db.select().from(applications).where(and(eq(applications.projectId, p.id), eq(applications.status, "hired")));
+    expect(hired).toHaveLength(1);
+  });
+
+  it("aceeași ofertă aleasă de două ori simultan creează o singură colaborare", async () => {
+    const client = await createTestUser({ isClient: true });
+    const p = await openProject(client.id);
+    const v = await provider();
+    const a = await applyToProject({ providerId: v.id, projectId: p.id, message: msg });
+    const results = await Promise.allSettled([hireApplication(a.id, client.id), hireApplication(a.id, client.id), hireApplication(a.id, client.id)]);
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    for (const r of results) if (r.status === "rejected") expect(r.reason).toMatchObject({ name: "DomainError" });
+    expect(await db.select().from(collaborations).where(eq(collaborations.projectId, p.id))).toHaveLength(1);
+  });
+
+  it("baza de date refuză a doua colaborare neanulată pe același proiect", async () => {
+    const client = await createTestUser({ isClient: true });
+    const p = await openProject(client.id);
+    const [v1, v2] = [await provider(), await provider()];
+    const a1 = await applyToProject({ providerId: v1.id, projectId: p.id, message: msg });
+    const a2 = await applyToProject({ providerId: v2.id, projectId: p.id, message: msg });
+    await hireApplication(a1.id, client.id);
+    await expect(
+      db.insert(collaborations).values({ projectId: p.id, applicationId: a2.id, clientId: client.id, providerId: v2.id }),
+    ).rejects.toThrow();
+  });
+
+  it("o ofertă respinsă, retrasă sau aleasă nu mai poate fi modificată", async () => {
+    const client = await createTestUser({ isClient: true });
+    const p = await openProject(client.id);
+    const [v1, v2] = [await provider(), await provider()];
+    const a1 = await applyToProject({ providerId: v1.id, projectId: p.id, message: msg });
+    const a2 = await applyToProject({ providerId: v2.id, projectId: p.id, message: msg });
+    await rejectApplication(a1.id, client.id, "Peste buget");
+    await expect(rejectApplication(a1.id, client.id)).rejects.toMatchObject({ code: "state" });
+    await expect(shortlistApplication(a1.id, client.id, true)).rejects.toMatchObject({ code: "state" });
+    await expect(withdrawApplication(a1.id, v1.id)).rejects.toMatchObject({ code: "state" });
+    await withdrawApplication(a2.id, v2.id);
+    await expect(shortlistApplication(a2.id, client.id, true)).rejects.toMatchObject({ code: "state" });
+    await expect(hireApplication(a2.id, client.id)).rejects.toMatchObject({ code: "state" });
+    const [after] = await db.select().from(applications).where(eq(applications.id, a2.id));
+    expect(after.status).toBe("withdrawn");
+  });
+});
+
+describe("retragerea ofertei", () => {
+  it("eliberează locul pe proiect, iar limita de oferte folosește numărul corectat", async () => {
+    const client = await createTestUser({ isClient: true });
+    const p = await openProject(client.id, { maxApplications: 2 });
+    const [v1, v2, v3] = [await provider(), await provider(), await provider()];
+    const a1 = await applyToProject({ providerId: v1.id, projectId: p.id, message: msg });
+    await applyToProject({ providerId: v2.id, projectId: p.id, message: msg });
+    await expect(applyToProject({ providerId: v3.id, projectId: p.id, message: msg })).rejects.toMatchObject({ code: "full" });
+
+    await withdrawApplication(a1.id, v1.id);
+    let [after] = await db.select().from(projects).where(eq(projects.id, p.id));
+    expect(after.applicationsCount).toBe(1);
+    // Aplicarea retrasă rămâne socotită în limita lunară a prestatorului.
+    expect(await used(v1.id)).toBe(1);
+
+    await applyToProject({ providerId: v3.id, projectId: p.id, message: msg });
+    [after] = await db.select().from(projects).where(eq(projects.id, p.id));
+    expect(after.applicationsCount).toBe(2);
+  });
+
+  it("retragerea dublă sau de către alt prestator nu scade numărul de două ori", async () => {
+    const client = await createTestUser({ isClient: true });
+    const p = await openProject(client.id);
+    const [v1, v2] = [await provider(), await provider()];
+    const a1 = await applyToProject({ providerId: v1.id, projectId: p.id, message: msg });
+    await applyToProject({ providerId: v2.id, projectId: p.id, message: msg });
+    await expect(withdrawApplication(a1.id, v2.id)).rejects.toMatchObject({ code: "not_found" });
+    const results = await Promise.allSettled([withdrawApplication(a1.id, v1.id), withdrawApplication(a1.id, v1.id)]);
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    const [after] = await db.select().from(projects).where(eq(projects.id, p.id));
+    expect(after.applicationsCount).toBe(1);
+  });
+
+  it("o ofertă automată retrasă eliberează și locul rezervat aplicărilor automate", async () => {
+    const client = await createTestUser({ isClient: true });
+    const p = await openProject(client.id, { maxAutoApplications: 1 });
+    const [v1, v2] = [await provider("pro"), await provider("pro")];
+    const a1 = await applyToProject({ providerId: v1.id, projectId: p.id, message: msg, isAuto: true });
+    await withdrawApplication(a1.id, v1.id);
+    const [after] = await db.select().from(projects).where(eq(projects.id, p.id));
+    expect(after.autoApplicationsCount).toBe(0);
+    await applyToProject({ providerId: v2.id, projectId: p.id, message: msg, isAuto: true });
+  });
+});
+
+describe("validarea ofertei", () => {
+  it.each([
+    [{ priceAmount: -100 }, "cel puțin 1 leu"],
+    [{ priceAmount: 0 }, "cel puțin 1 leu"],
+    [{ priceAmount: 99_999_999_999 }, "cel mult 10.000.000"],
+    [{ estimatedDays: -3 }, "cel puțin o zi"],
+    [{ estimatedDays: 0 }, "cel puțin o zi"],
+    [{ estimatedDays: 400 }, "cel mult 365"],
+    [{ priceType: "gratis" as never }, "tipul prețului"],
+  ])("respinge %j fără să salveze sau să socotească aplicarea", async (extra, text) => {
+    const client = await createTestUser({ isClient: true });
+    const p = await openProject(client.id);
+    const v = await provider();
+    await expect(applyToProject({ providerId: v.id, projectId: p.id, message: msg, ...extra })).rejects.toMatchObject({
+      name: "DomainError",
+      code: "invalid",
+      message: expect.stringContaining(text),
+    });
+    expect(await used(v.id)).toBe(0);
+    expect(await db.select().from(applications).where(eq(applications.projectId, p.id))).toHaveLength(0);
+  });
+
+  it("mesajul are limite de lungime", async () => {
+    const client = await createTestUser({ isClient: true });
+    const p = await openProject(client.id);
+    const v = await provider();
+    await expect(applyToProject({ providerId: v.id, projectId: p.id, message: "  prea scurt  " })).rejects.toMatchObject({ code: "message_short" });
+    await expect(applyToProject({ providerId: v.id, projectId: p.id, message: "a".repeat(5_001) })).rejects.toMatchObject({ code: "message_long" });
+  });
+
+  it("acceptă prețul și durata la limite, sau lipsa lor", async () => {
+    const client = await createTestUser({ isClient: true });
+    const p = await openProject(client.id);
+    const [v1, v2] = [await provider(), await provider()];
+    const a = await applyToProject({ providerId: v1.id, projectId: p.id, message: msg, priceAmount: 10_000_000, priceType: "fixed", estimatedDays: 365 });
+    expect(a).toMatchObject({ priceAmount: 10_000_000, priceType: "fixed", estimatedDays: 365 });
+    const b = await applyToProject({ providerId: v2.id, projectId: p.id, message: msg, priceAmount: null, estimatedDays: null });
+    expect(b).toMatchObject({ priceAmount: null, priceType: "to_discuss", estimatedDays: null });
+    expect(await db.select().from(applications).where(and(eq(applications.projectId, p.id), ne(applications.status, "withdrawn")))).toHaveLength(2);
   });
 });

@@ -3,6 +3,7 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { formNum, formStr, toActionError, type ActionState } from "@/lib/action";
+import { isUuid } from "@/lib/ids";
 import { draftProposal } from "@/server/ai/features";
 import { applyToProject } from "@/server/applications/service";
 import { getCurrentUser } from "@/server/auth/session";
@@ -23,6 +24,7 @@ export async function applyAction(_: ApplyState, fd: FormData): Promise<ApplySta
     const user = await getCurrentUser();
     if (!user) throw new DomainError("auth", "Autentifică-te pentru a aplica.");
     const projectId = formStr(fd, "projectId");
+    if (!isUuid(projectId)) throw new DomainError("not_found", "Proiectul nu există.");
     const priceType = formStr(fd, "priceType");
     const app = await applyToProject({
       providerId: user.id,
@@ -51,8 +53,11 @@ export async function draftProposalAction(projectId: string): Promise<{ ok: true
     const user = await getCurrentUser();
     if (!user?.isProvider) throw new DomainError("auth", "Doar prestatorii pot genera propuneri.");
     if (!(await rateLimit(`draft:${user.id}`, 20, 3600))) throw new DomainError("rate", "Ai generat multe propuneri. Încearcă mai târziu.");
+    if (!isUuid(projectId)) throw new DomainError("not_found", "Proiectul nu există.");
     const [p] = await db.select().from(projects).where(eq(projects.id, projectId));
     if (!p) throw new DomainError("not_found", "Proiectul nu există.");
+    // Doar pentru proiecte publice, deschise ofertelor (nu ciorne, proiecte în verificare sau închise).
+    if (p.status !== "open" || (p.expiresAt && p.expiresAt < new Date())) throw new DomainError("closed", "Proiectul nu mai acceptă oferte.");
     const [profile] = await db.select().from(providerProfiles).where(eq(providerProfiles.userId, user.id));
     const services = await db.select({ title: providerServices.title }).from(providerServices).where(eq(providerServices.providerId, user.id));
     const loc = p.localityId ? await getLocality(p.localityId) : null;
@@ -88,6 +93,7 @@ export async function toggleSaveAction(projectId: string): Promise<{ ok: true; s
   try {
     const user = await getCurrentUser();
     if (!user) throw new DomainError("auth", "Autentifică-te pentru a salva proiecte.");
+    if (!isUuid(projectId)) throw new DomainError("not_found", "Proiectul nu există.");
     const where = and(eq(savedProjects.userId, user.id), eq(savedProjects.projectId, projectId));
     const [existing] = await db.select().from(savedProjects).where(where);
     if (existing) await db.delete(savedProjects).where(where);

@@ -66,7 +66,7 @@ export async function saveProjectAction(_: ProjectFormState, fd: FormData): Prom
     revalidatePath("/proiectele-mele");
     const contact = res.warnings.length > 0 ? "&contact=1" : "";
 
-    if (wantsPublish && !user.emailVerifiedAt) {
+    if (wantsPublish && !user.emailVerifiedAt && !res.edited) {
       return {
         ok: false,
         code: "email_unverified",
@@ -76,6 +76,8 @@ export async function saveProjectAction(_: ProjectFormState, fd: FormData): Prom
         error: "Am salvat proiectul ca ciornă. Confirmă adresa de email ca să-l poți publica — ți-am trimis un link de confirmare.",
       };
     }
+    // Modificările unui proiect deja publicat: doar confirmarea salvării, fără mesajul de publicare (nu anunțăm pe nimeni din nou).
+    if (res.edited && res.status === "open") redirect(`/proiectele-mele/${res.project.id}?salvat=1${contact}`);
     if (res.status === "open") redirect(`/proiectele-mele/${res.project.id}?publicat=1${contact}`);
     if (res.status === "pending_review") redirect(`/proiectele-mele/${res.project.id}?verificare=1${contact}`);
     redirect(`/proiectele-mele/${res.project.id}?ciorna=1${contact}`);

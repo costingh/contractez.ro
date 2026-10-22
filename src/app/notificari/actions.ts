@@ -3,6 +3,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { toActionError, type ActionState } from "@/lib/action";
+import { isUuid } from "@/lib/ids";
 import { requireUser } from "@/server/auth/guards";
 import { db } from "@/server/db";
 import { notifications } from "@/server/db/schema";
@@ -21,6 +22,7 @@ export async function markAllReadAction(): Promise<ActionState> {
 
 export async function markReadAction(notificationId: string): Promise<void> {
   const user = await requireUser();
+  if (!isUuid(notificationId)) return;
   await db
     .update(notifications)
     .set({ readAt: new Date() })

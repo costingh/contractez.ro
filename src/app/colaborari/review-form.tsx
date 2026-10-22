@@ -6,6 +6,7 @@ import { FormMessage } from "@/components/forms/form-message";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { pluralRo } from "@/lib/text";
 import { cn } from "@/lib/utils";
 import { reviewAction } from "./actions";
 
@@ -41,7 +42,7 @@ export function ReviewForm({ collaborationId, targetName, asClient }: { collabor
             type="button"
             onClick={() => setRating(n)}
             onMouseEnter={() => setHover(n)}
-            aria-label={`${n} stele`}
+            aria-label={pluralRo(n, "stea", "stele")}
             className="rounded-md p-0.5 transition-transform duration-150 hover:scale-115 active:scale-95"
           >
             <Star className={cn("size-7 transition-colors", n <= shown ? "fill-warning text-warning" : "text-muted-foreground/35")} />

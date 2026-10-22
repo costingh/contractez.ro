@@ -7,7 +7,7 @@ import { AnafBadge } from "@/components/shared/anaf-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { labels, site } from "@/config/site";
-import { initials } from "@/lib/format";
+import { formatRating, initials } from "@/lib/format";
 import { getCurrentUser } from "@/server/auth/session";
 import { cardPrice, getPublicCard } from "@/server/providers/public-card";
 import { profileShortUrl, qrDataUrl } from "@/server/share";
@@ -87,7 +87,7 @@ export default async function ProfileCardPage({ params }: { params: Promise<{ sl
               {p.hoursPerWeek ? <Row icon={Clock} label="Disponibilitate" value={`${p.hoursPerWeek} ore / săptămână`} /> : <Row icon={Clock} label="Disponibilitate" value={labels.availability[p.availability]} />}
               <Row icon={Receipt} label="Factură" value={card.issuesInvoice ? "Da" : "Nu"} />
               {p.ratingCount > 0 && p.ratingAvg ? (
-                <Row icon={Star} label="Recenzii" value={`${p.ratingAvg.toFixed(1)} ★ (${p.ratingCount})`} />
+                <Row icon={Star} label="Recenzii" value={`${formatRating(p.ratingAvg)} ★ (${p.ratingCount})`} />
               ) : null}
             </div>
           </div>

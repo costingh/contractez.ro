@@ -7,7 +7,7 @@ import { requireUser } from "@/server/auth/guards";
 import { getConversationFor, sendMessage } from "@/server/chat/service";
 import { DomainError } from "@/server/errors";
 import { createReport } from "@/server/trust/service";
-import { saveUpload } from "@/server/uploads";
+import { assertUploadAllowed, saveUpload } from "@/server/uploads";
 
 export async function sendMessageAction(conversationId: string, fd: FormData): Promise<ActionState<ChatMessage>> {
   try {
@@ -15,11 +15,15 @@ export async function sendMessageAction(conversationId: string, fd: FormData): P
     await getConversationFor(conversationId, user.id);
     const body = String(fd.get("body") ?? "");
     const file = fd.get("file");
-    let attachment: { path: string; name: string; size: number; type: string } | undefined;
-    if (file instanceof File && file.size > 0) {
-      const saved = await saveUpload(file, `chat/${conversationId}`, "document");
-      attachment = { path: saved.path, name: saved.name, size: saved.size, type: saved.type };
-    }
+    // Fișierul se salvează abia după verificările din `sendMessage` (limită, conversație închisă).
+    const attachment =
+      file instanceof File && file.size > 0
+        ? async () => {
+            await assertUploadAllowed(user.id);
+            const saved = await saveUpload(file, `chat/${conversationId}`, "document");
+            return { path: saved.path, name: saved.name, size: saved.size, type: saved.type };
+          }
+        : undefined;
     const msg = await sendMessage(conversationId, user.id, body, attachment);
     revalidatePath("/mesaje");
     return { ok: true, data: serializeMessage(msg) };

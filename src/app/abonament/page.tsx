@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { paidPlans, plans, rules, type PlanId } from "@/config/site";
 import { formatDate } from "@/lib/format";
 import { requireOnboardedUser } from "@/server/auth/guards";
-import { getPlanUsage } from "@/server/billing/plans";
+import { getPlanUsage, hasRecentCheckout } from "@/server/billing/plans";
 import { features } from "@/server/env";
 import { PortalButton, SubscribeButton } from "./plan-buttons";
 
@@ -40,6 +40,9 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   const usage = await getPlanUsage(user.id);
   const sub = usage.subscription;
   const hasPaid = Boolean(sub?.stripeSubscriptionId);
+  // La întoarcerea din Stripe (`?plata=succes`), mesajul urmează starea reală a planului, nu URL-ul:
+  // plan plătit activ → confirmare; altfel „în curs de confirmare” doar dacă a pornit o plată în ultimele minute.
+  const returnBanner = plata !== "succes" ? null : hasPaid && usage.plan.priceLei > 0 ? "active" : (await hasRecentCheckout(user.id)) ? "pending" : null;
 
   const actions: Partial<Record<PlanId, React.ReactNode>> = {};
   for (const p of paidPlans) {
@@ -66,9 +69,16 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
     <div className="container-page pb-16">
       <PageHeader eyebrow="Cont" title="Abonament" description="Clienții publică gratuit. Tu alegi câte aplicări ai nevoie în fiecare lună; chat-ul cu clienții e nelimitat." />
 
-      {plata === "succes" && (
+      {returnBanner === "active" && (
         <Alert variant="success" className="mb-6">
           <ShieldCheck />
+          <AlertTitle>Planul {usage.plan.name} este activ</AlertTitle>
+          <AlertDescription>Mulțumim! Ai {usage.limit} aplicări pe lună, până pe {formatDate(usage.periodEnd)}.</AlertDescription>
+        </Alert>
+      )}
+      {returnBanner === "pending" && (
+        <Alert variant="info" className="mb-6">
+          <Info />
           <AlertTitle>Plata este în curs de confirmare</AlertTitle>
           <AlertDescription>Planul se activează în câteva secunde, imediat ce Stripe confirmă plata. Reîncarcă pagina dacă nu îl vezi.</AlertDescription>
         </Alert>
@@ -96,7 +106,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
             <div className="relative flex flex-wrap items-center justify-between gap-3 border-t pt-4 text-sm md:col-span-2">
               <div className="leading-relaxed text-muted-foreground">
                 {usage.comp ? (
-                  <>Plan oferit de echipă, valabil până pe {formatDate(usage.periodEnd)}. După aceea treci automat pe Gratuit.</>
+                  <>Plan oferit de echipă, valabil până pe {formatDate(usage.planEndsAt ?? usage.periodEnd)}. După aceea treci automat pe Gratuit.</>
                 ) : sub.status === "past_due" ? (
                   <span className="text-destructive">Plata pentru reînnoire nu a reușit. Actualizează cardul ca să păstrezi planul.</span>
                 ) : sub.cancelAtPeriodEnd ? (
@@ -111,7 +121,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
         </CardContent>
       </Card>
 
-      <section className="mt-14">
+      <section id="planuri" className="mt-14 scroll-mt-20">
         <h2 className="display-md mb-1">
           Alege ritmul <span className="serif-em text-gradient">potrivit</span>.
         </h2>

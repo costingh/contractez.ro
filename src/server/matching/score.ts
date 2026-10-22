@@ -1,5 +1,7 @@
 // Scorul de compatibilitate este determinist și explicabil. AI-ul nu inventează procente:
 // el doar ajută la structurarea cererilor (competențe, categorie), iar aici calculăm scorul.
+import { formatRating } from "@/lib/format";
+import { pluralRo } from "@/lib/text";
 import type { MatchReason } from "../db/schema";
 
 export type ProjectForMatch = {
@@ -114,9 +116,9 @@ export function scoreMatch(p: ProjectForMatch, v: ProviderForMatch): ScoreResult
   // Reputație (max 10)
   if (v.ratingCount > 0 && v.ratingAvg) {
     const pts = Math.round((v.ratingAvg / 5) * 6);
-    add(`Rating ${v.ratingAvg.toFixed(1)} (${v.ratingCount})`, pts);
+    add(`Rating ${formatRating(v.ratingAvg)} (${v.ratingCount})`, pts);
   } else score += 3;
-  if (v.completedCount > 0) add(`${v.completedCount} colaborări confirmate`, Math.min(4, v.completedCount));
+  if (v.completedCount > 0) add(pluralRo(v.completedCount, "colaborare confirmată", "colaborări confirmate"), Math.min(4, v.completedCount));
 
   // Disponibilitate & răspuns (max 10)
   score += v.availability === "available" ? 6 : 3;

@@ -27,8 +27,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { labels } from "@/config/site";
-import { formatDate, formatResponseTime, initials, timeAgo } from "@/lib/format";
-import { truncate } from "@/lib/text";
+import { formatDate, formatRating, formatResponseTime, initials, timeAgo } from "@/lib/format";
+import { pluralRo, truncate } from "@/lib/text";
 import { getCurrentUser } from "@/server/auth/session";
 import { getCatalog } from "@/server/catalog/taxonomy";
 import { db } from "@/server/db";
@@ -46,6 +46,8 @@ import {
 import { reviewsFor } from "@/server/trust/service";
 import { AnafBadge } from "@/components/shared/anaf-badge";
 import { isFirstViewToday } from "@/server/views";
+import { isSlug } from "@/lib/ids";
+import { safeWebUrl } from "@/lib/web-url";
 
 const loadProfile = cache(async (slug: string) => {
   const [row] = await db
@@ -86,7 +88,7 @@ function isVisible(row: NonNullable<Awaited<ReturnType<typeof loadProfile>>>) {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const row = await loadProfile(slug);
+  const row = isSlug(slug) ? await loadProfile(slug) : null;
   if (!row || !isVisible(row)) return { title: "Prestator" };
   const title = `${row.user.name} — ${row.profile.headline}`;
   const description = truncate(row.profile.bio, 160);
@@ -105,7 +107,9 @@ function Stars({ value }: { value: number }) {
 
 export default async function ProviderProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const [row, viewer] = await Promise.all([loadProfile(decodeURIComponent(slug)), getCurrentUser()]);
+  // Slug-urile au doar litere, cifre și cratime: orice altceva (ex. „%00”) e 404, fără interogare.
+  if (!isSlug(slug)) notFound();
+  const [row, viewer] = await Promise.all([loadProfile(slug), getCurrentUser()]);
   if (!row) notFound();
   const isOwner = viewer?.id === row.user.id;
   if (!isVisible(row) && !isOwner && viewer?.role !== "admin") notFound();
@@ -193,15 +197,15 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
             </Avatar>
             <div className="min-w-0 flex-1 space-y-3 sm:pt-5">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-[2rem] leading-[1.05] font-semibold tracking-[-0.035em] sm:text-[2.5rem]">{u.name}</h1>
+                <h1 className="min-w-0 text-[2rem] leading-[1.05] font-semibold tracking-[-0.035em] [overflow-wrap:anywhere] sm:text-[2.5rem]">{u.name}</h1>
                 {p.featuredUntil && p.featuredUntil > new Date() && <Badge variant="outline">Recomandat · Promovat</Badge>}
               </div>
-              <p className="text-base leading-relaxed text-muted-foreground sm:text-[1.1875rem]">{p.headline}</p>
+              <p className="text-base leading-relaxed text-muted-foreground [overflow-wrap:anywhere] sm:text-[1.1875rem]">{p.headline}</p>
               <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm">
                 {p.ratingCount > 0 && p.ratingAvg ? (
                   <a href="#recenzii" className="flex items-center gap-1.5">
                     <Stars value={p.ratingAvg} />
-                    <strong>{p.ratingAvg.toFixed(1)}</strong>
+                    <strong>{formatRating(p.ratingAvg)}</strong>
                     <span className="text-muted-foreground">({p.ratingCount === 1 ? "1 recenzie" : `${p.ratingCount} recenzii`})</span>
                   </a>
                 ) : (
@@ -209,7 +213,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
                 )}
                 {p.completedCount > 0 && (
                   <span className="flex items-center gap-1">
-                    <Briefcase className="size-4 text-muted-foreground" /> {p.completedCount} colaborări finalizate
+                    <Briefcase className="size-4 text-muted-foreground" /> {pluralRo(p.completedCount, "colaborare finalizată", "colaborări finalizate")}
                   </span>
                 )}
                 {row.localityName && (
@@ -253,7 +257,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
 
           <section className="space-y-3">
             <h2 className="text-[1.375rem] font-semibold tracking-[-0.025em]">Despre</h2>
-            <p className="max-w-prose text-[0.9375rem] leading-[1.7] whitespace-pre-line text-foreground/90">{p.bio}</p>
+            <p className="max-w-prose text-[0.9375rem] leading-[1.7] [overflow-wrap:anywhere] whitespace-pre-line text-foreground/90">{p.bio}</p>
             {p.certifications && (
               <p className="text-sm text-muted-foreground">
                 <strong className="text-foreground">Certificări:</strong> {p.certifications}
@@ -266,10 +270,10 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
               <h2 className="text-[1.375rem] font-semibold tracking-[-0.025em]">Servicii</h2>
               <div className="grid gap-3 sm:grid-cols-2">
                 {services.map((s) => (
-                  <div key={s.id} className="lift flex flex-col rounded-2xl border bg-card p-5 shadow-xs">
+                  <div key={s.id} className="lift flex min-w-0 flex-col rounded-2xl border bg-card p-5 shadow-xs">
                     <div className="eyebrow">{catalog.byId.get(s.categoryId)?.name}</div>
-                    <div className="mt-1.5 font-semibold">{s.title}</div>
-                    {s.description && <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{truncate(s.description, 220)}</p>}
+                    <div className="mt-1.5 font-semibold [overflow-wrap:anywhere]">{s.title}</div>
+                    {s.description && <p className="mt-1 text-sm leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">{truncate(s.description, 220)}</p>}
                     {s.priceFrom !== null && (
                       <div className="mt-auto pt-3 text-sm font-semibold tabular-nums">
                         de la {s.priceFrom.toLocaleString("ro-RO")} lei / {labels.priceUnit[s.priceUnit]}
@@ -302,7 +306,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
               <h2 className="text-[1.375rem] font-semibold tracking-[-0.025em]">Portofoliu</h2>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {portfolio.map((item) => (
-                  <div key={item.id} className="lift group/pf overflow-hidden rounded-2xl border bg-card shadow-xs">
+                  <div key={item.id} className="lift group/pf min-w-0 overflow-hidden rounded-2xl border bg-card shadow-xs">
                     {item.imagePath ? (
                       <div className="overflow-hidden">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -319,10 +323,10 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
                       </div>
                     )}
                     <div className="space-y-1 p-4">
-                      <div className="text-sm font-semibold">{item.title}</div>
-                      {item.description && <p className="text-xs text-muted-foreground">{truncate(item.description, 140)}</p>}
-                      {item.url && (
-                        <a href={item.url} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1 pt-1 text-xs font-medium text-brand underline-offset-4 hover:underline">
+                      <div className="text-sm font-semibold [overflow-wrap:anywhere]">{item.title}</div>
+                      {item.description && <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">{truncate(item.description, 140)}</p>}
+                      {safeWebUrl(item.url) && (
+                        <a href={safeWebUrl(item.url) ?? undefined} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1 pt-1 text-xs font-medium text-brand underline-offset-4 hover:underline">
                           Vezi lucrarea <ExternalLink className="size-3" />
                         </a>
                       )}
@@ -341,7 +345,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
             ) : (
               <div className="space-y-3">
                 {reviews.map((r) => (
-                  <div key={r.id} className="reveal relative overflow-hidden rounded-2xl border bg-card p-6 shadow-xs">
+                  <div key={r.id} className="reveal relative min-w-0 overflow-hidden rounded-2xl border bg-card p-6 shadow-xs">
                     <span aria-hidden className="serif-em pointer-events-none absolute -top-4 right-4 text-[6rem] leading-none text-foreground/[0.06]">
                       „
                     </span>
@@ -351,14 +355,14 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
                       {r.authorHidden && <BadgeCheck className="size-3.5 text-success" aria-label={r.authorName} />}
                       <span className="text-xs text-muted-foreground">· {timeAgo(r.createdAt)}</span>
                     </div>
-                    <div className="mt-0.5 text-xs text-muted-foreground">Proiect: {r.projectTitle}</div>
-                    {r.comment && <p className="mt-3 text-sm leading-relaxed whitespace-pre-line">{r.comment}</p>}
+                    <div className="mt-0.5 text-xs text-muted-foreground [overflow-wrap:anywhere]">Proiect: {r.projectTitle}</div>
+                    {r.comment && <p className="mt-3 text-sm leading-relaxed [overflow-wrap:anywhere] whitespace-pre-line">{r.comment}</p>}
                     {r.reply && (
                       <div className="mt-4 flex gap-2.5 rounded-lg bg-muted/70 p-3.5 text-sm">
                         <MessageSquareReply className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                        <div>
+                        <div className="min-w-0">
                           <div className="text-xs font-medium">Răspunsul lui {u.name.split(" ")[0]}</div>
-                          <p className="whitespace-pre-line">{r.reply}</p>
+                          <p className="[overflow-wrap:anywhere] whitespace-pre-line">{r.reply}</p>
                         </div>
                       </div>
                     )}
@@ -369,7 +373,7 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
           </section>
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+        <aside className="min-w-0 space-y-4 [overflow-wrap:anywhere] lg:sticky lg:top-20 lg:self-start">
           <Card className="relative overflow-hidden rounded-[1.4rem]">
             <div aria-hidden className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,var(--primary),var(--brand),#38bdf8)]" />
             <CardHeader>
@@ -378,14 +382,25 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
               <ul className="space-y-2.5 border-t pt-4">
-                <li className="flex items-center gap-2">
-                  <MapPin className="size-4 text-muted-foreground" />
-                  {p.onSite ? `Se deplasează până la ${p.travelRadiusKm} km` : "Nu lucrează la fața locului"}
-                </li>
-                <li className="flex items-center gap-2">
-                  <Globe className="size-4 text-muted-foreground" />
-                  {p.remote ? "Lucrează și remote" : "Doar la fața locului"}
-                </li>
+                {p.onSite ? (
+                  <>
+                    <li className="flex items-center gap-2">
+                      <MapPin className="size-4 text-muted-foreground" />
+                      Se deplasează până la {p.travelRadiusKm} km
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Globe className="size-4 text-muted-foreground" />
+                      {p.remote ? "Lucrează și remote" : "Doar la fața locului"}
+                    </li>
+                  </>
+                ) : (
+                  p.remote && (
+                    <li className="flex items-center gap-2">
+                      <Globe className="size-4 text-muted-foreground" />
+                      Lucrează doar remote
+                    </li>
+                  )
+                )}
                 {p.yearsExperience !== null && (
                   <li className="flex items-center gap-2">
                     <Briefcase className="size-4 text-muted-foreground" /> {p.yearsExperience} ani de experiență
@@ -408,8 +423,8 @@ export default async function ProviderProfilePage({ params }: { params: Promise<
                   <CalendarDays className="size-4" /> Membru din {formatDate(u.createdAt, "MMMM yyyy")}
                 </li>
               </ul>
-              {p.websiteUrl && (
-                <a href={p.websiteUrl} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1 font-medium text-brand underline-offset-4 hover:underline">
+              {safeWebUrl(p.websiteUrl) && (
+                <a href={safeWebUrl(p.websiteUrl) ?? undefined} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1 font-medium text-brand underline-offset-4 hover:underline">
                   Website <ExternalLink className="size-3.5" />
                 </a>
               )}

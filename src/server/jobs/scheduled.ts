@@ -18,7 +18,7 @@ import {
   users,
   verificationTokens,
 } from "../db/schema";
-import { queueEmail } from "../email/send";
+import { purgeEmailSecrets, queueEmail } from "../email/send";
 import { matchDigestTemplate, projectNoApplicationsTemplate } from "../email/templates";
 import { env } from "../env";
 import { notify } from "../notifications";
@@ -159,6 +159,7 @@ export async function maintenance() {
   await expireProposals();
   await db.delete(sessions).where(lt(sessions.expiresAt, new Date()));
   await db.delete(verificationTokens).where(lt(verificationTokens.expiresAt, new Date(Date.now() - 7 * 86_400_000)));
+  await purgeEmailSecrets();
   await refreshResponseTimes();
   const nudged = await nudgeProjectsWithoutApplications();
   const anaf = await recheckVerifiedCompanies().catch((e) => ({ error: (e as Error).message }));

@@ -1,4 +1,6 @@
 import { z } from "zod";
+// Mesajele de validare Zod în română (global, pentru tot codul de server).
+import "../lib/zod-ro";
 
 const bool = z
   .string()

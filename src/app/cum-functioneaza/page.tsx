@@ -191,7 +191,7 @@ export default function HowItWorksPage() {
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
-            ["Client neverificat", "Nu primește aplicări plătite până nu își confirmă emailul."],
+            ["Client neverificat", "Nu primește oferte până nu își confirmă emailul, așa că nu consumi aplicări din planul tău pe proiectele lui."],
             ["Proiect duplicat sau suspect", "Este oprit și verificat de un moderator înainte de publicare."],
             ["Proiect fraudulos confirmat", "Este eliminat, iar aplicările prestatorilor nu se mai socotesc în limita planului."],
             ["Aplicare dublă", "Este refuzată și nu se socotește în limita planului."],
@@ -229,7 +229,7 @@ export default function HowItWorksPage() {
               q: "Ce verificați despre un client?",
               a: features.phoneVerification
                 ? "Emailul este obligatoriu; telefonul verificat apare ca insignă. Nu verificăm identitatea sau existența fondurilor, iar acest lucru este afișat transparent pe fiecare proiect."
-                : "Emailul confirmat este obligatoriu, iar firmele pot fi confirmate în registrul ANAF. Nu verificăm identitatea sau existența fondurilor, iar acest lucru este afișat transparent pe fiecare proiect. Numărul de telefon apare doar după ce colaborarea este acceptată.",
+                : "Emailul confirmat este obligatoriu, iar firmele pot fi confirmate în registrul ANAF. Nu verificăm identitatea sau existența fondurilor, iar acest lucru este afișat transparent pe fiecare proiect. Numărul de telefon și emailul apar doar după ce prestatorul confirmă colaborarea.",
             },
             {
               q: "Cum raportez o problemă?",

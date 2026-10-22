@@ -53,7 +53,7 @@ export function ProjectCard({ data }: { data: ProjectCardData }) {
   return (
     <Link
       href={`/proiecte/${p.id}`}
-      className="group relative block rounded-xl border bg-card p-5 shadow-xs lift sm:p-6"
+      className="group relative block min-w-0 rounded-xl border bg-card p-5 shadow-xs lift sm:p-6"
     >
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <span className="font-medium text-foreground/80">{data.categoryName}</span>
@@ -65,8 +65,8 @@ export function ProjectCard({ data }: { data: ProjectCardData }) {
           <ArrowUpRight className="ml-auto size-4 text-muted-foreground/0 transition-colors group-hover:text-muted-foreground" />
         )}
       </div>
-      <h3 className="mt-2 text-[1.0625rem] leading-snug font-semibold tracking-[-0.012em] text-balance">{p.title}</h3>
-      <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{truncate(p.description.replace(/\s+/g, " "), 220)}</p>
+      <h3 className="mt-2 text-[1.0625rem] leading-snug font-semibold tracking-[-0.012em] text-balance [overflow-wrap:anywhere]">{p.title}</h3>
+      <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground [overflow-wrap:anywhere]">{truncate(p.description.replace(/\s+/g, " "), 220)}</p>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
         <span className="font-semibold tabular-nums">{describeBudget(p)}</span>

@@ -26,10 +26,10 @@ export function PasswordForm({ hasPassword = true }: { hasPassword?: boolean }) 
       )}
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Parola nouă" htmlFor="next" hint="Minimum 8 caractere.">
-          <Input id="next" name="next" type="password" autoComplete="new-password" minLength={8} required />
+          <Input id="next" name="next" type="password" autoComplete="new-password" minLength={8} maxLength={128} required />
         </Field>
         <Field label="Confirmă parola nouă" htmlFor="confirm">
-          <Input id="confirm" name="confirm" type="password" autoComplete="new-password" minLength={8} required />
+          <Input id="confirm" name="confirm" type="password" autoComplete="new-password" minLength={8} maxLength={128} required />
         </Field>
       </div>
       <FormMessage state={state} />

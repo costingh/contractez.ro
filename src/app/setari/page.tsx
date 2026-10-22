@@ -1,6 +1,7 @@
 import { Bell, Gift, Lock, ShieldCheck, UserRoundCheck } from "lucide-react";
 import type { Metadata } from "next";
 import { cssVars } from "@/components/home/css-vars";
+import { EmailChangeForm } from "@/components/profile/email-change-form";
 import { EmailStatus } from "@/components/profile/email-status";
 import { ContactPhoneForm } from "@/components/profile/contact-phone-form";
 import { CopyField } from "@/components/profile/copy-field";
@@ -24,8 +25,9 @@ import { rules } from "@/config/site";
 import { CONTACT_PHONE_HINT } from "@/lib/phone";
 import { ensureReferralCode, referralStats } from "@/server/account";
 import { requireUser } from "@/server/auth/guards";
+import { pendingEmailChange } from "@/server/auth/service";
 import { smsConfigured } from "@/server/auth/sms";
-import { env } from "@/server/env";
+import { env, features as services } from "@/server/env";
 import { features } from "@/server/features";
 import { getPreferences } from "@/server/notifications";
 
@@ -33,10 +35,11 @@ export const metadata: Metadata = { title: "Setări" };
 
 export default async function SettingsPage() {
   const user = await requireUser("/setari");
-  const [prefs, code, refStats] = await Promise.all([
+  const [prefs, code, refStats, emailChange] = await Promise.all([
     getPreferences(user.id),
     ensureReferralCode(user.id),
     referralStats(user.id),
+    pendingEmailChange(user.id),
   ]);
   const referralUrl = `${env.APP_URL}/inregistrare?rol=prestator&ref=${code}`;
 
@@ -95,6 +98,11 @@ export default async function SettingsPage() {
           <EmailStatus
             email={user.email}
             verified={Boolean(user.emailVerifiedAt)}
+          />
+          <EmailChangeForm
+            hasPassword={user.passwordHash !== "oauth"}
+            googleEnabled={services.google}
+            pending={emailChange ? { newEmail: emailChange.newEmail } : null}
           />
           <div className="space-y-2">
             <div className="text-sm font-medium">Telefon de contact</div>

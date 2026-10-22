@@ -1,13 +1,31 @@
 import { and, eq, ne, sql } from "drizzle-orm";
 import { z } from "zod";
+import { isUuid } from "@/lib/ids";
 import { normalizeSocialUrl, SOCIAL_KEYS, type SocialKey, type SocialLinks } from "@/lib/social-links";
 import { normalizeText, slugify } from "@/lib/text";
+import { normalizeWebUrl } from "@/lib/web-url";
 import { getCatalog } from "../catalog/taxonomy";
 import { getLocality } from "../catalog/localities";
 import { db } from "../db";
 import { portfolioItems, providerCategories, providerProfiles, providerServices, providerSkills, skills, users } from "../db/schema";
 import { DomainError } from "../errors";
 import { enqueue } from "../queue";
+import { deleteUpload } from "../uploads";
+
+/** Link web opțional: doar http(s), fără schemă → „https://”; gol → `null`. */
+const webUrlField = (max: number) =>
+  z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v, ctx) => {
+      const r = normalizeWebUrl(v, max);
+      if (!r.ok) {
+        ctx.addIssue({ code: "custom", message: r.error });
+        return z.NEVER;
+      }
+      return r.url;
+    });
 
 /**
  * Linkurile sociale trimise din formular: cheile sunt rețelele suportate, valorile pot fi linkuri,
@@ -40,7 +58,7 @@ export const providerProfileSchema = z.object({
   languages: z.array(z.string().min(2).max(5)).default(["ro"]),
   availability: z.enum(["available", "busy", "unavailable"]).default("available"),
   hoursPerWeek: z.coerce.number().int().min(1).max(80).nullable().optional(),
-  websiteUrl: z.string().url("Link invalid").max(300).nullable().optional().or(z.literal("").transform(() => null)),
+  websiteUrl: webUrlField(300),
   /** Lipsă = nu modificăm linkurile (ex. formularul din onboarding nu le conține). */
   socialLinks: socialLinksSchema.optional(),
   certifications: z.string().max(1_000).nullable().optional(),
@@ -141,7 +159,9 @@ export async function saveProviderProfile(userId: string, raw: unknown) {
   for (const name of input.skills) {
     const slug = slugify(name);
     if (!slug) continue;
-    await db.insert(skills).values({ slug, name, categoryId: categoryIds[0] }).onConflictDoNothing();
+    // Competențele scrise de prestatori rămân necategorisite: nu apar ca sugestii pentru alții până nu le
+    // folosesc mai mulți prestatori (vezi `skillsForCategory`). Cele din taxonomie se refolosesc după slug.
+    await db.insert(skills).values({ slug, name, categoryId: null }).onConflictDoNothing();
     const [s] = await db.select({ id: skills.id }).from(skills).where(eq(skills.slug, slug));
     if (s) skillIds.push(s.id);
   }
@@ -213,6 +233,7 @@ export async function addService(userId: string, raw: unknown) {
 
 /** Editează un serviciu: aceeași validare ca la adăugare; doar proprietarul îl poate modifica. */
 export async function updateService(userId: string, serviceId: string, raw: unknown) {
+  if (!isUuid(serviceId)) throw new DomainError("not_found", "Serviciul nu există sau nu îți aparține.");
   const input = serviceSchema.parse(raw);
   const [row] = await db
     .update(providerServices)
@@ -225,6 +246,7 @@ export async function updateService(userId: string, serviceId: string, raw: unkn
 }
 
 export async function deleteService(userId: string, serviceId: string) {
+  if (!isUuid(serviceId)) throw new DomainError("not_found", "Serviciul nu există sau nu îți aparține.");
   await db.delete(providerServices).where(and(eq(providerServices.id, serviceId), eq(providerServices.providerId, userId)));
   await refreshProviderSearchText(userId);
 }
@@ -232,29 +254,57 @@ export async function deleteService(userId: string, serviceId: string) {
 export const portfolioSchema = z.object({
   title: z.string().trim().min(3).max(120),
   description: z.string().trim().max(1_000).default(""),
-  url: z.string().url("Link invalid").max(400).nullable().optional().or(z.literal("").transform(() => null)),
+  url: webUrlField(400),
 });
 
-export async function addPortfolioItem(userId: string, raw: unknown, imagePath: string | null) {
+/** Imaginea se salvează (funcția `image`) abia după validare și verificarea limitei, ca să nu rămână fișiere orfane. */
+export async function addPortfolioItem(userId: string, raw: unknown, image: (() => Promise<string>) | null) {
   const input = portfolioSchema.parse(raw);
   const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(portfolioItems).where(eq(portfolioItems.providerId, userId));
   if (n >= 30) throw new DomainError("limit", "Poți adăuga maximum 30 de lucrări în portofoliu.");
-  await db.insert(portfolioItems).values({ providerId: userId, ...input, url: input.url ?? null, imagePath, sortOrder: n });
+  const imagePath = image ? await image() : null;
+  try {
+    await db.insert(portfolioItems).values({ providerId: userId, ...input, url: input.url ?? null, imagePath, sortOrder: n });
+  } catch (err) {
+    await deleteUpload(imagePath);
+    throw err;
+  }
 }
 
 export async function deletePortfolioItem(userId: string, itemId: string) {
-  await db.delete(portfolioItems).where(and(eq(portfolioItems.id, itemId), eq(portfolioItems.providerId, userId)));
+  if (!isUuid(itemId)) throw new DomainError("not_found", "Lucrarea nu există.");
+  const [row] = await db
+    .delete(portfolioItems)
+    .where(and(eq(portfolioItems.id, itemId), eq(portfolioItems.providerId, userId)))
+    .returning({ imagePath: portfolioItems.imagePath });
+  await deleteUpload(row?.imagePath);
 }
 
-/** Setează (sau, cu `null`, elimină) imaginea de copertă a profilului public. */
+/** Verifică (înainte de încărcarea fișierului) că prestatorul are profil, deci poate avea copertă. */
+export async function assertProviderProfile(userId: string) {
+  const [p] = await db.select({ slug: providerProfiles.slug }).from(providerProfiles).where(eq(providerProfiles.userId, userId));
+  if (!p) throw new DomainError("provider", "Completează mai întâi profilul de prestator.");
+  return p.slug;
+}
+
+/** Setează (sau, cu `null`, elimină) imaginea de copertă a profilului public. Fișierul vechi se șterge. */
 export async function setProviderCover(userId: string, coverPath: string | null) {
-  const updated = await db
-    .update(providerProfiles)
-    .set({ coverPath })
-    .where(eq(providerProfiles.userId, userId))
-    .returning({ slug: providerProfiles.slug });
-  if (updated.length === 0) throw new DomainError("provider", "Completează mai întâi profilul de prestator.");
-  return updated[0].slug;
+  const res = await db.transaction(async (tx) => {
+    const [old] = await tx
+      .select({ coverPath: providerProfiles.coverPath })
+      .from(providerProfiles)
+      .where(eq(providerProfiles.userId, userId))
+      .for("update");
+    if (!old) return null;
+    const [row] = await tx.update(providerProfiles).set({ coverPath }).where(eq(providerProfiles.userId, userId)).returning({ slug: providerProfiles.slug });
+    return { slug: row.slug, previous: old.coverPath };
+  });
+  if (!res) {
+    await deleteUpload(coverPath);
+    throw new DomainError("provider", "Completează mai întâi profilul de prestator.");
+  }
+  if (res.previous && res.previous !== coverPath) await deleteUpload(res.previous);
+  return res.slug;
 }
 
 /** Reîmprospătează rating-ul și numărul de colaborări finalizate. */

@@ -23,7 +23,8 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { labels } from "@/config/site";
-import { formatDistance, initials, timeAgo } from "@/lib/format";
+import { formatDistance, formatRating, initials, timeAgo } from "@/lib/format";
+import { pluralRo } from "@/lib/text";
 import { cn } from "@/lib/utils";
 import type { OfferView } from "./types";
 
@@ -125,7 +126,7 @@ export function OffersList({ offers, projectOpen, highlight }: { offers: OfferVi
           <article
             key={o.id}
             className={cn(
-              "space-y-4 rounded-2xl border bg-card p-5 shadow-xs sm:p-6",
+              "min-w-0 space-y-4 rounded-2xl border bg-card p-5 shadow-xs [overflow-wrap:anywhere] sm:p-6",
               o.boosted && active && "border-brand/35",
               o.status === "hired" && "border-success/40",
               highlight?.[o.id] && "ring-2 ring-brand/40",
@@ -149,7 +150,7 @@ export function OffersList({ offers, projectOpen, highlight }: { offers: OfferVi
                   {p.phoneVerified && <BadgeCheck className="size-4 text-success" aria-label="Telefon verificat" />}
                   {p.ratingCount > 0 && p.ratingAvg && (
                     <span className="flex items-center gap-0.5 text-sm">
-                      <Star className="size-3.5 fill-warning text-warning" /> {p.ratingAvg.toFixed(1)}
+                      <Star className="size-3.5 fill-warning text-warning" /> {formatRating(p.ratingAvg)}
                       <span className="text-muted-foreground">({p.ratingCount})</span>
                     </span>
                   )}
@@ -185,13 +186,16 @@ export function OffersList({ offers, projectOpen, highlight }: { offers: OfferVi
                   <MapPin /> {formatDistance(p.distanceKm)}
                 </Badge>
               )}
-              {p.completedCount > 0 && <Badge variant="secondary">{p.completedCount} colaborări</Badge>}
+              {p.completedCount > 0 && <Badge variant="secondary">{pluralRo(p.completedCount, "colaborare", "colaborări")}</Badge>}
               <span suppressHydrationWarning className="ml-auto text-xs text-muted-foreground">{timeAgo(o.createdAt)}</span>
             </div>
 
             <p className="text-sm leading-relaxed [overflow-wrap:anywhere] whitespace-pre-line">{o.message}</p>
             {o.status === "rejected" && o.rejectionReason && <p className="text-xs text-muted-foreground">Motiv: {o.rejectionReason}</p>}
             {o.contact && <ContactDetails contact={o.contact} label="Contact prestator" />}
+            {o.status === "hired" && !o.contact && (
+              <p className="text-xs text-muted-foreground">Telefonul și emailul prestatorului apar aici după ce confirmă colaborarea.</p>
+            )}
 
             <div className="flex flex-wrap gap-2 border-t pt-4">
               {o.conversationId && (

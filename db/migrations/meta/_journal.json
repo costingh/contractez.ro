@@ -64,6 +64,13 @@
       "when": 1792647198088,
       "tag": "0008_mighty_ironclad",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792652141411,
+      "tag": "0009_harsh_major_mapleleaf",
+      "breakpoints": true
     }
   ]
 }

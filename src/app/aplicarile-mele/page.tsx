@@ -37,7 +37,7 @@ async function loadApplications(providerId: string) {
   const [events, convs, contacts] = await Promise.all([
     ids.length ? db.select().from(applicationEvents).where(inArray(applicationEvents.applicationId, ids)) : [],
     ids.length ? db.select({ id: conversations.id, applicationId: conversations.applicationId }).from(conversations).where(inArray(conversations.applicationId, ids)) : [],
-    // Datele de contact ale clientului: doar pentru ofertele alese (colaborare acceptată).
+    // Datele de contact ale clientului: doar pentru ofertele alese, după ce confirmi colaborarea.
     counterpartContacts(providerId, { applicationIds: hiredIds }),
   ]);
   const convMap = new Map(convs.map((c) => [c.applicationId, c.id]));

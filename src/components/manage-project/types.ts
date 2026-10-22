@@ -11,7 +11,7 @@ export type OfferView = {
   createdAt: string;
   conversationId: string | null;
   rejectionReason: string | null;
-  /** Telefonul/emailul prestatorului: doar pentru oferta aleasă, într-o colaborare acceptată. */
+  /** Telefonul/emailul prestatorului: doar pentru oferta aleasă, după ce prestatorul confirmă colaborarea. */
   contact: { phone: string | null; email: string } | null;
   provider: {
     id: string;

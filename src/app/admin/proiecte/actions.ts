@@ -11,6 +11,7 @@ export async function approveProjectAction(_: ActionState, fd: FormData): Promis
     const admin = await requireAdmin();
     await approveProject(formStr(fd, "projectId"), admin.id);
     revalidatePath("/admin/proiecte");
+    revalidatePath("/admin/rapoarte");
     return { ok: true, message: "Proiect aprobat și publicat." };
   } catch (err) {
     return toActionError(err);

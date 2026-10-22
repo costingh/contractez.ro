@@ -3,17 +3,18 @@ import { describe, expect, it } from "vitest";
 import { sendVerificationEmail, verifyEmailToken } from "@/server/auth/service";
 import { db } from "@/server/db";
 import { emailLog, notifications, users, verificationTokens } from "@/server/db/schema";
+import { deliverableContent } from "@/server/email/send";
 import { createTestUser } from "./helpers";
 
-/** Tokenul din ultimul email de confirmare trimis utilizatorului (ca în E2E: citit din email_log). */
+/** Tokenul din ultimul email de confirmare trimis utilizatorului (din conținutul real, de livrat; `email_log` îl păstrează ascuns). */
 async function latestToken(userId: string) {
   const [row] = await db
-    .select({ text: emailLog.text })
+    .select({ html: emailLog.html, text: emailLog.text, secret: emailLog.secret })
     .from(emailLog)
     .where(and(eq(emailLog.userId, userId), eq(emailLog.template, "verify-email")))
     .orderBy(desc(emailLog.createdAt))
     .limit(1);
-  const token = row?.text?.match(/verifica-email\?token=([\w-]+)/)?.[1];
+  const token = (row && deliverableContent(row))?.text?.match(/verifica-email\?token=([\w-]+)/)?.[1];
   if (!token) throw new Error("emailul de confirmare nu conține linkul");
   return token;
 }

@@ -1,4 +1,5 @@
 import { desc, eq, ilike, or, sql } from "drizzle-orm";
+import { stripControlChars } from "@/lib/text";
 import { BadgeCheck, Mail, Phone } from "lucide-react";
 import Link from "next/link";
 import { SubmitButton } from "@/components/forms/submit-button";
@@ -19,7 +20,9 @@ import { banUserAction, grantPlanAction, revokePlanAction, toggleAdminAction, un
 const SUB_STATUS: Record<string, string> = { active: "Activ", past_due: "Plată restantă", canceled: "Anulat", incomplete: "Neconfirmat" };
 
 export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<{ q?: string; id?: string }> }) {
-  const { q, id } = await searchParams;
+  const params = await searchParams;
+  const q = params.q ? stripControlChars(params.q).trim().slice(0, 200) || undefined : undefined;
+  const id = params.id;
   const rows = await db
     .select({
       user: users,
@@ -70,7 +73,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
             <tbody>
               {rows.map((r) => (
                 <tr key={r.user.id} className="border-t transition-colors hover:bg-muted/40">
-                  <td className="px-4 py-3">
+                  <td className="min-w-48 px-4 py-3 [overflow-wrap:anywhere]">
                     <div className="font-medium">{r.user.name}</div>
                     <div className="text-xs text-muted-foreground">{r.user.email}</div>
                     {r.user.bannedAt && <Badge variant="destructive" className="mt-1">Suspendat</Badge>}
@@ -111,7 +114,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
       )}
 
       {selected && (
-        <section className="space-y-6 rounded-2xl border bg-card p-5 shadow-xs sm:p-6">
+        <section className="min-w-0 space-y-6 rounded-2xl border bg-card p-5 shadow-xs [overflow-wrap:anywhere] sm:p-6">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-lg font-semibold tracking-[-0.015em]">{selected.user.name}</h2>
             {selected.user.phoneVerifiedAt && <BadgeCheck className="size-4 text-success" />}

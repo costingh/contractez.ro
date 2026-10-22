@@ -29,3 +29,11 @@ export function pluralRo(n: number, one: string, many: string, manyDe = true): s
   const needsDe = manyDe && (n >= 20 && (mod === 0 || mod >= 20));
   return `${n} ${needsDe ? "de " : ""}${many}`;
 }
+
+/**
+ * Elimină caracterele de control (inclusiv `\u0000`, pe care Postgres îl refuză în text) din parametrii
+ * veniți din URL sau din formulare. Tab-urile și liniile noi devin spații.
+ */
+export function stripControlChars(input: string): string {
+  return input.replace(/[\t\n\r]/g, " ").replace(/[\u0000-\u001f\u007f-\u009f]/g, "");
+}

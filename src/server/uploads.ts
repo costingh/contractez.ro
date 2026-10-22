@@ -1,10 +1,11 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, stat, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { rules } from "@/config/site";
 import { env } from "./env";
 import { DomainError } from "./errors";
+import { rateLimit } from "./rate-limit";
 
 const IMAGE_TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 const DOC_TYPES: Record<string, string> = { ...IMAGE_TYPES, "application/pdf": "pdf" };
@@ -22,6 +23,21 @@ function sniff(buf: Buffer): string | null {
   return null;
 }
 
+export const MAX_UPLOAD_MESSAGE = `Fișierul depășește ${Math.round(rules.maxUploadBytes / 1024 / 1024)} MB.`;
+
+/** Câte fișiere poate încărca un utilizator într-o oră (avatar, copertă, portofoliu, chat). */
+const UPLOADS_PER_HOUR = 30;
+
+/**
+ * Limita de încărcări per utilizator. Se apelează după celelalte verificări (conversație închisă,
+ * limita portofoliului etc.) și imediat înainte de `saveUpload`.
+ */
+export async function assertUploadAllowed(userId: string) {
+  if (!(await rateLimit(`upload:${userId}`, UPLOADS_PER_HOUR, 3600))) {
+    throw new DomainError("rate", "Ai încărcat prea multe fișiere într-o oră. Încearcă din nou mai târziu.");
+  }
+}
+
 /**
  * Salvează un fișier încărcat. `scope`:
  *  - "public/avatars", "public/portfolio", "public/covers": accesibile oricui;
@@ -29,7 +45,7 @@ function sniff(buf: Buffer): string | null {
  */
 export async function saveUpload(file: File, scope: string, allow: "image" | "document" = "image") {
   if (!file || file.size === 0) throw new DomainError("empty", "Fișierul este gol.");
-  if (file.size > rules.maxUploadBytes) throw new DomainError("size", `Fișierul depășește ${Math.round(rules.maxUploadBytes / 1024 / 1024)} MB.`);
+  if (file.size > rules.maxUploadBytes) throw new DomainError("size", MAX_UPLOAD_MESSAGE);
   const buf = Buffer.from(await file.arrayBuffer());
   const type = sniff(buf);
   const allowed = allow === "image" ? IMAGE_TYPES : DOC_TYPES;
@@ -67,5 +83,22 @@ export async function readUpload(rel: string) {
     return { data: await readFile(abs), type };
   } catch {
     return null;
+  }
+}
+
+/**
+ * Șterge un fișier încărcat (avatar sau copertă înlocuite, lucrare ștearsă, cont șters). Acceptă doar căile
+ * produse de `saveUpload` (validate cu `parseUploadPath`); orice altceva e ignorat. Nu aruncă: un fișier lipsă
+ * sau o eroare de disc nu trebuie să blocheze operația principală. Întoarce `true` dacă fișierul a fost șters.
+ */
+export async function deleteUpload(rel: string | null | undefined): Promise<boolean> {
+  if (!rel || !parseUploadPath(rel)) return false;
+  const abs = path.resolve(root(), rel);
+  if (!abs.startsWith(root() + path.sep)) return false;
+  try {
+    await unlink(abs);
+    return true;
+  } catch {
+    return false;
   }
 }

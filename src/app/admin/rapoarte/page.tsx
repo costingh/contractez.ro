@@ -1,4 +1,4 @@
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import Link from "next/link";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -11,6 +11,7 @@ import { truncate } from "@/lib/text";
 import { db } from "@/server/db";
 import { applications, messages, projects, reports, reviews, users } from "@/server/db/schema";
 import { ActionForm } from "../_components/action-form";
+import { approveProjectAction } from "../proiecte/actions";
 import { quickActionAction, resolveReportAction } from "./actions";
 
 const REASONS: Record<string, string> = {
@@ -57,6 +58,18 @@ export default async function AdminReportsPage({ searchParams }: { searchParams:
     .orderBy(desc(reports.createdAt))
     .limit(100);
   const targets = await loadTargets(rows.map((r) => r.report));
+  // Proiectele ascunse automat după raportări: clientul nu le poate retrimite, doar un administrator decide.
+  const locked = await db
+    .select({
+      id: projects.id,
+      title: projects.title,
+      updatedAt: projects.updatedAt,
+      openReports: sql<number>`(SELECT count(*)::int FROM reports r WHERE r.target_type = 'project' AND r.target_id = ${projects.id}::text AND r.status = 'open')`,
+    })
+    .from(projects)
+    .where(and(eq(projects.status, "pending_review"), eq(projects.moderationLock, true)))
+    .orderBy(desc(projects.updatedAt))
+    .limit(50);
 
   return (
     <div className="space-y-6">
@@ -70,6 +83,33 @@ export default async function AdminReportsPage({ searchParams }: { searchParams:
           </Button>
         }
       />
+      {locked.length > 0 && (
+        <section className="space-y-3 rounded-2xl border border-warning/40 bg-warning/5 p-5">
+          <h2 className="text-base font-semibold tracking-[-0.01em]">Proiecte blocate după raportări ({locked.length})</h2>
+          <p className="text-sm text-muted-foreground">
+            Ascunse automat după raportări de la utilizatori verificați. Aprobă-le dacă raportările nu se confirmă (raportările se închid automat) sau
+            elimină-le din raportările de mai jos.
+          </p>
+          {locked.map((p) => (
+            <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3">
+              <div className="min-w-0 text-sm">
+                <Link href={`/proiecte/${p.id}`} className="font-medium underline-offset-4 hover:underline">
+                  {p.title}
+                </Link>
+                <div className="text-xs text-muted-foreground">
+                  {p.openReports} raportări deschise · blocat pe {formatDateTime(p.updatedAt)}
+                </div>
+              </div>
+              <ActionForm action={approveProjectAction}>
+                <input type="hidden" name="projectId" value={p.id} />
+                <SubmitButton size="sm" variant="outline" pendingText="Se aprobă…">
+                  Aprobă și republică
+                </SubmitButton>
+              </ActionForm>
+            </div>
+          ))}
+        </section>
+      )}
       {rows.length === 0 ? (
         <EmptyState title="Nicio raportare deschisă" description="Totul e liniștit." />
       ) : (

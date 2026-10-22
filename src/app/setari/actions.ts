@@ -5,8 +5,8 @@ import { redirect } from "next/navigation";
 import { formBool, formNum, formStr, toActionError, type ActionState } from "@/lib/action";
 import { deleteAccount, savePreferences } from "@/server/account";
 import { requireUser } from "@/server/auth/guards";
-import { changePassword, sendPhoneOtp, verifyPhoneOtp } from "@/server/auth/service";
-import { createSession, destroyAllSessions, destroySession } from "@/server/auth/session";
+import { changePassword, requestEmailChange, sendPhoneOtp, verifyPhoneOtp } from "@/server/auth/service";
+import { createSession, currentSessionAgeMinutes, destroyAllSessions, destroySession } from "@/server/auth/session";
 import { setContactPhone } from "@/server/contact";
 import { DomainError } from "@/server/errors";
 import { rateLimit } from "@/server/rate-limit";
@@ -45,6 +45,22 @@ export async function changePasswordAction(_: ActionState, fd: FormData): Promis
   }
 }
 
+export async function requestEmailChangeAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const user = await requireUser("/setari");
+    if (!(await rateLimit(`email-change:${user.id}`, 5, 3600))) throw new DomainError("rate", "Prea multe încercări. Încearcă din nou peste o oră.");
+    const { newEmail } = await requestEmailChange(user.id, {
+      newEmail: formStr(fd, "email"),
+      password: formStr(fd, "password"),
+      sessionAgeMinutes: await currentSessionAgeMinutes(),
+    });
+    revalidatePath("/setari");
+    return { ok: true, message: `Ți-am trimis un link de confirmare la ${newEmail}. Contul trece pe noua adresă după ce îl deschizi.` };
+  } catch (err) {
+    return toActionError(err);
+  }
+}
+
 export async function sendOtpAction(_: ActionState<{ phone: string }>, fd: FormData): Promise<ActionState<{ phone: string }>> {
   try {
     const user = await requireUser("/setari");
@@ -69,7 +85,7 @@ export async function verifyOtpAction(_: ActionState, fd: FormData): Promise<Act
   }
 }
 
-/** Telefonul de contact (fără SMS): vizibil doar celeilalte părți dintr-o colaborare acceptată. */
+/** Telefonul de contact (fără SMS): vizibil doar celeilalte părți dintr-o colaborare confirmată de prestator. */
 export async function saveContactPhoneAction(_: ActionState<{ phone: string | null }>, fd: FormData): Promise<ActionState<{ phone: string | null }>> {
   try {
     const user = await requireUser("/setari");

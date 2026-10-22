@@ -236,7 +236,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
             <div className="grid gap-4 md:grid-cols-2">
               {postsForCategory(category.slug).map((p) => (
                 <Link key={p.slug} href={`/blog/${p.slug}`} className="rounded-2xl border bg-card p-5 shadow-xs transition-colors hover:border-border-strong">
-                  <p className="font-semibold leading-snug tracking-[-0.01em]">{p.title}</p>
+                  <p className="font-semibold leading-snug tracking-[-0.01em] [overflow-wrap:anywhere]">{p.title}</p>
                   <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{p.description}</p>
                 </Link>
               ))}

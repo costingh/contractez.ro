@@ -67,19 +67,23 @@ export default async function CollaborationsPage() {
                   {r.collab.completedAt && <span>· finalizată pe {formatDate(r.collab.completedAt)}</span>}
                 </div>
                 <div>
-                  <h2 className="text-lg leading-snug font-semibold tracking-[-0.015em]">{r.projectTitle}</h2>
+                  <h2 className="text-lg leading-snug font-semibold tracking-[-0.015em] [overflow-wrap:anywhere]">{r.projectTitle}</h2>
                   <p className="mt-0.5 text-sm text-muted-foreground">
                     {asClient ? "Prestator" : "Client"}: {other}
                   </p>
                 </div>
                 {contact && <ContactDetails contact={contact} label={asClient ? "Contact prestator" : "Contact client"} />}
+                {r.collab.status === "pending_confirmation" && asClient && (
+                  <p className="text-xs text-muted-foreground">Telefonul și emailul prestatorului apar aici după ce confirmă colaborarea.</p>
+                )}
                 {r.collab.status === "pending_confirmation" && !asClient && (
                   <div className="flex items-center gap-3.5 rounded-xl border border-brand/20 bg-brand-soft px-4 py-3.5 text-sm leading-relaxed">
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(140deg,#1c2f57,#2b4acb_70%,#4f7cff)] text-white shadow-sm">
                       <Trophy className="size-4" />
                     </span>
                     <p>
-                      <span className="font-semibold">Clientul te-a ales!</span> Confirmă colaborarea ca să puteți lăsa recenzii verificate la final.
+                      <span className="font-semibold">Clientul te-a ales!</span> Confirmă colaborarea ca să vedeți datele de contact unul al altuia și să
+                      puteți lăsa recenzii verificate la final.
                     </p>
                   </div>
                 )}

@@ -1,7 +1,7 @@
 import { and, desc, eq, gte, inArray, isNull, ne, sql } from "drizzle-orm";
 import { freePlan, getPlan, type Plan, type PlanId } from "@/config/site";
 import { db, type DbOrTx, type Tx } from "../db";
-import { applications, providerProfiles, subscriptions, type Subscription } from "../db/schema";
+import { applications, events, providerProfiles, subscriptions, type Subscription } from "../db/schema";
 import { DomainError } from "../errors";
 
 /*
@@ -9,7 +9,8 @@ import { DomainError } from "../errors";
  *  - un singur plan activ contează: cel mai recent abonament activ (plătit prin Stripe sau oferit de echipă);
  *  - limita lunară se calculează din aplicările trimise în perioada curentă (fără cele restituite),
  *    deci nu există solduri care să se poată desincroniza;
- *  - perioada: luna calendaristică (ora României) pentru Gratuit, perioada de facturare pentru planurile plătite;
+ *  - perioada: luna calendaristică (ora României) pentru Gratuit și pentru planurile oferite de echipă,
+ *    perioada de facturare pentru abonamentele Stripe;
  *  - aplicările concurente ale aceluiași prestator sunt serializate cu un advisory lock (vezi `lockUsage`).
  */
 
@@ -21,11 +22,27 @@ export type ActivePlan = {
   subscription: Subscription | null;
   /** Plan oferit de echipă (fără plată Stripe). */
   comp: boolean;
+  /** Fereastra în care se numără aplicările (limita „lunară”). */
   periodStart: Date;
   periodEnd: Date;
+  /** Până când e valabil planul plătit sau oferit (null pentru Gratuit). Pentru planurile oferite diferă de `periodEnd`. */
+  planEndsAt: Date | null;
 };
 
 export type PlanUsage = ActivePlan & { used: number; limit: number; remaining: number };
+
+/** Cât timp după pornirea unei plăți afișăm „Plata este în curs de confirmare” (webhook-ul Stripe vine de obicei în secunde). */
+export const CHECKOUT_PENDING_MINUTES = 30;
+
+/** A pornit utilizatorul o plată (Stripe Checkout) în ultimele minute? Folosit pentru mesajul de la întoarcerea din Stripe. */
+export async function hasRecentCheckout(userId: string, minutes = CHECKOUT_PENDING_MINUTES): Promise<boolean> {
+  const [row] = await db
+    .select({ id: events.id })
+    .from(events)
+    .where(and(eq(events.name, "checkout.started"), eq(events.userId, userId), gte(events.createdAt, new Date(Date.now() - minutes * 60_000))))
+    .limit(1);
+  return Boolean(row);
+}
 
 export async function activeSubscription(userId: string, conn: DbOrTx = db): Promise<Subscription | null> {
   const rows = await conn
@@ -53,18 +70,29 @@ async function calendarMonth(conn: DbOrTx) {
   return { start: new Date(r.start), end: new Date(r.end) };
 }
 
+/**
+ * Fereastra de numărare pentru un plan oferit de echipă (până la 366 de zile): limita rămâne lunară, deci
+ * numărăm pe luna calendaristică (ora României), restrânsă la durata planului. Astfel aplicările trimise
+ * înainte de acordarea planului nu se socotesc, iar „se reînnoiește pe” nu depășește finalul planului.
+ */
+export function usageWindow(month: { start: Date; end: Date }, sub: Pick<Subscription, "currentPeriodStart" | "currentPeriodEnd">) {
+  const start = sub.currentPeriodStart && sub.currentPeriodStart > month.start ? sub.currentPeriodStart : month.start;
+  const end = sub.currentPeriodEnd && sub.currentPeriodEnd < month.end ? sub.currentPeriodEnd : month.end;
+  return { periodStart: start, periodEnd: end };
+}
+
 export async function getActivePlan(userId: string, conn: DbOrTx = db): Promise<ActivePlan> {
   const sub = await activeSubscription(userId, conn);
   const plan = sub ? getPlan(sub.planId) : undefined;
   if (sub && plan) {
-    if (sub.currentPeriodStart && sub.currentPeriodEnd) {
-      return { plan, subscription: sub, comp: !sub.stripeSubscriptionId, periodStart: sub.currentPeriodStart, periodEnd: sub.currentPeriodEnd };
+    const comp = !sub.stripeSubscriptionId;
+    if (!comp && sub.currentPeriodStart && sub.currentPeriodEnd) {
+      return { plan, subscription: sub, comp, periodStart: sub.currentPeriodStart, periodEnd: sub.currentPeriodEnd, planEndsAt: sub.currentPeriodEnd };
     }
-    const month = await calendarMonth(conn);
-    return { plan, subscription: sub, comp: !sub.stripeSubscriptionId, periodStart: month.start, periodEnd: month.end };
+    return { plan, subscription: sub, comp, planEndsAt: sub.currentPeriodEnd, ...usageWindow(await calendarMonth(conn), sub) };
   }
   const month = await calendarMonth(conn);
-  return { plan: freePlan, subscription: null, comp: false, periodStart: month.start, periodEnd: month.end };
+  return { plan: freePlan, subscription: null, comp: false, periodStart: month.start, periodEnd: month.end, planEndsAt: null };
 }
 
 export async function applicationsUsedSince(userId: string, since: Date, conn: DbOrTx = db) {
@@ -92,8 +120,8 @@ export async function lockUsage(tx: Tx, userId: string) {
  * până la finalul perioadei. Apelat la fiecare schimbare de abonament.
  */
 export async function syncPlanPerks(userId: string) {
-  const { plan, periodEnd } = await getActivePlan(userId);
-  const until = plan.promotedProfile ? periodEnd : null;
+  const { plan, periodEnd, planEndsAt } = await getActivePlan(userId);
+  const until = plan.promotedProfile ? (planEndsAt ?? periodEnd) : null;
   await db.update(providerProfiles).set({ boostedUntil: until, featuredUntil: until }).where(eq(providerProfiles.userId, userId));
 }
 

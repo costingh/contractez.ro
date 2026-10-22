@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { toActionError, formBool, formStr, type ActionState } from "@/lib/action";
 import { authenticate, requestPasswordReset, resetPassword, sendVerificationEmail, signUp } from "@/server/auth/service";
 import { createSession, destroyAllSessions, destroySession, getCurrentUser } from "@/server/auth/session";
-import { DomainError } from "@/server/errors";
+import { DomainError, isDomainError } from "@/server/errors";
 import { rateLimit } from "@/server/rate-limit";
 import { clientIp } from "@/server/request";
 import { safeNext } from "@/lib/safe-next";
@@ -78,6 +78,9 @@ export async function resetPasswordAction(_: ActionState, fd: FormData): Promise
     await createSession(userId);
     redirect("/panou");
   } catch (err) {
-    return toActionError(err);
+    const res = toActionError(err);
+    // Linkul a devenit invalid între timp (ex. folosit în alt tab): formularul arată „Cere un link nou”.
+    if (isDomainError(err) && err.code === "invalid_token") return { ...res, fieldErrors: { token: res.error } };
+    return res;
   }
 }

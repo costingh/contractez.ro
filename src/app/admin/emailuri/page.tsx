@@ -1,4 +1,5 @@
 import { desc, ilike, or } from "drizzle-orm";
+import { stripControlChars } from "@/lib/text";
 import Link from "next/link";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
@@ -18,7 +19,8 @@ const STATUS: Record<string, { label: string; variant: "secondary" | "destructiv
 };
 
 export default async function AdminEmailsPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const { q } = await searchParams;
+  const raw = (await searchParams).q;
+  const q = raw ? stripControlChars(raw).trim().slice(0, 200) || undefined : undefined;
   const rows = await db
     .select({
       id: emailLog.id,
@@ -72,8 +74,8 @@ export default async function AdminEmailsPage({ searchParams }: { searchParams: 
               {rows.map((r) => (
                 <tr key={r.id} className="border-t transition-colors hover:bg-muted/40">
                   <td className="px-4 py-3 text-xs whitespace-nowrap text-muted-foreground">{formatDateTime(r.createdAt)}</td>
-                  <td className="px-4 py-3">{r.to}</td>
-                  <td className="px-4 py-3">
+                  <td className="min-w-40 px-4 py-3 [overflow-wrap:anywhere]">{r.to}</td>
+                  <td className="min-w-48 px-4 py-3 [overflow-wrap:anywhere]">
                     <Link href={`/admin/emailuri/${r.id}`} className="underline-offset-4 hover:underline">
                       {r.subject}
                     </Link>

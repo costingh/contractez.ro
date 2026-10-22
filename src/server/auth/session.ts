@@ -68,3 +68,15 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
   }
   return row.user;
 });
+
+/** De câte minute există sesiunea curentă (de la autentificare). `null` fără sesiune validă. */
+export async function currentSessionAgeMinutes(): Promise<number | null> {
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  if (!token) return null;
+  const [row] = await db
+    .select({ createdAt: sessions.createdAt })
+    .from(sessions)
+    .where(and(eq(sessions.id, sha256(token)), gt(sessions.expiresAt, new Date())))
+    .limit(1);
+  return row ? (Date.now() - row.createdAt.getTime()) / 60_000 : null;
+}

@@ -16,6 +16,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { labels } from "@/config/site";
+import type { ActionState } from "@/lib/action";
 import { SOCIAL_KEYS, SOCIAL_NETWORKS, type SocialLinks } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
 
@@ -80,6 +81,9 @@ const LANGUAGES: { code: string; label: string }[] = [
 ];
 
 const MAX_CATEGORIES = 8;
+
+/** Starea formularului: la eroare păstrăm și valorile trimise (vezi `ProviderProfileForm`). */
+type FormState = (NonNullable<ActionState> & { submitted?: FormData }) | null;
 
 function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
   return (
@@ -315,8 +319,20 @@ export function ProviderProfileForm({
   context: "onboarding" | "profile";
   submitLabel?: string;
 }) {
-  const [state, action] = useActionState(saveProviderProfileAction, null);
+  const [state, action] = useActionState(async (_prev: FormState, fd: FormData): Promise<FormState> => {
+    const r = await saveProviderProfileAction(null, fd);
+    // React resetează formularul după acțiune, chiar și la eroare: câmpurile necontrolate ar reveni la valorile
+    // salvate și s-ar pierde modificările. Păstrăm valorile trimise și le folosim ca `defaultValue`.
+    return r && !r.ok ? { ...r, submitted: fd } : r;
+  }, null);
   const fe = state && !state.ok ? (state.fieldErrors ?? {}) : {};
+  const sub = state && !state.ok ? state.submitted : undefined;
+  /** Valoarea inițială a unui câmp necontrolat: cea trimisă (după o eroare) sau cea salvată. */
+  const dv = (name: string, saved: string | number | null | undefined) => (sub ? String(sub.get(name) ?? "") : String(saved ?? ""));
+  const languages = sub ? sub.getAll("languages").map(String) : initial.languages;
+  const socialLinks: SocialLinks = sub
+    ? Object.fromEntries(SOCIAL_KEYS.map((k) => [k, sub.getAll(`social.${k}`).map(String).join(" ")]))
+    : initial.socialLinks;
   const [categoryIds, setCategoryIds] = useState(initial.categoryIds);
   const [skills, setSkills] = useState(initial.skills);
   const [pricing, setPricing] = useState(initial.pricingModel);
@@ -343,7 +359,7 @@ export function ProviderProfileForm({
 
       <Section title="Prezentare" description="Asta văd clienții în primul rând.">
         <Field label="Titlu profesional" htmlFor="headline" error={fe.headline} hint="Ex: „Electrician autorizat ANRE · Cluj” sau „Developer WordPress & WooCommerce”">
-          <Input id="headline" name="headline" defaultValue={initial.headline} maxLength={120} required />
+          <Input id="headline" name="headline" defaultValue={dv("headline", initial.headline)} maxLength={120} required />
         </Field>
         <Field label="Despre tine" htmlFor="bio" error={fe.bio}>
           <Textarea id="bio" name="bio" value={bio} onChange={(e) => setBio(e.target.value)} rows={6} maxLength={4000} required />
@@ -362,15 +378,26 @@ export function ProviderProfileForm({
         {/* Ancora „#linkuri” din panou: site-ul și, mai jos, rețelele sociale. */}
         <div id={context === "profile" ? "linkuri" : undefined} className="grid scroll-mt-28 gap-4 sm:grid-cols-2">
           <Field label="Ani de experiență" htmlFor="yearsExperience" optional>
-            <Input id="yearsExperience" name="yearsExperience" type="number" min={0} max={70} defaultValue={initial.yearsExperience ?? ""} />
+            <Input id="yearsExperience" name="yearsExperience" type="number" min={0} max={70} defaultValue={dv("yearsExperience", initial.yearsExperience)} />
           </Field>
           <Field label="Site / portofoliu online" htmlFor="websiteUrl" optional error={fe.websiteUrl}>
-            <Input id="websiteUrl" name="websiteUrl" type="url" placeholder="https://" defaultValue={initial.websiteUrl ?? ""} />
+            <Input
+              id="websiteUrl"
+              name="websiteUrl"
+              inputMode="url"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              maxLength={300}
+              placeholder="https://"
+              defaultValue={dv("websiteUrl", initial.websiteUrl)}
+              aria-invalid={fe.websiteUrl ? true : undefined}
+            />
           </Field>
         </div>
-        {context === "profile" && <SocialLinksFields initial={initial.socialLinks} errors={fe} />}
+        {context === "profile" && <SocialLinksFields initial={socialLinks} errors={fe} />}
         <Field label="Certificări / autorizații" htmlFor="certifications" optional hint="Ex: ANRE grad II, Google Ads certified, traducător autorizat MJ">
-          <Input id="certifications" name="certifications" defaultValue={initial.certifications ?? ""} maxLength={1000} />
+          <Input id="certifications" name="certifications" defaultValue={dv("certifications", initial.certifications)} maxLength={1000} />
         </Field>
       </Section>
 
@@ -393,10 +420,10 @@ export function ProviderProfileForm({
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Tarif orar (lei)" htmlFor="hourlyRate" optional={pricing !== "hourly"} error={fe.hourlyRate}>
-            <Input id="hourlyRate" name="hourlyRate" type="number" min={0} defaultValue={initial.hourlyRate ?? ""} />
+            <Input id="hourlyRate" name="hourlyRate" type="number" min={0} defaultValue={dv("hourlyRate", initial.hourlyRate)} />
           </Field>
           <Field label="Buget minim per proiect (lei)" htmlFor="minProjectBudget" optional hint="Nu îți recomandăm proiecte sub această valoare.">
-            <Input id="minProjectBudget" name="minProjectBudget" type="number" min={0} defaultValue={initial.minProjectBudget ?? ""} />
+            <Input id="minProjectBudget" name="minProjectBudget" type="number" min={0} defaultValue={dv("minProjectBudget", initial.minProjectBudget)} />
           </Field>
         </div>
       </Section>
@@ -426,7 +453,7 @@ export function ProviderProfileForm({
       <Section title="Disponibilitate și limbi">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Disponibilitate" htmlFor="availability">
-            <NativeSelect id="availability" name="availability" defaultValue={initial.availability}>
+            <NativeSelect id="availability" name="availability" defaultValue={dv("availability", initial.availability)}>
               {(["available", "busy", "unavailable"] as const).map((a) => (
                 <option key={a} value={a}>
                   {labels.availability[a]}
@@ -435,14 +462,14 @@ export function ProviderProfileForm({
             </NativeSelect>
           </Field>
           <Field label="Ore disponibile pe săptămână" htmlFor="hoursPerWeek" optional>
-            <Input id="hoursPerWeek" name="hoursPerWeek" type="number" min={1} max={80} defaultValue={initial.hoursPerWeek ?? ""} />
+            <Input id="hoursPerWeek" name="hoursPerWeek" type="number" min={1} max={80} defaultValue={dv("hoursPerWeek", initial.hoursPerWeek)} />
           </Field>
         </div>
         <Field label="Limbi vorbite">
           <div className="flex flex-wrap gap-2">
             {LANGUAGES.map((l) => (
               <label key={l.code} className="flex cursor-pointer items-center gap-1.5 rounded-md border bg-card px-3 py-1.5 text-sm has-checked:border-primary has-checked:bg-primary has-checked:text-primary-foreground">
-                <input type="checkbox" name="languages" value={l.code} defaultChecked={initial.languages.includes(l.code)} className="accent-[var(--primary)]" />
+                <input type="checkbox" name="languages" value={l.code} defaultChecked={languages.includes(l.code)} className="accent-[var(--primary)]" />
                 {l.label}
               </label>
             ))}
@@ -465,10 +492,10 @@ export function ProviderProfileForm({
           {legal !== "none" && (
             <>
               <Field label="Denumire" htmlFor="companyName" optional>
-                <Input id="companyName" name="companyName" defaultValue={initial.companyName ?? ""} maxLength={200} />
+                <Input id="companyName" name="companyName" defaultValue={dv("companyName", initial.companyName)} maxLength={200} />
               </Field>
               <Field label="CUI" htmlFor="companyCui" optional error={fe.companyCui}>
-                <Input id="companyCui" name="companyCui" placeholder="RO12345678" defaultValue={initial.companyCui ?? ""} maxLength={20} />
+                <Input id="companyCui" name="companyCui" placeholder="RO12345678" defaultValue={dv("companyCui", initial.companyCui)} maxLength={20} />
               </Field>
             </>
           )}

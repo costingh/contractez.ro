@@ -2,16 +2,24 @@
 
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { toActionError, type ActionState } from "@/lib/action";
+import { isUuid } from "@/lib/ids";
 import { requireProvider } from "@/server/auth/guards";
 import { db } from "@/server/db";
 import { projectMatches, projects } from "@/server/db/schema";
 import { DomainError } from "@/server/errors";
 
+const dismissSchema = z.object({
+  projectId: z.string().refine(isUuid, "Proiectul nu există."),
+  score: z.number().finite().catch(0),
+});
+
 /** Ascunde o recomandare (creează rândul de potrivire dacă nu există). */
-export async function dismissRecommendationAction(projectId: string, score: number): Promise<ActionState> {
+export async function dismissRecommendationAction(rawProjectId: string, rawScore: number): Promise<ActionState> {
   try {
     const user = await requireProvider();
+    const { projectId, score } = dismissSchema.parse({ projectId: rawProjectId, score: rawScore });
     const [p] = await db.select({ id: projects.id }).from(projects).where(eq(projects.id, projectId));
     if (!p) throw new DomainError("not_found", "Proiectul nu există.");
     const now = new Date();

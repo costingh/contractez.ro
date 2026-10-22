@@ -11,7 +11,7 @@ import { sha256 } from "../auth/crypto";
 import { categoryPath, getCatalog } from "../catalog/taxonomy";
 import { getLocality } from "../catalog/localities";
 import { db } from "../db";
-import { moderationActions, projectSkills, projectStatusHistory, projects, skills, users, type Project } from "../db/schema";
+import { moderationActions, projectSkills, projectStatusHistory, projects, reports, skills, users, type Project, type User } from "../db/schema";
 import { env } from "../env";
 import { DomainError } from "../errors";
 import { notify } from "../notifications";
@@ -100,6 +100,14 @@ export async function saveProject(clientId: string, raw: unknown, opts: { projec
     [existing] = await db.select().from(projects).where(eq(projects.id, opts.projectId));
     if (!existing || existing.clientId !== clientId) throw new DomainError("not_found", "Proiectul nu există.");
     if (!["draft", "pending_review", "open"].includes(existing.status)) throw new DomainError("state", "Proiectul nu mai poate fi editat.");
+    if (existing.moderationLock) throw new DomainError("locked", REPORT_LOCK_MESSAGE);
+  }
+
+  // Proiect deja publicat cu textul modificat: aceleași verificări ca la publicare (duplicat, moderare), înainte să
+  // apară public. Dacă e semnalat, trece „în verificare” (clientul îl poate retrimite după ce îl corectează).
+  let editReview: string | null = null;
+  if (existing?.status === "open" && (existing.title !== title || existing.description !== description)) {
+    editReview = await reviewReason({ id: existing.id, clientId, title, description, contentHash: hash }, client, { volume: false });
   }
 
   const values = {
@@ -131,7 +139,17 @@ export async function saveProject(clientId: string, raw: unknown, opts: { projec
   const project = await db.transaction(async (tx) => {
     let p: Project;
     if (existing) {
-      [p] = await tx.update(projects).set(values).where(eq(projects.id, existing.id)).returning();
+      // Condiționat de statusul citit: o moderare/raportare între timp nu este suprascrisă de editare.
+      const [updated] = await tx
+        .update(projects)
+        .set(editReview ? { ...values, status: "pending_review", moderationNote: editReview } : values)
+        .where(and(eq(projects.id, existing.id), eq(projects.status, existing.status), eq(projects.moderationLock, false)))
+        .returning();
+      if (!updated) throw new DomainError("state", "Proiectul s-a schimbat între timp. Reîncarcă pagina și încearcă din nou.");
+      p = updated;
+      if (editReview) {
+        await tx.insert(projectStatusHistory).values({ projectId: p.id, fromStatus: existing.status, toStatus: "pending_review", actorId: clientId, reason: editReview });
+      }
     } else {
       [p] = await tx.insert(projects).values({ ...values, status: "draft" }).returning();
       await tx.insert(projectStatusHistory).values({ projectId: p.id, toStatus: "draft", actorId: clientId });
@@ -168,7 +186,7 @@ export async function saveProject(clientId: string, raw: unknown, opts: { projec
 
   // Proiect deja deschis, modificat în câmpurile care contează pentru potrivire → refacem matching-ul.
   // Prestatorii deja anunțați nu primesc din nou notificare (notifiedAt).
-  if (existing?.status === "open") {
+  if (existing?.status === "open" && project.status === "open") {
     const changed =
       existing.categoryId !== values.categoryId ||
       existing.workMode !== values.workMode ||
@@ -186,21 +204,24 @@ export async function saveProject(clientId: string, raw: unknown, opts: { projec
     warnings.push("Am ascuns datele de contact din descriere. Prestatorii vă vor contacta prin chat-ul platformei.");
   }
 
-  if (!opts.publish) return { project: { ...project, quality }, status: project.status, warnings };
+  // Editarea unui proiect deja publicat nu îl „republică” (fără notificări noi); `edited` deosebește mesajul afișat.
+  const edited = existing?.status === "open";
+  if (!opts.publish || edited) return { project: { ...project, quality }, status: project.status, warnings, edited };
   const status = await publishProject(project.id, clientId);
-  return { project: { ...project, quality }, status, warnings };
+  return { project: { ...project, quality }, status, warnings, edited };
 }
 
-/** Publică un proiect sau îl trimite la moderare. Returnează statusul rezultat. */
-export async function publishProject(projectId: string, clientId: string): Promise<Project["status"]> {
-  const [p] = await db.select().from(projects).where(eq(projects.id, projectId));
-  if (!p || p.clientId !== clientId) throw new DomainError("not_found", "Proiectul nu există.");
-  if (p.status === "open") return "open";
-  const [client] = await db.select().from(users).where(eq(users.id, clientId));
-  if (!client?.emailVerifiedAt) {
-    throw new DomainError("email_unverified", "Confirmă adresa de email ca să poți publica proiectul. Ți-am trimis un link de confirmare.");
-  }
+export const REPORT_LOCK_MESSAGE = "Proiectul este în verificare după raportări; un administrator îl va revizui.";
 
+/**
+ * Verificările automate de la publicare: duplicat, moderare AI și (la publicare) volum suspect.
+ * Întoarce motivul pentru care proiectul merge „în verificare” sau `null` dacă poate fi publicat.
+ */
+async function reviewReason(
+  p: Pick<Project, "id" | "clientId" | "title" | "description" | "contentHash">,
+  client: Pick<User, "createdAt">,
+  opts: { volume: boolean },
+): Promise<string | null> {
   // Duplicat: același text publicat de același client în ultimele 30 de zile.
   const [dup] = await db
     .select({ id: projects.id })
@@ -214,40 +235,90 @@ export async function publishProject(projectId: string, clientId: string): Promi
       ),
     )
     .limit(1);
+  if (dup) return "Posibil duplicat al unui proiect existent";
 
   const moderation = await aiModerate(`${p.title}\n${p.description}`);
+  if (moderation.flagged) return `Conținut semnalat automat: ${moderation.categories.join(", ")}`;
+  if (!opts.volume) return null;
+
   const accountAgeHours = (Date.now() - client.createdAt.getTime()) / 3_600_000;
   const [{ recent }] = await db
     .select({ recent: sql<number>`count(*)::int` })
     .from(projects)
-    .where(and(eq(projects.clientId, clientId), gte(projects.publishedAt, new Date(Date.now() - 86_400_000))));
+    .where(and(eq(projects.clientId, p.clientId), ne(projects.id, p.id), gte(projects.publishedAt, new Date(Date.now() - 86_400_000))));
+  if (recent >= 5) return "Multe proiecte publicate în ultimele 24 de ore";
+  if (accountAgeHours < 1 && recent >= 2) return "Cont nou cu publicări multiple";
+  return null;
+}
 
-  let review: string | null = null;
-  if (dup) review = "Posibil duplicat al unui proiect existent";
-  else if (moderation.flagged) review = `Conținut semnalat automat: ${moderation.categories.join(", ")}`;
-  else if (recent >= 5) review = "Multe proiecte publicate în ultimele 24 de ore";
-  else if (accountAgeHours < 1 && recent >= 2) review = "Cont nou cu publicări multiple";
+/** Datele de publicare: păstrăm data inițială la o republicare după verificare, iar expirarea doar dacă e încă în viitor. */
+function openingDates(p: Project, now = new Date()) {
+  return {
+    publishedAt: p.publishedAt ?? now,
+    autoBidOpensAt: p.autoBidOpensAt ?? new Date(now.getTime() + rules.autoBidDelayMinutes * 60_000),
+    expiresAt: p.expiresAt && p.expiresAt > now ? p.expiresAt : new Date(now.getTime() + rules.projectLifetimeDays * 86_400_000),
+  };
+}
 
-  const now = new Date();
+/**
+ * Publică un proiect sau îl trimite la moderare. Returnează statusul rezultat.
+ * Se poate publica DOAR o ciornă sau, la retrimiterea de către client, un proiect pus „în verificare” de
+ * verificările automate. Proiectele blocate după raportări le deblochează doar un administrator, iar cele
+ * eliminate, închise, anulate sau în desfășurare nu mai pot fi republicate.
+ */
+export async function publishProject(projectId: string, clientId: string): Promise<Project["status"]> {
+  const [p] = await db.select().from(projects).where(eq(projects.id, projectId));
+  if (!p || p.clientId !== clientId) throw new DomainError("not_found", "Proiectul nu există.");
+  if (p.status === "open") return "open";
+  if (p.status === "pending_review") {
+    if (p.moderationLock) throw new DomainError("locked", REPORT_LOCK_MESSAGE);
+  } else if (p.status !== "draft") {
+    throw new DomainError("state", "Proiectul nu mai poate fi publicat.");
+  }
+  const [client] = await db.select().from(users).where(eq(users.id, clientId));
+  if (!client?.emailVerifiedAt) {
+    throw new DomainError("email_unverified", "Confirmă adresa de email ca să poți publica proiectul. Ți-am trimis un link de confirmare.");
+  }
+
+  const review = await reviewReason(p, client, { volume: true });
   if (review) {
-    await setStatus(p, "pending_review", clientId, review, { moderationNote: review });
+    if (!(await setStatus(p, "pending_review", clientId, review, { moderationNote: review }))) throw stateChanged();
     return "pending_review";
   }
-  await setStatus(p, "open", clientId, null, {
-    publishedAt: now,
-    autoBidOpensAt: new Date(now.getTime() + rules.autoBidDelayMinutes * 60_000),
-    expiresAt: new Date(now.getTime() + rules.projectLifetimeDays * 86_400_000),
+  const opened = await setStatus(p, "open", clientId, null, {
+    ...openingDates(p),
+    moderationNote: null,
     maxApplications: p.maxApplications || rules.defaultMaxApplications,
   });
+  if (!opened) throw stateChanged();
   await afterOpened(p.id);
   await track("project.published", clientId, { projectId: p.id, categoryId: p.categoryId });
   return "open";
 }
 
-async function setStatus(p: Project, to: Project["status"], actorId: string | null, reason: string | null, extra: Partial<typeof projects.$inferInsert> = {}) {
-  await db.transaction(async (tx) => {
-    await tx.update(projects).set({ status: to, ...extra }).where(eq(projects.id, p.id));
+const stateChanged = () => new DomainError("state", "Proiectul s-a schimbat între timp. Reîncarcă pagina.");
+
+/**
+ * Schimbă statusul și scrie istoricul, DOAR dacă proiectul are încă statusul citit (`p.status`) și nu este
+ * blocat de moderare (în afara acțiunilor de admin). Întoarce `false` dacă între timp s-a schimbat ceva.
+ */
+async function setStatus(
+  p: Project,
+  to: Project["status"],
+  actorId: string | null,
+  reason: string | null,
+  extra: Partial<typeof projects.$inferInsert> = {},
+  opts: { admin?: boolean } = {},
+) {
+  return db.transaction(async (tx) => {
+    const [row] = await tx
+      .update(projects)
+      .set({ status: to, ...extra })
+      .where(and(eq(projects.id, p.id), eq(projects.status, p.status), opts.admin ? undefined : eq(projects.moderationLock, false)))
+      .returning({ id: projects.id });
+    if (!row) return false;
     await tx.insert(projectStatusHistory).values({ projectId: p.id, fromStatus: p.status, toStatus: to, actorId, reason });
+    return true;
   });
 }
 
@@ -262,7 +333,8 @@ export async function closeProject(projectId: string, clientId: string, outcome:
   const [p] = await db.select().from(projects).where(eq(projects.id, projectId));
   if (!p || p.clientId !== clientId) throw new DomainError("not_found", "Proiectul nu există.");
   if (["closed", "cancelled", "removed"].includes(p.status)) return;
-  await setStatus(p, outcome, clientId, reason ?? null, { closedAt: new Date() });
+  // Clientul își poate retrage oricând proiectul, inclusiv unul blocat pentru verificare.
+  if (!(await setStatus(p, outcome, clientId, reason ?? null, { closedAt: new Date() }, { admin: true }))) throw stateChanged();
 }
 
 /* ------------------------------- Moderare ------------------------------- */
@@ -271,14 +343,23 @@ export async function approveProject(projectId: string, adminId: string) {
   const [p] = await db.select().from(projects).where(eq(projects.id, projectId));
   if (!p) throw new DomainError("not_found", "Proiectul nu există.");
   if (p.status !== "pending_review" && p.status !== "draft") return;
-  const now = new Date();
-  await setStatus(p, "open", adminId, "Aprobat de moderator", {
-    publishedAt: now,
-    autoBidOpensAt: new Date(now.getTime() + rules.autoBidDelayMinutes * 60_000),
-    expiresAt: new Date(now.getTime() + rules.projectLifetimeDays * 86_400_000),
-    moderationNote: null,
-  });
+  const opened = await setStatus(
+    p,
+    "open",
+    adminId,
+    "Aprobat de moderator",
+    { ...openingDates(p), moderationNote: null, moderationLock: false },
+    { admin: true },
+  );
+  if (!opened) return;
   await db.insert(moderationActions).values({ adminId, action: "approve_project", targetType: "project", targetId: projectId });
+  if (p.moderationLock) {
+    // Raportările care au blocat proiectul au fost verificate: altfel o singură raportare nouă l-ar bloca din nou.
+    await db
+      .update(reports)
+      .set({ status: "dismissed", resolution: "Proiect verificat și aprobat de moderator", resolvedById: adminId, resolvedAt: new Date() })
+      .where(and(eq(reports.targetType, "project"), eq(reports.targetId, projectId), eq(reports.status, "open")));
+  }
   await notify({
     userId: p.clientId,
     type: "project.approved",
@@ -294,7 +375,7 @@ export async function approveProject(projectId: string, adminId: string) {
 export async function removeProject(projectId: string, adminId: string, reason: string) {
   const [p] = await db.select().from(projects).where(eq(projects.id, projectId));
   if (!p) throw new DomainError("not_found", "Proiectul nu există.");
-  await setStatus(p, "removed", adminId, reason, { closedAt: new Date(), moderationNote: reason });
+  await setStatus(p, "removed", adminId, reason, { closedAt: new Date(), moderationNote: reason }, { admin: true });
   await db.insert(moderationActions).values({ adminId, action: "remove_project", targetType: "project", targetId: projectId, note: reason });
   const refunded = await refundAllForProject(projectId, `Proiectul a fost eliminat de moderatori: ${reason}`, adminId);
   await notify({
@@ -344,7 +425,7 @@ export async function expireProjects() {
       userId: r.clientId,
       type: "project.expired",
       title: `Proiectul „${r.title}” a expirat`,
-      body: "Îl poți republica oricând din „Proiectele mele”.",
+      body: "Dacă încă ai nevoie de un prestator, publică un proiect nou din „Proiectele mele”.",
       link: `/proiectele-mele/${r.id}`,
       dedupeKey: `project-expired:${r.id}`,
     });

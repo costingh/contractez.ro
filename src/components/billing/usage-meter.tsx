@@ -34,8 +34,9 @@ export function UsageMeter({ usage, className, compact }: { usage: PlanUsage; cl
             {out ? "Ai folosit toate aplicările." : `Îți mai rămân ${usage.remaining} ${usage.remaining === 1 ? "aplicare" : "aplicări"}.`} Se reînnoiesc pe{" "}
             {formatDate(usage.periodEnd)}.
           </span>
+          {/* Contorul apare pe /abonament: linkul duce la planurile de mai jos, nu reîncarcă pagina. */}
           {usage.plan.id !== "business" && (
-            <Link href="/abonament" className="font-medium text-brand underline-offset-4 hover:underline">
+            <Link href="/abonament#planuri" className="font-medium text-brand underline-offset-4 hover:underline">
               {usage.plan.id === "free" ? "Vezi planurile" : "Treci la Business"}
             </Link>
           )}

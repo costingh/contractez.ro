@@ -52,7 +52,7 @@ const geoPoint = (name = "geo") =>
 /* -------------------------------------------------------------------------- */
 
 export const userRole = pgEnum("user_role", ["user", "admin"]);
-export const tokenType = pgEnum("token_type", ["email_verify", "password_reset", "phone_otp"]);
+export const tokenType = pgEnum("token_type", ["email_verify", "password_reset", "phone_otp", "email_change"]);
 export const legalEntityType = pgEnum("legal_entity_type", ["none", "pfa", "ii", "srl", "other"]);
 export const pricingModel = pgEnum("pricing_model", ["hourly", "fixed", "quote"]);
 export const priceUnit = pgEnum("price_unit", ["hour", "project", "day", "sqm", "unit", "month"]);
@@ -223,7 +223,7 @@ export const verificationTokens = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     type: tokenType("type").notNull(),
     tokenHash: text("token_hash").notNull(),
-    target: text("target"), // ex: numărul de telefon pentru OTP
+    target: text("target"), // ex: numărul de telefon pentru OTP, adresa nouă pentru schimbarea emailului
     attempts: integer("attempts").notNull().default(0),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     usedAt: timestamp("used_at", { withTimezone: true }),
@@ -470,6 +470,8 @@ export const projects = pgTable(
     source: projectSource("source").notNull().default("web"),
     sourceText: text("source_text"),
     moderationNote: text("moderation_note"),
+    /** Pus în verificare din cauza raportărilor: doar un administrator îl poate debloca (clientul nu-l poate retrimite). */
+    moderationLock: boolean("moderation_lock").notNull().default(false),
     contentHash: text("content_hash"),
     searchText: text("search_text").notNull().default(""),
     searchVector: tsvector("search_vector").generatedAlwaysAs(sql`to_tsvector('simple', search_text)`),
@@ -824,6 +826,12 @@ export const emailLog = pgTable(
     html: text("html").notNull(),
     /** Varianta text a emailului (trimisă alături de HTML). */
     text: text("text"),
+    /**
+     * Emailurile cu linkuri secrete (resetare parolă, confirmare email): `html`/`text` de mai sus sunt păstrate cu
+     * tokenurile ascunse (`token=[ascuns]`), iar conținutul real stă aici, criptat (AES-256-GCM cu APP_SECRET),
+     * doar până la livrare. Vezi `src/server/email/send.ts`.
+     */
+    secret: text("secret"),
     status: emailStatus("status").notNull().default("queued"),
     providerMessageId: text("provider_message_id"),
     error: text("error"),
@@ -860,6 +868,8 @@ export const collaborations = pgTable(
   },
   (t) => [
     uniqueIndex("collaborations_application_uq").on(t.applicationId),
+    // Cel mult o colaborare neanulată per proiect (protejează alegerea prestatorului de dubluri la cereri simultane).
+    uniqueIndex("collaborations_project_active_uq").on(t.projectId).where(sql`${t.status} <> 'cancelled'`),
     index("collaborations_provider_idx").on(t.providerId),
     index("collaborations_client_idx").on(t.clientId),
   ],

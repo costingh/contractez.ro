@@ -55,7 +55,7 @@ function statusVariant(status: string) {
 function ProjectRow({ r }: { r: Row }) {
   const p = r.project;
   const where = p.workMode === "remote" ? "Remote" : (r.localityName ?? labels.workMode[p.workMode]);
-  const editable = ["draft", "pending_review", "open"].includes(p.status);
+  const editable = ["draft", "pending_review", "open"].includes(p.status) && !p.moderationLock;
   return (
     <div className={cn("lift relative overflow-hidden rounded-2xl border bg-card p-5 shadow-xs sm:p-6", r.newOffers > 0 && "border-brand/35")}>
       {r.newOffers > 0 && <span aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand/0 via-brand to-brand/0" />}
@@ -91,8 +91,15 @@ function ProjectRow({ r }: { r: Row }) {
           </span>
         )}
       </div>
-      {p.status === "pending_review" && p.moderationNote && (
-        <p className="mt-3 rounded-lg border border-warning/30 bg-warning/8 px-3 py-2 text-xs leading-relaxed">În verificare: {p.moderationNote}</p>
+      {p.status === "pending_review" && p.moderationLock ? (
+        <p className="mt-3 rounded-lg border border-warning/30 bg-warning/8 px-3 py-2 text-xs leading-relaxed">
+          În verificare după raportări: un administrator îl va revizui.
+        </p>
+      ) : (
+        p.status === "pending_review" &&
+        p.moderationNote && (
+          <p className="mt-3 rounded-lg border border-warning/30 bg-warning/8 px-3 py-2 text-xs leading-relaxed">În verificare: {p.moderationNote}</p>
+        )
       )}
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-4">
         {p.status !== "draft" && <SlotMeter used={p.applicationsCount} max={p.maxApplications} className="mr-auto text-xs text-muted-foreground max-sm:w-full max-sm:pb-1" />}

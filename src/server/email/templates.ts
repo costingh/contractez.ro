@@ -113,6 +113,56 @@ export function passwordResetTemplate(d: { link: string }) {
   });
 }
 
+/** Trimis la adresa NOUĂ: confirmă că omul o deține, apoi contul trece pe ea. */
+export function emailChangeConfirmTemplate(d: { firstName: string; newEmail: string; link: string }) {
+  return compose(`Confirmă noua adresă de email · ${env.APP_NAME}`, {
+    eyebrow: "Securitatea contului",
+    heading: "Confirmă noua adresă de email",
+    preheader: "Un clic și contul tău folosește această adresă.",
+    blocks: [
+      { type: "p", text: `Salut, ${d.firstName}! Ai cerut ca, de acum, contul tău ${site.name} să folosească adresa ${d.newEmail}. Confirm-o cu butonul de mai jos.` },
+      { type: "button", text: "Confirmă noua adresă", href: d.link },
+      { type: "muted", text: "Linkul este valabil 24 de ore. Până la confirmare, contul folosește în continuare adresa veche." },
+      { type: "link", href: d.link },
+      { type: "divider" },
+      { type: "muted", text: "Nu ai cerut tu schimbarea? Ignoră acest email: fără confirmare, nu se schimbă nimic." },
+      SIGNATURE,
+    ],
+    footerNote: `Primești acest email pentru că s-a cerut folosirea acestei adrese pentru un cont ${site.name}.`,
+  });
+}
+
+/** Trimis la adresa VECHE: la cererea schimbării (`requested`) și după confirmare (`changed`). */
+export function emailChangeNoticeTemplate(d: { firstName: string; newEmail: string; stage: "requested" | "changed" }) {
+  const changed = d.stage === "changed";
+  return compose(changed ? `Adresa contului tău a fost schimbată · ${env.APP_NAME}` : `S-a cerut schimbarea adresei de email · ${env.APP_NAME}`, {
+    eyebrow: "Securitatea contului",
+    heading: changed ? "Adresa contului tău a fost schimbată" : "S-a cerut schimbarea adresei de email",
+    preheader: changed ? `De acum te autentifici cu ${d.newEmail}.` : `Contul tău trece pe ${d.newEmail} după confirmare.`,
+    blocks: [
+      {
+        type: "p",
+        text: changed
+          ? `Salut, ${d.firstName}! Contul tău ${site.name} folosește de acum adresa ${d.newEmail}. Emailurile și autentificarea merg la noua adresă; pe aceasta nu vei mai primi mesaje de la noi.`
+          : `Salut, ${d.firstName}! Cineva conectat la contul tău ${site.name} a cerut mutarea lui pe adresa ${d.newEmail}. Schimbarea se face doar după ce linkul trimis la noua adresă este confirmat.`,
+      },
+      {
+        type: "callout",
+        tone: "warning",
+        title: changed ? "Nu ai făcut tu schimbarea?" : "Nu ai cerut tu?",
+        text: changed
+          ? `Scrie-ne imediat la ${site.supportEmail}, de pe această adresă, ca să recuperăm contul.`
+          : `Schimbă-ți parola acum (din „Ai uitat parola?”) și scrie-ne la ${site.supportEmail}. Cât timp linkul nu e confirmat, contul rămâne pe această adresă.`,
+      },
+      changed
+        ? { type: "button", text: "Contactează-ne", href: absoluteUrl("/contact") }
+        : { type: "button", text: "Schimbă parola", href: absoluteUrl("/parola-uitata") },
+      SIGNATURE,
+    ],
+    footerNote: `Primești acest email pentru că este adresa contului tău ${site.name}${changed ? " până acum" : ""}.`,
+  });
+}
+
 /* --------------------------------- Recomandări --------------------------------- */
 
 export type DigestMatch = { title: string; href: string; score: number; budget: string; excerpt: string };
@@ -217,6 +267,27 @@ export function projectNoApplicationsTemplate(d: { projectTitle: string; tips: s
     blocks: [
       { type: "p", text: `Proiectul ${quoted(d.projectTitle)} nu a primit încă oferte. Câteva ajustări îl pot face mai atractiv pentru prestatori:` },
       { type: "list", items: d.tips },
+    ],
+  };
+}
+
+export function projectReportedAdminTemplate(d: { projectTitle: string; reporters: number; reasons: string[] }): NotificationEmail {
+  return {
+    kind: "system",
+    subject: `Proiect blocat după raportări: ${d.projectTitle}`,
+    eyebrow: "Moderare",
+    heading: "Un proiect așteaptă verificarea ta",
+    preheader: `${pluralRo(d.reporters, "utilizator a raportat", "utilizatori au raportat")} proiectul ${quoted(d.projectTitle)}.`,
+    cta: "Deschide coada de moderare",
+    blocks: [
+      {
+        type: "callout",
+        tone: "warning",
+        title: quoted(d.projectTitle),
+        text: `${pluralRo(d.reporters, "utilizator verificat a raportat", "utilizatori verificați au raportat")} proiectul, așa că l-am ascuns și l-am pus în verificare.`,
+      },
+      ...(d.reasons.length ? [{ type: "p" as const, text: "Motivele raportărilor:" }, { type: "list" as const, items: d.reasons }] : []),
+      { type: "p", text: "Clientul nu îl poate retrimite la publicare. Aprobă-l dacă raportările nu se confirmă sau elimină-l (aplicările prestatorilor se restituie automat)." },
     ],
   };
 }
@@ -353,6 +424,29 @@ export function collabCompletedTemplate(d: { projectTitle?: string }): Notificat
     blocks: [
       { type: "p", text: d.projectTitle ? `Colaborarea pentru ${quoted(d.projectTitle)} a fost marcată ca finalizată.` : "Colaborarea a fost marcată ca finalizată." },
       { type: "p", text: "Recenziile verificate ajută comunitatea să aleagă mai ușor. Durează două minute." },
+    ],
+  };
+}
+
+export function collabCancelledTemplate(d: { projectTitle: string; byClient: boolean; projectReopened: boolean }): NotificationEmail {
+  const who = d.byClient ? "Clientul" : "Prestatorul";
+  return {
+    kind: "system",
+    subject: `Colaborare anulată: ${d.projectTitle}`,
+    eyebrow: "Colaborare anulată",
+    heading: `${who} a anulat colaborarea`,
+    preheader: `Colaborarea pentru ${quoted(d.projectTitle)} a fost anulată.`,
+    cta: d.byClient ? "Vezi aplicările mele" : "Vezi proiectul",
+    blocks: [
+      { type: "callout", tone: "info", text: `${who} a anulat colaborarea pentru ${quoted(d.projectTitle)}.` },
+      {
+        type: "p",
+        text: d.byClient
+          ? "Îți trimitem în continuare proiecte noi compatibile cu profilul tău. Dacă vreți să clarificați ce s-a întâmplat, conversația rămâne disponibilă."
+          : d.projectReopened
+            ? "Proiectul este din nou deschis: poți alege altă ofertă sau poți primi oferte noi."
+            : "Proiectul a expirat între timp, așa că l-am închis. Dacă încă ai nevoie de un prestator, publică un proiect nou.",
+      },
     ],
   };
 }

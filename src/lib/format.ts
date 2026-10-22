@@ -50,3 +50,17 @@ export function formatResponseTime(minutes: number | null | undefined) {
   if (minutes < 24 * 60) return `răspunde în ~${Math.round(minutes / 60)} ore`;
   return `răspunde în ~${Math.round(minutes / 1440)} zile`;
 }
+
+/** Dimensiunea unui fișier: „<1 KB”, „340 KB”, „2,4 MB”. */
+export function formatBytes(bytes: number | null | undefined) {
+  if (bytes === null || bytes === undefined || !Number.isFinite(bytes) || bytes < 0) return null;
+  if (bytes === 0) return "0 B";
+  if (bytes < 1024) return "<1 KB";
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / 1024 / 1024).toLocaleString("ro-RO", { maximumFractionDigits: 1 })} MB`;
+}
+
+/** Rating cu o zecimală, în format românesc: „4,8”, „5,0”. */
+export function formatRating(n: number) {
+  return n.toLocaleString("ro-RO", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}

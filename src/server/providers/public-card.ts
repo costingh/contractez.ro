@@ -2,9 +2,11 @@ import { eq } from "drizzle-orm";
 import { getCatalog } from "../catalog/taxonomy";
 import { db } from "../db";
 import { localities, providerCategories, providerProfiles, providerSkills, skills, users } from "../db/schema";
+import { isSlug } from "@/lib/ids";
 
 /** Datele pentru cardul distribuibil și imaginea de previzualizare (OG). */
 export async function getPublicCard(slug: string) {
+  if (!isSlug(slug)) return null;
   const [row] = await db
     .select({
       profile: providerProfiles,

@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { ArrowLeft, CalendarClock, CheckCircle2, Clock, Eye, Inbox, MailWarning, MapPin, ShieldAlert, Target, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -25,6 +25,7 @@ import { db } from "@/server/db";
 import { applications, conversations, projectMatches, projects, providerProfiles, users } from "@/server/db/schema";
 import { env } from "@/server/env";
 import { phoneVerifiedSql } from "@/server/features";
+import { isUuid } from "@/lib/ids";
 
 export const metadata: Metadata = { title: "Gestionează proiectul" };
 
@@ -40,12 +41,12 @@ export default async function ManageProjectPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ publicat?: string; verificare?: string; ciorna?: string; contact?: string }>;
+  searchParams: Promise<{ publicat?: string; salvat?: string; verificare?: string; ciorna?: string; contact?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
   const user = await requireOnboardedUser(`/proiectele-mele/${id}`);
-  if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
+  if (!isUuid(id)) notFound();
   const [p] = await db.select().from(projects).where(eq(projects.id, id));
   if (!p || p.clientId !== user.id) notFound();
 
@@ -72,7 +73,8 @@ export default async function ManageProjectPage({
       .innerJoin(users, eq(users.id, applications.providerId))
       .leftJoin(providerProfiles, eq(providerProfiles.userId, applications.providerId))
       .leftJoin(conversations, eq(conversations.applicationId, applications.id))
-      .where(eq(applications.projectId, p.id))
+      // Ofertele retrase nu mai apar clientului (așa cum îi promitem prestatorului la retragere).
+      .where(and(eq(applications.projectId, p.id), ne(applications.status, "withdrawn")))
       .orderBy(desc(applications.createdAt)),
     db.select({ matches: sql<number>`count(*)::int` }).from(projectMatches).where(eq(projectMatches.projectId, p.id)),
   ]);
@@ -81,7 +83,7 @@ export default async function ManageProjectPage({
   const unseen = rows.filter((r) => !r.app.viewedAt && r.app.status === "submitted");
   await Promise.allSettled(unseen.map((r) => markApplicationViewed(r.app.id, user.id)));
 
-  // Datele de contact ale prestatorului ajung în pagină doar pentru oferta aleasă (colaborare acceptată).
+  // Datele de contact ale prestatorului ajung în pagină doar pentru oferta aleasă, după ce prestatorul confirmă colaborarea.
   const hiredIds = rows.filter((r) => r.app.status === "hired").map((r) => r.app.id);
   const contacts = new Map((await counterpartContacts(user.id, { applicationIds: hiredIds })).map((c) => [c.applicationId, { phone: c.phone, email: c.email }]));
 
@@ -151,17 +153,39 @@ export default async function ManageProjectPage({
           </div>
         </section>
       )}
-      {(sp.verificare || p.status === "pending_review") && (
+      {sp.salvat && p.status === "open" && (
+        <div className="enter mt-5 flex gap-3 rounded-2xl border border-success/25 bg-success/6 p-4 text-sm leading-relaxed dark:bg-success/10">
+          <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" />
+          <div>
+            <div className="font-semibold">Modificările au fost salvate</div>
+            <p className="text-muted-foreground">Prestatorii văd acum varianta actualizată a proiectului.</p>
+          </div>
+        </div>
+      )}
+      {p.status === "pending_review" && p.moderationLock ? (
         <div className="enter mt-5 flex gap-3 rounded-2xl border border-warning/30 bg-warning/8 p-4 text-sm leading-relaxed sm:p-5">
           <ShieldAlert className="mt-0.5 size-5 shrink-0 text-warning" />
           <div>
-            <div className="font-semibold">Proiectul este în verificare</div>
+            <div className="font-semibold">Proiectul este în verificare după raportări</div>
             <p className="text-muted-foreground">
-              Verificăm automat proiectele ca să protejăm prestatorii de cereri false. De obicei durează puțin; te anunțăm imediat ce e publicat.
-              {p.moderationNote ? ` Motiv: ${p.moderationNote}.` : ""}
+              Mai mulți utilizatori au raportat proiectul, așa că l-am ascuns temporar. Un administrator îl va revizui și te anunțăm imediat ce
+              ia o decizie. Până atunci proiectul nu poate fi modificat sau retrimis la publicare.
             </p>
           </div>
         </div>
+      ) : (
+        (sp.verificare || p.status === "pending_review") && (
+          <div className="enter mt-5 flex gap-3 rounded-2xl border border-warning/30 bg-warning/8 p-4 text-sm leading-relaxed sm:p-5">
+            <ShieldAlert className="mt-0.5 size-5 shrink-0 text-warning" />
+            <div>
+              <div className="font-semibold">Proiectul este în verificare</div>
+              <p className="text-muted-foreground">
+                Verificăm automat proiectele ca să protejăm prestatorii de cereri false. De obicei durează puțin; te anunțăm imediat ce e publicat.
+                {p.moderationNote ? ` Motiv: ${p.moderationNote}.` : ""}
+              </p>
+            </div>
+          </div>
+        )
       )}
       {sp.ciorna && p.status === "draft" && (
         <div className="mt-5 rounded-2xl border bg-card p-4 text-sm leading-relaxed shadow-xs">Ciorna a fost salvată. O poți publica oricând de aici.</div>
@@ -188,7 +212,7 @@ export default async function ManageProjectPage({
             <span>{categoryPath(catalog, p.categoryId)}</span>
             {p.publishedAt && <span>Publicat {timeAgo(p.publishedAt)}</span>}
           </div>
-          <h1 className="text-[1.875rem] leading-[1.1] font-semibold tracking-[-0.032em] text-balance sm:text-[2.375rem]">{p.title}</h1>
+          <h1 className="text-[1.875rem] leading-[1.1] font-semibold tracking-[-0.032em] text-balance [overflow-wrap:anywhere] sm:text-[2.375rem]">{p.title}</h1>
           <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
             <span className="font-semibold text-foreground tabular-nums">{describeBudget(p)}</span>
             <span className="flex items-center gap-1.5">
@@ -198,7 +222,13 @@ export default async function ManageProjectPage({
             <span>{labels.urgency[p.urgency]}</span>
           </div>
         </div>
-        <ProjectControls projectId={p.id} status={p.status} canReopen={full && p.maxApplications < rules.maxApplicationsCap} allowAutoBids={p.allowAutoBids} />
+        <ProjectControls
+          projectId={p.id}
+          status={p.status}
+          locked={p.moderationLock}
+          canReopen={full && p.maxApplications < rules.maxApplicationsCap}
+          allowAutoBids={p.allowAutoBids}
+        />
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_340px]">

@@ -12,6 +12,8 @@ import { getLocality } from "@/server/catalog/localities";
 import { categoryOptions } from "@/server/catalog/options";
 import { db } from "@/server/db";
 import { projectSkills, projects, skills } from "@/server/db/schema";
+import { REPORT_LOCK_MESSAGE } from "@/server/projects/service";
+import { isUuid } from "@/lib/ids";
 
 export const metadata: Metadata = { title: "Editează proiectul" };
 
@@ -20,9 +22,20 @@ const EDITABLE = ["draft", "pending_review", "open"];
 export default async function EditProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await requireOnboardedUser(`/proiecte/${id}/editeaza`);
-  if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
+  if (!isUuid(id)) notFound();
   const [p] = await db.select().from(projects).where(eq(projects.id, id));
   if (!p || p.clientId !== user.id) notFound();
+
+  if (p.moderationLock) {
+    return (
+      <div className="container-page max-w-3xl pb-16">
+        <PageHeader title="Proiectul este în verificare" description={REPORT_LOCK_MESSAGE} />
+        <Button asChild variant="outline">
+          <Link href={`/proiectele-mele/${p.id}`}>Înapoi la proiect</Link>
+        </Button>
+      </div>
+    );
+  }
 
   if (!EDITABLE.includes(p.status)) {
     return (
@@ -69,7 +82,7 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
         title="Editează proiectul"
         description={
           p.status === "open"
-            ? "Proiectul este publicat. Modificările se văd imediat; prestatorii care au aplicat deja nu sunt notificați din nou."
+            ? "Proiectul este publicat. Modificările se văd imediat, iar prestatorii nu sunt notificați din nou. Dacă schimbi titlul sau descrierea, le verificăm din nou automat."
             : `Status: ${labels.projectStatus[p.status]}.`
         }
         actions={

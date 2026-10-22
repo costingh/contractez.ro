@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, inArray, lte, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
-import { normalizeText } from "@/lib/text";
+import { normalizeText, stripControlChars } from "@/lib/text";
 import { expandCategory, getCatalog } from "../catalog/taxonomy";
 import { getLocality } from "../catalog/localities";
 import { db } from "../db";
@@ -33,7 +33,13 @@ export const projectFiltersSchema = z.object({
 export type ProjectFilters = z.infer<typeof projectFiltersSchema>;
 
 export function parseProjectFilters(params: Record<string, string | string[] | undefined>): ProjectFilters {
-  const flat = Object.fromEntries(Object.entries(params).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v]));
+  // Fără caractere de control: `\u0000` din URL (ex. ?q=%00) ar face interogarea Postgres să eșueze.
+  const flat = Object.fromEntries(
+    Object.entries(params).map(([k, v]) => {
+      const value = Array.isArray(v) ? v[0] : v;
+      return [k, value === undefined ? undefined : stripControlChars(value)];
+    }),
+  );
   const filters = projectFiltersSchema.parse(flat);
   // Fără verificare SMS nimeni nu are telefon verificat: ignorăm filtrul (altfel ar ascunde tot).
   if (!features.phoneVerification) filters.verified = undefined;

@@ -240,8 +240,8 @@ export default async function ProfilePage() {
                       {r.authorHidden && <span className="text-xs text-muted-foreground">(public apare ca „{r.authorRole === "client" ? "Client verificat" : "Prestator verificat"}”)</span>}
                       <span className="ml-auto text-xs text-muted-foreground">{formatDate(r.createdAt)}</span>
                     </div>
-                    <div className="text-xs text-muted-foreground">Proiect: {r.projectTitle}</div>
-                    {r.comment && <p className="text-sm">{r.comment}</p>}
+                    <div className="text-xs text-muted-foreground [overflow-wrap:anywhere]">Proiect: {r.projectTitle}</div>
+                    {r.comment && <p className="text-sm [overflow-wrap:anywhere]">{r.comment}</p>}
                     {r.reply && (
                       <div className="rounded-md border bg-card p-3 text-sm">
                         <span className="font-medium">Răspunsul tău: </span>

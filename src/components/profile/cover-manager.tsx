@@ -2,31 +2,42 @@
 
 import { ImageUp, Trash2 } from "lucide-react";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { unstable_rethrow } from "next/navigation";
 import { toast } from "sonner";
 import { removeCoverAction, saveCoverAction } from "@/app/profil/actions";
 import { FormMessage } from "@/components/forms/form-message";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { Button } from "@/components/ui/button";
 import { rules } from "@/config/site";
+import { prepareImage, UPLOAD_FAILED } from "@/lib/upload-client";
 
 const MAX_MB = Math.round(rules.maxUploadBytes / 1024 / 1024);
 
 /** Încărcare / înlocuire / eliminare a copertei de pe profilul public. */
 export function CoverManager({ coverPath }: { coverPath: string | null }) {
-  const [picked, setPicked] = useState<string | null>(null);
-  // După trimitere React golește câmpul de fișier, așa că renunțăm și la previzualizarea locală.
+  // Imaginea aleasă (micșorată în browser) și previzualizarea ei. React golește câmpul de fișier după
+  // trimitere, așa că fișierul pleacă din stare; la o eroare rămâne ales și poate fi retrimis.
+  const [picked, setPicked] = useState<{ file: File; url: string } | null>(null);
+  const [preparing, setPreparing] = useState(false);
   const [state, action] = useActionState(async (prev: Awaited<ReturnType<typeof saveCoverAction>>, fd: FormData) => {
-    const r = await saveCoverAction(prev, fd);
-    setPicked(null);
+    if (picked) fd.set("cover", picked.file);
+    let r: Awaited<ReturnType<typeof saveCoverAction>>;
+    try {
+      r = await saveCoverAction(prev, fd);
+    } catch (err) {
+      unstable_rethrow(err); // redirect (ex. sesiune expirată)
+      r = { ok: false, error: UPLOAD_FAILED };
+    }
+    if (r?.ok) setPicked(null);
     return r;
   }, null);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
   const saved = coverPath ? `/api/files/${coverPath}` : null;
-  const preview = picked ?? saved;
+  const preview = picked?.url ?? saved;
 
-  useEffect(() => () => void (picked && URL.revokeObjectURL(picked)), [picked]);
+  useEffect(() => () => void (picked && URL.revokeObjectURL(picked.url)), [picked]);
 
   const clear = () => {
     setPicked(null);
@@ -59,19 +70,24 @@ export function CoverManager({ coverPath }: { coverPath: string | null }) {
           <input
             ref={input}
             type="file"
-            name="cover"
             accept="image/jpeg,image/png,image/webp"
             className="sr-only"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
+            disabled={preparing}
+            onChange={async (e) => {
+              const el = e.currentTarget;
+              const f = el.files?.[0];
               if (!f) return clear();
-              if (f.size > rules.maxUploadBytes) {
+              setPreparing(true);
+              const r = await prepareImage(f, 2400);
+              setPreparing(false);
+              el.value = "";
+              if (!r.ok) {
                 clear();
-                setError(`Imaginea depășește ${MAX_MB} MB.`);
+                setError(r.error);
                 return;
               }
               setError(null);
-              setPicked(URL.createObjectURL(f));
+              setPicked({ file: r.file, url: URL.createObjectURL(r.file) });
             }}
           />
         </label>
@@ -105,7 +121,7 @@ export function CoverManager({ coverPath }: { coverPath: string | null }) {
         JPG, PNG sau WebP, max {MAX_MB} MB. Recomandat: imagine lată, cel puțin 1600 × 500 px. Pe telefon marginile laterale se decupează, așa că
         păstrează elementele importante spre centru.
       </p>
-      {error ? <FormMessage state={{ ok: false, error }} /> : <FormMessage state={picked ? null : state} />}
+      {error ? <FormMessage state={{ ok: false, error }} /> : <FormMessage state={picked && state?.ok !== false ? null : state} />}
     </form>
   );
 }

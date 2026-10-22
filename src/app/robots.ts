@@ -24,6 +24,7 @@ const disallow = [
   "/colaborari",
   "/verifica-email",
   "/resetare-parola",
+  "/schimba-email",
 ];
 
 /**

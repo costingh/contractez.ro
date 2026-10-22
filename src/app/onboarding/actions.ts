@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { formBool, formNum, formStr, toActionError, type ActionState } from "@/lib/action";
 import { parseServiceForm } from "@/lib/service-form";
 import { SOCIAL_KEYS } from "@/lib/social-links";
@@ -78,7 +79,7 @@ export async function saveBasicsAction(_: ActionState, fd: FormData): Promise<Ac
     // Intenția de prestator e salvată în cont (`wantsProvider`); cookie-ul vechi nu mai e necesar.
     (await cookies()).delete("onb_rol");
     revalidatePath("/onboarding");
-    redirect(isProvider ? "/onboarding?pas=2&salvat=1" : "/onboarding?pas=3&salvat=1");
+    redirect(isProvider ? "/onboarding?pas=2&salvat=1" : "/onboarding?pas=gata&salvat=1");
   } catch (err) {
     return toActionError(err);
   }
@@ -92,16 +93,20 @@ export async function saveProviderProfileAction(_: ActionState, fd: FormData): P
     revalidatePath("/profil");
     revalidatePath("/panou");
     (await cookies()).delete("onb_rol");
-    if (formStr(fd, "context") === "onboarding") redirect("/onboarding?pas=3&salvat=2");
+    if (formStr(fd, "context") === "onboarding") redirect("/onboarding?pas=gata&salvat=2");
     return { ok: true, message: "Profilul a fost salvat." };
   } catch (err) {
     return toActionError(err);
   }
 }
 
+/** Argumentul vine din browser: îl validăm (listă de id-uri întregi pozitive, maximum 8 folosite). */
+const suggestSkillsSchema = z.array(z.number().int().positive().max(2_147_483_647)).max(50).catch([]);
+
 /** Competențele sugerate pentru categoriile alese (din taxonomie, fără AI). */
-export async function suggestSkillsAction(categoryIds: number[]): Promise<string[]> {
+export async function suggestSkillsAction(rawCategoryIds: number[]): Promise<string[]> {
   await requireUser();
+  const categoryIds = suggestSkillsSchema.parse(rawCategoryIds);
   const catalog = await getCatalog();
   const names = new Set<string>();
   for (const id of categoryIds.slice(0, 8)) {

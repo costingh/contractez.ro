@@ -1,4 +1,5 @@
 import { and, eq, inArray, isNull, lt, ne, sql } from "drizzle-orm";
+import { z } from "zod";
 import { rules } from "@/config/site";
 import { formatDate } from "@/lib/format";
 import { truncate } from "@/lib/text";
@@ -38,6 +39,32 @@ export type ApplyInput = {
   autoRuleId?: string | null;
 };
 
+/** Statusurile în care o ofertă încă poate fi aleasă, respinsă, pusă pe lista scurtă sau retrasă. */
+const ACTIVE_STATUSES = ["submitted", "viewed", "shortlisted"] as const;
+
+export const applyInputSchema = z.object({
+  message: z
+    .string()
+    .trim()
+    .min(30, "Mesajul trebuie să aibă cel puțin 30 de caractere.")
+    .max(5_000, "Mesajul este prea lung (cel mult 5.000 de caractere)."),
+  priceAmount: z
+    .number({ error: "Prețul trebuie să fie un număr." })
+    .int("Prețul trebuie să fie un număr întreg de lei.")
+    .min(1, "Prețul trebuie să fie de cel puțin 1 leu.")
+    .max(10_000_000, "Prețul poate fi de cel mult 10.000.000 de lei.")
+    .nullable()
+    .optional(),
+  priceType: z.enum(["fixed", "hourly", "monthly", "to_discuss"], { error: "Alege tipul prețului." }).default("to_discuss"),
+  estimatedDays: z
+    .number({ error: "Durata trebuie să fie un număr de zile." })
+    .int("Durata trebuie să fie un număr întreg de zile.")
+    .min(1, "Durata estimată trebuie să fie de cel puțin o zi.")
+    .max(365, "Durata estimată poate fi de cel mult 365 de zile.")
+    .nullable()
+    .optional(),
+});
+
 /**
  * Aplicarea la un proiect. Într-o singură tranzacție:
  *  1. blocăm proiectul (locurile de aplicare sunt o resursă limitată),
@@ -46,10 +73,15 @@ export type ApplyInput = {
  *  4. deschidem conversația cu propunerea ca prim mesaj.
  * Dacă orice pas eșuează, nimic nu se salvează și aplicarea nu se socotește în limită.
  */
-export async function applyToProject(input: ApplyInput): Promise<Application> {
-  const message = input.message.trim();
-  if (message.length < 30) throw new DomainError("message_short", "Mesajul trebuie să aibă cel puțin 30 de caractere.");
-  if (message.length > 5_000) throw new DomainError("message_long", "Mesajul este prea lung.");
+export async function applyToProject(raw: ApplyInput): Promise<Application> {
+  const parsed = applyInputSchema.safeParse(raw);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    const code = issue?.path[0] === "message" ? (issue.code === "too_small" ? "message_short" : "message_long") : "invalid";
+    throw new DomainError(code, issue?.message ?? "Date invalide.");
+  }
+  const input = { ...raw, ...parsed.data };
+  const message = parsed.data.message;
 
   const result = await db.transaction(async (tx) => {
     const [project] = await tx.select().from(projects).where(eq(projects.id, input.projectId)).for("update");
@@ -63,7 +95,7 @@ export async function applyToProject(input: ApplyInput): Promise<Application> {
       .from(users)
       .where(eq(users.id, project.clientId));
     if (!client?.emailVerifiedAt || client.bannedAt) {
-      throw new DomainError("client_unverified", "Clientul nu este verificat; aplicările plătite sunt blocate.");
+      throw new DomainError("client_unverified", "Clientul nu și-a confirmat încă contul, așa că proiectul nu acceptă oferte. Aplicarea nu s-a socotit în limita planului tău.");
     }
 
     const [provider] = await tx
@@ -211,11 +243,13 @@ export async function markApplicationViewed(applicationId: string, clientId: str
 
 export async function shortlistApplication(applicationId: string, clientId: string, on: boolean) {
   const { app, project } = await loadForClient(applicationId, clientId);
-  if (!["submitted", "viewed", "shortlisted"].includes(app.status)) throw new DomainError("state", "Oferta nu mai poate fi modificată.");
-  await db
+  // Condiționat: o ofertă retrasă/aleasă/respinsă între timp nu este readusă pe lista scurtă.
+  const [updated] = await db
     .update(applications)
-    .set({ status: on ? "shortlisted" : "viewed", viewedAt: app.viewedAt ?? new Date() })
-    .where(eq(applications.id, applicationId));
+    .set({ status: on ? "shortlisted" : "viewed", viewedAt: sql`coalesce(${applications.viewedAt}, now())` })
+    .where(and(eq(applications.id, applicationId), inArray(applications.status, [...ACTIVE_STATUSES])))
+    .returning({ id: applications.id });
+  if (!updated) throw new DomainError("state", "Oferta nu mai poate fi modificată.");
   await logEvent(db, applicationId, on ? "shortlisted" : "unshortlisted", clientId);
   if (on) {
     await notify({
@@ -232,11 +266,12 @@ export async function shortlistApplication(applicationId: string, clientId: stri
 
 export async function rejectApplication(applicationId: string, clientId: string, reason?: string) {
   const { app, project } = await loadForClient(applicationId, clientId);
-  if (!["submitted", "viewed", "shortlisted"].includes(app.status)) throw new DomainError("state", "Oferta nu mai poate fi respinsă.");
-  await db
+  const [updated] = await db
     .update(applications)
-    .set({ status: "rejected", decidedAt: new Date(), rejectionReason: reason?.slice(0, 500) ?? null, viewedAt: app.viewedAt ?? new Date() })
-    .where(eq(applications.id, applicationId));
+    .set({ status: "rejected", decidedAt: new Date(), rejectionReason: reason?.slice(0, 500) ?? null, viewedAt: sql`coalesce(${applications.viewedAt}, now())` })
+    .where(and(eq(applications.id, applicationId), inArray(applications.status, [...ACTIVE_STATUSES])))
+    .returning({ id: applications.id });
+  if (!updated) throw new DomainError("state", "Oferta nu mai poate fi respinsă.");
   await logEvent(db, applicationId, "rejected", clientId, { reason });
   await notify({
     userId: app.providerId,
@@ -249,24 +284,43 @@ export async function rejectApplication(applicationId: string, clientId: string,
   });
 }
 
+/**
+ * Blochează proiectul (SELECT … FOR UPDATE) al unei oferte. Toate operațiile care schimbă locurile sau
+ * alegerea pe un proiect (aplicare, alegere, retragere, anularea colaborării) iau întâi acest blocaj, în aceeași
+ * ordine, ca cererile simultane să se serializeze în loc să intre în deadlock.
+ */
+async function lockProjectOf(tx: Tx, applicationId: string) {
+  const [ref] = await tx.select({ projectId: applications.projectId }).from(applications).where(eq(applications.id, applicationId));
+  if (!ref) return null;
+  const [project] = await tx.select().from(projects).where(eq(projects.id, ref.projectId)).for("update");
+  return project ?? null;
+}
+
 /** Clientul alege prestatorul. Proiectul trece „în desfășurare”, iar prestatorul confirmă colaborarea. */
 export async function hireApplication(applicationId: string, clientId: string) {
   const res = await db.transaction(async (tx) => {
-    const { app, project } = await loadForClient(applicationId, clientId, tx);
-    if (!["submitted", "viewed", "shortlisted"].includes(app.status)) throw new DomainError("state", "Oferta nu mai poate fi aleasă.");
-    if (!["open", "in_progress"].includes(project.status)) throw new DomainError("state", "Proiectul nu este activ.");
-    await tx.update(applications).set({ status: "hired", decidedAt: new Date(), viewedAt: app.viewedAt ?? new Date() }).where(eq(applications.id, app.id));
+    const project = await lockProjectOf(tx, applicationId);
+    if (!project || project.clientId !== clientId) throw new DomainError("not_found", "Oferta nu există.");
+    if (project.status !== "open") throw new DomainError("state", "Proiectul nu mai este deschis; ai ales deja un prestator sau proiectul s-a închis.");
+    // Actualizare condiționată: doar o ofertă încă activă poate fi aleasă (o singură dată).
+    const [app] = await tx
+      .update(applications)
+      .set({ status: "hired", decidedAt: new Date(), viewedAt: sql`coalesce(${applications.viewedAt}, now())` })
+      .where(and(eq(applications.id, applicationId), inArray(applications.status, [...ACTIVE_STATUSES])))
+      .returning();
+    if (!app) throw new DomainError("state", "Oferta nu mai poate fi aleasă.");
     await tx.update(projects).set({ status: "in_progress" }).where(eq(projects.id, project.id));
     const [collab] = await tx
       .insert(collaborations)
       .values({ projectId: project.id, applicationId: app.id, clientId, providerId: app.providerId })
       .onConflictDoNothing()
       .returning();
+    if (!collab) throw new DomainError("state", "Există deja o colaborare pentru acest proiect.");
     await logEvent(tx, app.id, "hired", clientId);
     const others = await tx
       .update(applications)
       .set({ status: "rejected", decidedAt: new Date(), rejectionReason: "Clientul a ales alt prestator." })
-      .where(and(eq(applications.projectId, project.id), ne(applications.id, app.id), inArray(applications.status, ["submitted", "viewed", "shortlisted"])))
+      .where(and(eq(applications.projectId, project.id), ne(applications.id, app.id), inArray(applications.status, [...ACTIVE_STATUSES])))
       .returning({ id: applications.id, providerId: applications.providerId });
     return { app, project, collab, others };
   });
@@ -294,12 +348,33 @@ export async function hireApplication(applicationId: string, clientId: string) {
   return res.collab;
 }
 
+/**
+ * Prestatorul își retrage oferta: clientul nu o mai vede, iar locul de pe proiect se eliberează
+ * (`applications_count` scade în aceeași tranzacție). Aplicarea rămâne socotită în limita lunară a planului.
+ */
 export async function withdrawApplication(applicationId: string, providerId: string) {
-  const [app] = await db.select().from(applications).where(eq(applications.id, applicationId));
-  if (!app || app.providerId !== providerId) throw new DomainError("not_found", "Aplicarea nu există.");
-  if (!["submitted", "viewed", "shortlisted"].includes(app.status)) throw new DomainError("state", "Aplicarea nu mai poate fi retrasă.");
-  await db.update(applications).set({ status: "withdrawn", decidedAt: new Date() }).where(eq(applications.id, applicationId));
-  await logEvent(db, applicationId, "withdrawn", providerId);
+  await db.transaction(async (tx) => {
+    const project = await lockProjectOf(tx, applicationId);
+    if (!project) throw new DomainError("not_found", "Aplicarea nu există.");
+    const [app] = await tx
+      .update(applications)
+      .set({ status: "withdrawn", decidedAt: new Date() })
+      .where(and(eq(applications.id, applicationId), eq(applications.providerId, providerId), inArray(applications.status, [...ACTIVE_STATUSES])))
+      .returning({ id: applications.id, isAuto: applications.isAuto });
+    if (!app) {
+      const [own] = await tx.select({ id: applications.id }).from(applications).where(and(eq(applications.id, applicationId), eq(applications.providerId, providerId)));
+      if (!own) throw new DomainError("not_found", "Aplicarea nu există.");
+      throw new DomainError("state", "Aplicarea nu mai poate fi retrasă.");
+    }
+    await tx
+      .update(projects)
+      .set({
+        applicationsCount: sql`greatest(${projects.applicationsCount} - 1, 0)`,
+        autoApplicationsCount: app.isAuto ? sql`greatest(${projects.autoApplicationsCount} - 1, 0)` : projects.autoApplicationsCount,
+      })
+      .where(eq(projects.id, project.id));
+    await logEvent(tx, applicationId, "withdrawn", providerId);
+  });
 }
 
 /**

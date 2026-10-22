@@ -35,17 +35,20 @@ function useAction() {
 export function ProjectControls({
   projectId,
   status,
+  locked = false,
   canReopen,
   allowAutoBids,
 }: {
   projectId: string;
   status: string;
+  /** În verificare după raportări: doar un administrator îl poate debloca. */
+  locked?: boolean;
   canReopen: boolean;
   allowAutoBids: boolean;
 }) {
   const { pending, run } = useAction();
   const [confirm, setConfirm] = useState<null | "closed" | "cancelled">(null);
-  const editable = ["draft", "pending_review", "open"].includes(status);
+  const editable = ["draft", "pending_review", "open"].includes(status) && !locked;
   const active = ["draft", "pending_review", "open", "in_progress"].includes(status);
 
   return (

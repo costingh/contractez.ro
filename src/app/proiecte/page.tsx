@@ -4,9 +4,10 @@ import { TrackOnMount } from "@/components/analytics/track-on-mount";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ProjectCard } from "@/components/projects/project-card";
+import { aiExplanation, type AiExplanationCode } from "@/components/public-search/ai-explanation";
 import { FilterChips, type Chip } from "@/components/public-search/filter-chips";
 import { MobileFilters } from "@/components/public-search/mobile-filters";
-import { flattenParams, toQuery, type RawParams } from "@/components/public-search/params";
+import { cleanAiQuery, flattenParams, toQuery, type RawParams } from "@/components/public-search/params";
 import { ruleParseQuery } from "@/components/public-search/rule-parse";
 import { ProjectFiltersForm } from "@/components/public-search/project-filters-form";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -18,6 +19,7 @@ import { labels } from "@/config/site";
 import { formatLei } from "@/lib/format";
 import { parseProjectSearch } from "@/server/ai/features";
 import { getCurrentUser } from "@/server/auth/session";
+import { canUseAiSearch } from "@/server/search/ai-guard";
 import { findLocalityByName, getLocality } from "@/server/catalog/localities";
 import { categoryOptions } from "@/server/catalog/options";
 import { getCatalog } from "@/server/catalog/taxonomy";
@@ -39,7 +41,8 @@ const SORTS: { value: ProjectFilters["sort"]; label: string }[] = [
 ];
 
 async function handleAiSearch(text: string, userId: string | null) {
-  const parsed = await parseProjectSearch(text, userId);
+  // Vizitatorii anonimi peste limită primesc interpretarea simplă (fără AI), ca la AI indisponibil.
+  const parsed = (await canUseAiSearch(userId)) ? await parseProjectSearch(text, userId) : null;
   if (!parsed) {
     const r = await ruleParseQuery(text);
     redirect(
@@ -53,7 +56,7 @@ async function handleAiSearch(text: string, userId: string | null) {
         inv: r.invoice ? "required" : undefined,
         urg: r.urgent ? "urgent" : undefined,
         q: r.cat ? undefined : r.keywords,
-        aiexp: "Interpretare automată simplă (AI indisponibil). Ajustează filtrele dacă e nevoie.",
+        aiexp: "simplu" satisfies AiExplanationCode,
       })}`,
     );
   }
@@ -70,7 +73,7 @@ async function handleAiSearch(text: string, userId: string | null) {
       r: loc ? (parsed.radiusKm ?? 30) : undefined,
       inv: parsed.invoiceRequired ? "required" : undefined,
       urg: parsed.urgentOnly ? "urgent" : undefined,
-      aiexp: parsed.explanation,
+      aiexp: "ai" satisfies AiExplanationCode,
     })}`,
   );
 }
@@ -78,7 +81,8 @@ async function handleAiSearch(text: string, userId: string | null) {
 export default async function ProjectsPage({ searchParams }: { searchParams: Promise<RawParams> }) {
   const raw = flattenParams(await searchParams);
   const user = await getCurrentUser();
-  if (raw.ai && raw.ai.trim().length > 2) await handleAiSearch(raw.ai.trim(), user?.id ?? null);
+  const aiQuery = cleanAiQuery(raw.ai);
+  if (aiQuery) await handleAiSearch(aiQuery, user?.id ?? null);
 
   const filters = parseProjectFilters(raw);
   const [results, cats, catalog, loc] = await Promise.all([
@@ -134,11 +138,11 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       />
 
       <div className="container-page pt-8">
-      {raw.aiexp && (
+      {aiExplanation(raw.aiexp) && (
         <Alert variant="info" className="mb-6">
           <Sparkles />
           <AlertTitle>Cum am interpretat căutarea</AlertTitle>
-          <AlertDescription>{raw.aiexp}</AlertDescription>
+          <AlertDescription>{aiExplanation(raw.aiexp)}</AlertDescription>
         </Alert>
       )}
 

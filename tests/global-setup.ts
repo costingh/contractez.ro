@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { existsSync, readFileSync } from "node:fs";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
@@ -15,6 +16,8 @@ export default async function setup() {
 
   const client = postgres(testUrl, { max: 1, onnotice: () => {} });
   await migrate(drizzle(client), { migrationsFolder: "db/migrations" });
+  // Schimbări de schemă încă negenerate ca migrare (idempotente).
+  if (existsSync("tests/pending-schema.sql")) await client.unsafe(readFileSync("tests/pending-schema.sql", "utf8"));
   await seedReferenceData(client);
   await client.end();
 }

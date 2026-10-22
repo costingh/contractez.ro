@@ -68,7 +68,7 @@ export default async function AdminPaymentsPage() {
               <tbody>
                 {subRows.map(({ sub: s, email }) => (
                   <tr key={s.id} className="border-t transition-colors hover:bg-muted/40">
-                    <td className="px-4 py-3">
+                    <td className="min-w-40 px-4 py-3 [overflow-wrap:anywhere]">
                       <Link href={`/admin/utilizatori?q=${encodeURIComponent(email)}`} className="underline-offset-4 hover:underline">
                         {email}
                       </Link>

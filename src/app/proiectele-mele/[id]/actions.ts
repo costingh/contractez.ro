@@ -3,6 +3,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { toActionError, type ActionState } from "@/lib/action";
+import { isUuid } from "@/lib/ids";
 import { describeBudget } from "@/lib/format";
 import { compareApplications, type ApplicationComparison } from "@/server/ai/features";
 import { hireApplication, rejectApplication, reopenSelection, shortlistApplication } from "@/server/applications/service";
@@ -13,7 +14,10 @@ import { DomainError } from "@/server/errors";
 import { closeProject, getOrCreateShareText, publishProject } from "@/server/projects/service";
 import { labels } from "@/config/site";
 
+const REJECTION_REASON_MAX = 500;
+
 async function ownProject(projectId: string) {
+  if (!isUuid(projectId)) throw new DomainError("not_found", "Proiectul nu există.");
   const user = await requireOnboardedUser(`/proiectele-mele/${projectId}`);
   const [p] = await db.select().from(projects).where(eq(projects.id, projectId));
   if (!p || p.clientId !== user.id) throw new DomainError("not_found", "Proiectul nu există.");
@@ -86,6 +90,7 @@ export async function shareTextAction(projectId: string): Promise<ActionState<{ 
 }
 
 async function ownApplication(applicationId: string) {
+  if (!isUuid(applicationId)) throw new DomainError("not_found", "Oferta nu există.");
   const user = await requireOnboardedUser();
   const [row] = await db
     .select({ projectId: applications.projectId, clientId: projects.clientId })
@@ -110,7 +115,8 @@ export async function shortlistAction(applicationId: string, on: boolean): Promi
 export async function rejectAction(applicationId: string, reason: string): Promise<ActionState> {
   try {
     const { user, projectId } = await ownApplication(applicationId);
-    await rejectApplication(applicationId, user.id, reason.trim() || undefined);
+    // Motivul se salvează și se trimite pe email: maximum REJECTION_REASON_MAX caractere.
+    await rejectApplication(applicationId, user.id, String(reason ?? "").trim().slice(0, REJECTION_REASON_MAX) || undefined);
     refresh(projectId);
     return { ok: true, message: "Oferta a fost respinsă. Prestatorul a fost anunțat." };
   } catch (err) {

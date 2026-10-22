@@ -209,7 +209,7 @@ export function Bento({ reviews }: { reviews: FeaturedReview[] }) {
                       <Star key={k} className={cn("size-3.5", k < r.rating ? "fill-current" : "text-border-strong")} />
                     ))}
                   </div>
-                  <blockquote className="mt-2.5 line-clamp-4 text-sm leading-relaxed">„{r.comment}”</blockquote>
+                  <blockquote className="mt-2.5 line-clamp-4 text-sm leading-relaxed [overflow-wrap:anywhere]">„{r.comment}”</blockquote>
                   <figcaption className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
                     <ShieldCheck className="size-3.5 shrink-0 text-success" /> <span className="font-medium text-foreground">{r.author}</span>
                     <span className="truncate">

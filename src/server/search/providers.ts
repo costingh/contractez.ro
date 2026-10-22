@@ -1,6 +1,6 @@
 import { and, desc, eq, gt, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
-import { normalizeText } from "@/lib/text";
+import { normalizeText, stripControlChars } from "@/lib/text";
 import { expandCategory, getCatalog } from "../catalog/taxonomy";
 import { getLocality } from "../catalog/localities";
 import { db } from "../db";
@@ -35,7 +35,13 @@ export const providerFiltersSchema = z.object({
 export type ProviderFilters = z.infer<typeof providerFiltersSchema>;
 
 export function parseProviderFilters(params: Record<string, string | string[] | undefined>): ProviderFilters {
-  const flat = Object.fromEntries(Object.entries(params).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v]));
+  // Fără caractere de control: `\u0000` din URL (ex. ?q=%00) ar face interogarea Postgres să eșueze.
+  const flat = Object.fromEntries(
+    Object.entries(params).map(([k, v]) => {
+      const value = Array.isArray(v) ? v[0] : v;
+      return [k, value === undefined ? undefined : stripControlChars(value)];
+    }),
+  );
   return providerFiltersSchema.parse(flat);
 }
 

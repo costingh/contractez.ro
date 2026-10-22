@@ -19,6 +19,7 @@ import {
   users,
 } from "./db/schema";
 import { DomainError } from "./errors";
+import { deleteUpload } from "./uploads";
 
 /* --------------------------- Informații de bază --------------------------- */
 
@@ -27,19 +28,35 @@ export const basicInfoSchema = z.object({
   localityId: z.coerce.number().int().positive().nullable().optional(),
 });
 
-export async function updateBasicInfo(userId: string, raw: unknown, avatarPath?: string | null) {
+/**
+ * `avatar`: `undefined` = neschimbat, `null` = eliminat, funcție = salvează fotografia nouă. Funcția e apelată
+ * abia după validarea datelor, ca un formular invalid să nu lase fișiere orfane. Fotografia veche se șterge.
+ */
+export async function updateBasicInfo(userId: string, raw: unknown, avatar?: null | (() => Promise<string>)) {
   const input = basicInfoSchema.parse(raw);
   const loc = input.localityId ? await getLocality(input.localityId) : null;
-  await db
-    .update(users)
-    .set({
-      name: input.name,
-      localityId: loc?.id ?? null,
-      lat: loc?.lat ?? null,
-      lng: loc?.lng ?? null,
-      ...(avatarPath !== undefined ? { avatarPath } : {}),
-    })
-    .where(eq(users.id, userId));
+  const avatarPath = typeof avatar === "function" ? await avatar() : avatar;
+  let previous: string | null = null;
+  try {
+    previous = await db.transaction(async (tx) => {
+      const [old] = await tx.select({ avatarPath: users.avatarPath }).from(users).where(eq(users.id, userId)).for("update");
+      await tx
+        .update(users)
+        .set({
+          name: input.name,
+          localityId: loc?.id ?? null,
+          lat: loc?.lat ?? null,
+          lng: loc?.lng ?? null,
+          ...(avatarPath !== undefined ? { avatarPath } : {}),
+        })
+        .where(eq(users.id, userId));
+      return old?.avatarPath ?? null;
+    });
+  } catch (err) {
+    if (avatarPath) await deleteUpload(avatarPath);
+    throw err;
+  }
+  if (avatarPath !== undefined && previous && previous !== avatarPath) await deleteUpload(previous);
 }
 
 export async function setProfilePublic(userId: string, isPublic: boolean) {
@@ -146,7 +163,12 @@ export async function exportAccountData(userId: string) {
  */
 export async function deleteAccount(userId: string) {
   await cancelAllSubscriptions(userId);
-  await db.transaction(async (tx) => {
+  const files = await db.transaction(async (tx) => {
+    // Fișierele publice (avatar, copertă, portofoliu) se șterg de pe disc după tranzacție.
+    const [u] = await tx.select({ avatarPath: users.avatarPath }).from(users).where(eq(users.id, userId)).for("update");
+    const [profile] = await tx.select({ coverPath: providerProfiles.coverPath }).from(providerProfiles).where(eq(providerProfiles.userId, userId));
+    const portfolio = await tx.delete(portfolioItems).where(eq(portfolioItems.providerId, userId)).returning({ imagePath: portfolioItems.imagePath });
+    await tx.delete(providerServices).where(eq(providerServices.providerId, userId));
     await tx
       .update(users)
       .set({
@@ -166,12 +188,32 @@ export async function deleteAccount(userId: string) {
       .update(projects)
       .set({ status: "cancelled", closedAt: new Date() })
       .where(and(eq(projects.clientId, userId), inArray(projects.status, ["draft", "pending_review", "open"])));
-    await tx
+    const withdrawn = await tx
       .update(applications)
       .set({ status: "withdrawn", decidedAt: new Date() })
-      .where(and(eq(applications.providerId, userId), inArray(applications.status, ["submitted", "viewed", "shortlisted"])));
+      .where(and(eq(applications.providerId, userId), inArray(applications.status, ["submitted", "viewed", "shortlisted"])))
+      .returning({ projectId: applications.projectId, isAuto: applications.isAuto });
+    // Aplicările retrase eliberează locurile ocupate în proiectele respective.
+    const freed = new Map<string, { all: number; auto: number }>();
+    for (const a of withdrawn) {
+      const f = freed.get(a.projectId) ?? { all: 0, auto: 0 };
+      f.all += 1;
+      if (a.isAuto) f.auto += 1;
+      freed.set(a.projectId, f);
+    }
+    for (const [projectId, f] of freed) {
+      await tx
+        .update(projects)
+        .set({
+          applicationsCount: sql`greatest(${projects.applicationsCount} - ${f.all}, 0)`,
+          autoApplicationsCount: sql`greatest(${projects.autoApplicationsCount} - ${f.auto}, 0)`,
+        })
+        .where(eq(projects.id, projectId));
+    }
     await tx.delete(sessions).where(eq(sessions.userId, userId));
+    return [u?.avatarPath, profile?.coverPath, ...portfolio.map((p) => p.imagePath)];
   });
+  await Promise.all(files.map((f) => deleteUpload(f)));
 }
 
 /* ------------------------- Date pentru formulare ------------------------- */

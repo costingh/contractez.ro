@@ -14,7 +14,7 @@ export function LoginForm({ next }: { next?: string }) {
     <form action={action} className="space-y-5">
       <input type="hidden" name="next" value={next ?? ""} />
       <Field label="Email" htmlFor="email">
-        <Input id="email" name="email" type="email" autoComplete="email" required className="h-11" />
+        <Input id="email" name="email" type="email" autoComplete="email" required maxLength={200} className="h-11" />
       </Field>
       <Field
         label={

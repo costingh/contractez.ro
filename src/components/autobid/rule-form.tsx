@@ -155,7 +155,7 @@ export function RuleFormDialog({
 
           <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
             <Field label="Numele regulii" htmlFor="rule-name" error={fe?.name}>
-              <Input id="rule-name" name="name" value={v.name} onChange={(e) => set("name", e.target.value)} />
+              <Input id="rule-name" name="name" maxLength={80} value={v.name} onChange={(e) => set("name", e.target.value)} />
             </Field>
             <label className="flex h-9 items-center gap-2 text-sm">
               <input type="hidden" name="enabled" value={v.enabled ? "true" : "false"} />
@@ -263,7 +263,7 @@ export function RuleFormDialog({
             error={fe?.template}
             hint="Variabile: {client}, {proiect}, {categorie}, {localitate}. Nu promite termene sau prețuri pe care nu le-ai stabilit mai jos."
           >
-            <Textarea id="template" name="template" rows={6} value={v.template} onChange={(e) => set("template", e.target.value)} />
+            <Textarea id="template" name="template" rows={6} maxLength={3000} value={v.template} onChange={(e) => set("template", e.target.value)} />
           </Field>
           <div className="rounded-lg border bg-surface p-4 text-sm dark:bg-muted/30">
             <div className="eyebrow mb-2">Previzualizare</div>

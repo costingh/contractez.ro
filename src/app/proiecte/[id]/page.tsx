@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { freePlan, labels } from "@/config/site";
 import { describeBudget, formatDate, timeAgo } from "@/lib/format";
-import { truncate } from "@/lib/text";
+import { pluralRo, truncate } from "@/lib/text";
 import { isFirstViewToday } from "@/server/views";
 import { getCurrentUser } from "@/server/auth/session";
 import { getPlanUsage, type PlanUsage } from "@/server/billing/plans";
@@ -48,12 +48,12 @@ import {
   users,
 } from "@/server/db/schema";
 import { scoreProvidersForProject } from "@/server/matching/run";
+import { isUuid } from "@/lib/ids";
 
 const PUBLIC_STATUSES = new Set(["open", "in_progress", "closed", "cancelled"]);
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const loadProject = cache(async (id: string) => {
-  if (!UUID_RE.test(id)) return null;
+  if (!isUuid(id)) return null;
   const [row] = await db
     .select({
       project: projects,
@@ -207,7 +207,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
       <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
         <article className="min-w-0 space-y-10">
-          <header className="enter overflow-hidden rounded-[1.6rem] border bg-card shadow-sm">
+          <header className="enter min-w-0 overflow-hidden rounded-[1.6rem] border bg-card shadow-sm">
             <div className="ink-panel space-y-5 p-6 sm:p-9">
               <div aria-hidden className="aurora aurora-a -top-40 -left-24 size-[460px]" />
               <div aria-hidden className="aurora aurora-b -right-32 -bottom-56 size-[420px] opacity-40" />
@@ -228,7 +228,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                   <Eye className="size-3.5" /> {p.viewsCount} vizualizări
                 </span>
               </div>
-              <h1 className="text-[1.875rem] leading-[1.08] font-semibold tracking-[-0.035em] text-balance text-white sm:text-[2.5rem]">{p.title}</h1>
+              <h1 className="text-[1.875rem] leading-[1.08] font-semibold tracking-[-0.035em] text-balance text-white [overflow-wrap:anywhere] sm:text-[2.5rem]">{p.title}</h1>
               {/* Locurile de aplicare, mari: semnătura platformei */}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
                 <span className="flex gap-1" aria-hidden>
@@ -280,7 +280,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 <div className="flex items-center gap-2 text-sm font-semibold">
                   <Sparkles className="size-4 text-brand" /> <span className="text-gradient">Pe scurt, de la AI</span>
                 </div>
-                <p className="text-sm leading-relaxed">{quality.summary}</p>
+                <p className="text-sm leading-relaxed [overflow-wrap:anywhere]">{quality.summary}</p>
                 {quality.budgetInsight && (
                   <div className="flex items-start gap-2.5 rounded-lg border bg-card p-3 text-sm leading-relaxed">
                     <Lightbulb className="mt-0.5 size-4 shrink-0 text-warning" />
@@ -332,13 +332,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     {p.durationText && (
                       <div className="flex justify-between gap-3 py-2 first:pt-0 last:pb-0">
                         <dt className="text-muted-foreground">Durată</dt>
-                        <dd className="font-medium">{p.durationText}</dd>
+                        <dd className="min-w-0 text-right font-medium [overflow-wrap:anywhere]">{p.durationText}</dd>
                       </div>
                     )}
                     {attrs.map((a) => (
                       <div key={a.label} className="flex justify-between gap-3 py-2 first:pt-0 last:pb-0">
                         <dt className="text-muted-foreground">{a.label}</dt>
-                        <dd className="text-right font-medium">{a.value}</dd>
+                        <dd className="min-w-0 text-right font-medium [overflow-wrap:anywhere]">{a.value}</dd>
                       </div>
                     ))}
                   </dl>
@@ -352,13 +352,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             <div className="flex flex-wrap items-center gap-4 rounded-xl border bg-card p-5 shadow-xs">
             <div className="flex size-11 items-center justify-center rounded-full bg-secondary font-semibold text-secondary-foreground">{firstName[0]?.toUpperCase()}</div>
             <div className="min-w-0 flex-1 text-sm">
-              <div className="flex items-center gap-1.5 font-semibold">
+              <div className="flex items-center gap-1.5 font-semibold [overflow-wrap:anywhere]">
                 {firstName}
                 {row.clientPhoneVerified && <BadgeCheck className="size-4 text-success" aria-label="Telefon verificat" />}
               </div>
               <div className="mt-0.5 text-muted-foreground">
                 Membru din {formatDate(row.clientCreatedAt, "MMMM yyyy")} · {row.clientProjects} {row.clientProjects === 1 ? "proiect publicat" : "proiecte publicate"}
-                {row.clientCollabs > 0 && ` · ${row.clientCollabs} colaborări`}
+                {row.clientCollabs > 0 && ` · ${pluralRo(row.clientCollabs, "colaborare", "colaborări")}`}
               </div>
             </div>
             </div>
