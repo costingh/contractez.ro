@@ -110,6 +110,7 @@ export async function reportAction(_: ActionState, fd: FormData): Promise<Action
     const user = await getCurrentUser();
     if (!user) throw new DomainError("auth", "Autentifică-te pentru a raporta.");
     if (!(await rateLimit(`report:${user.id}`, 10, 3600))) throw new DomainError("rate", "Prea multe raportări. Încearcă mai târziu.");
+    if (!isUuid(formStr(fd, "targetId"))) throw new DomainError("not_found", "Elementul raportat nu există.");
     await createReport(user.id, {
       targetType: formStr(fd, "targetType") || "project",
       targetId: formStr(fd, "targetId"),

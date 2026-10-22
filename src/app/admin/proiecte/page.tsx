@@ -14,13 +14,16 @@ import { db } from "@/server/db";
 import { categories, projects, users } from "@/server/db/schema";
 import { ActionForm } from "../_components/action-form";
 import { approveProjectAction, removeProjectAction } from "./actions";
+import { isUuid } from "@/lib/ids";
+import { stripControlChars } from "@/lib/text";
 
 const STATUSES = Object.keys(labels.projectStatus) as (keyof typeof labels.projectStatus)[];
 
 export default async function AdminProjectsPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
-  const { q, status } = await searchParams;
+  const { q: rawQ, status } = await searchParams;
+  const q = rawQ ? stripControlChars(rawQ).trim().slice(0, 200) : undefined;
   const where: (SQL | undefined)[] = [];
-  if (q) where.push(or(ilike(projects.title, `%${q}%`), ilike(users.email, `%${q}%`), sql`${projects.id}::text = ${q}`));
+  if (q) where.push(or(ilike(projects.title, `%${q}%`), ilike(users.email, `%${q}%`), ...(isUuid(q) ? [eq(projects.id, q)] : [])));
   if (status && STATUSES.includes(status as never)) where.push(eq(projects.status, status as (typeof STATUSES)[number]));
 
   const select = {

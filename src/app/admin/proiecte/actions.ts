@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { formStr, toActionError, type ActionState } from "@/lib/action";
+import { isUuid } from "@/lib/ids";
 import { requireAdmin } from "@/server/auth/guards";
 import { DomainError } from "@/server/errors";
 import { approveProject, removeProject } from "@/server/projects/service";
@@ -9,6 +10,7 @@ import { approveProject, removeProject } from "@/server/projects/service";
 export async function approveProjectAction(_: ActionState, fd: FormData): Promise<ActionState> {
   try {
     const admin = await requireAdmin();
+    if (!isUuid(formStr(fd, "projectId"))) throw new DomainError("not_found", "Proiectul nu există.");
     await approveProject(formStr(fd, "projectId"), admin.id);
     revalidatePath("/admin/proiecte");
     revalidatePath("/admin/rapoarte");
@@ -23,6 +25,7 @@ export async function removeProjectAction(_: ActionState, fd: FormData): Promise
     const admin = await requireAdmin();
     const reason = formStr(fd, "reason").trim();
     if (reason.length < 3) throw new DomainError("reason", "Scrie motivul eliminării.");
+    if (!isUuid(formStr(fd, "projectId"))) throw new DomainError("not_found", "Proiectul nu există.");
     const refunded = await removeProject(formStr(fd, "projectId"), admin.id, reason);
     revalidatePath("/admin/proiecte");
     revalidatePath("/admin/rapoarte");

@@ -54,7 +54,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const indexable = isCityPageIndexedByDefault(slug, city) || providers.total > 0 || projects.total > 0;
   const base = `${service.noun} ${city.name}: prețuri și oferte`;
   const title = base.length <= 46 ? `${base} verificate` : base;
-  const description = `Cauți ${service.noun.toLowerCase()} în ${city.name}? Publică gratuit proiectul și primești până la 5 oferte de la ${service.plural} verificați din ${city.name} și împrejurimi.`;
+  const description =
+    providers.total > 0
+      ? `Cauți ${service.noun.toLowerCase()} în ${city.name}? Publică gratuit proiectul și primești până la 5 oferte de la ${service.plural} verificați din ${city.name} și împrejurimi.`
+      : `Cauți ${service.noun.toLowerCase()} în ${city.name}? Publică gratuit proiectul: îl primesc ${service.plural} verificați din zonă. Prețuri orientative și sfaturi, fără comision.`;
   return {
     title,
     description,
@@ -72,6 +75,8 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
   const [{ providers, projects }, nearby] = await Promise.all([localData(category.id, locality.id), nearbyLocalities(locality, 30, 8)]);
 
   const nounLower = service.noun.toLowerCase();
+  // Promitem acoperire locală doar unde chiar avem prestatori; altfel spunem deschis că platforma e nouă în oraș.
+  const hasLocal = providers.total > 0;
   const facts = cityFacts[city.slug];
   const firstPrice = guide?.prices?.[0];
   const faq = [
@@ -87,9 +92,11 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
     },
     {
       q: `Cum găsesc ${service.plural} de încredere în ${city.name}?`,
-      a: `Descrie lucrarea pe ${site.name}, gratuit. Primești cel mult 5 oferte de la ${service.plural} compatibili cu cererea ta, care lucrează în ${city.name} și în jur. Vezi profilul, portofoliul și recenziile fiecăruia; recenziile pot fi lăsate doar după o colaborare confirmată.`,
+      a: hasLocal
+        ? `Descrie lucrarea pe ${site.name}, gratuit. Primești cel mult 5 oferte de la ${service.plural} compatibili cu cererea ta, care lucrează în ${city.name} și în jur. Vezi profilul, portofoliul și recenziile fiecăruia; recenziile pot fi lăsate doar după o colaborare confirmată.`
+        : `${site.name} este la început în ${city.name}. Publică gratuit lucrarea: o văd ${service.plural} verificați din zonă imediat ce se înscriu, iar tu primești cel mult 5 oferte. Până atunci, folosește prețurile orientative și sfaturile de mai jos ca să compari corect orice ofertă.`,
     },
-    ...(facts?.neighborhoods.length
+    ...(hasLocal && facts?.neighborhoods.length
       ? [
           {
             q: `În ce cartiere din ${city.name} găsesc ${service.plural}?`,
@@ -97,7 +104,7 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
           },
         ]
       : []),
-    ...(nearby.length
+    ...(hasLocal && nearby.length
       ? [
           {
             q: `Lucrează prestatorii și în afara orașului?`,
@@ -142,8 +149,17 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
                 {service.noun} în {city.name}
               </h1>
               <p className="enter mt-5 max-w-2xl text-[1.0625rem] leading-relaxed text-white/65" style={cssVars({ i: 2 })}>
-                Publici gratuit ce ai nevoie și primești până la 5 oferte de la {service.plural} verificați din {areaLabel(city)}.
-                Compari prețurile și alegi direct, fără comision.
+                {hasLocal ? (
+                  <>
+                    Publici gratuit ce ai nevoie și primești până la 5 oferte de la {service.plural} verificați din {areaLabel(city)}. Compari
+                    prețurile și alegi direct, fără comision.
+                  </>
+                ) : (
+                  <>
+                    Suntem la început în {city.name}. Publici gratuit ce ai nevoie, iar proiectul ajunge la {service.plural} verificați din zonă pe
+                    măsură ce se înscriu. Alegi direct, fără comision.
+                  </>
+                )}
               </p>
               <div className="enter mt-8 flex flex-col gap-3 sm:flex-row" style={cssVars({ i: 3 })}>
                 <Link
@@ -160,6 +176,7 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
                 </Link>
               </div>
             </div>
+            {hasLocal ? (
             <div className="enter grid grid-cols-2 gap-3" style={cssVars({ i: 3 })}>
               {[
                 { v: providers.total, l: `${service.plural} în raza de ${RADIUS_KM} km` },
@@ -174,6 +191,14 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
                 </div>
               ))}
             </div>
+            ) : (
+              <div className="enter glass rounded-2xl p-5" style={cssVars({ i: 3 })}>
+                <div className="text-sm font-semibold text-white">Platformă nouă în {city.name}</div>
+                <p className="mt-1.5 text-xs leading-relaxed text-white/60">
+                  Construim comunitatea locală. Ești din domeniu? Primii prestatori din {city.name} primesc toate proiectele din zonă.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -215,7 +240,8 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
               <p className="flex gap-2 text-sm text-muted-foreground">
                 <MapPin className="mt-0.5 size-4 shrink-0" />
                 <span>
-                  Prestatori în toate cartierele din {city.name}: {facts.neighborhoods.join(", ")}.
+                  {hasLocal ? `Prestatori în toate cartierele din ${city.name}` : `Poți publica proiecte din orice cartier`}:{" "}
+                  {facts.neighborhoods.join(", ")}.
                 </span>
               </p>
             ) : null}
@@ -223,7 +249,7 @@ export default async function CityCategoryPage({ params }: { params: Params }) {
               <p className="flex gap-2 text-sm text-muted-foreground">
                 <MapPin className="mt-0.5 size-4 shrink-0" />
                 <span>
-                  Acoperim și împrejurimile: {nearby.join(", ")}.
+                  {hasLocal ? "Acoperim și împrejurimile" : "Proiectele se pot publica și din împrejurimi"}: {nearby.join(", ")}.
                 </span>
               </p>
             )}

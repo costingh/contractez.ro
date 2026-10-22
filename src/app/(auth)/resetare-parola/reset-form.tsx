@@ -15,10 +15,10 @@ export function ResetForm({ token }: { token: string }) {
     <form action={action} className="space-y-5">
       <input type="hidden" name="token" value={token} />
       <Field label="Parolă nouă" htmlFor="password" hint="Minimum 8 caractere.">
-        <Input id="password" name="password" type="password" autoComplete="new-password" minLength={8} maxLength={200} required className="h-11" />
+        <Input id="password" name="password" type="password" autoComplete="new-password" minLength={8} maxLength={128} required className="h-11" />
       </Field>
       <Field label="Confirmă parola" htmlFor="confirm">
-        <Input id="confirm" name="confirm" type="password" autoComplete="new-password" minLength={8} maxLength={200} required className="h-11" />
+        <Input id="confirm" name="confirm" type="password" autoComplete="new-password" minLength={8} maxLength={128} required className="h-11" />
       </Field>
       <FormMessage state={state} />
       {state && !state.ok && state.fieldErrors?.token ? (

@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     "backups/**",
     // Extensia Chrome (JS de browser, testată separat cu node --test).
     "tools/**",
+    // Worktree-urile altor sesiuni Claude (au propriul .next și propriile teste).
+    ".claude/**",
   ]),
 ]);
 

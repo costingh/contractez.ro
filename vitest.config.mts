@@ -6,7 +6,7 @@ export default defineConfig({
   test: {
     environment: "node",
     // tools/* (ex: extensia fb-copilot) au propriile teste (node:test), rulate separat.
-    exclude: [...configDefaults.exclude, "tools/**"],
+    exclude: [...configDefaults.exclude, "tools/**", ".claude/**", ".next/**"],
     globalSetup: ["tests/global-setup.ts"],
     setupFiles: ["tests/setup-env.ts"],
     fileParallelism: false,

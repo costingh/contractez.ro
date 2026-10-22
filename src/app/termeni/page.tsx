@@ -86,7 +86,40 @@ export default function TermsPage() {
         </p>
       </section>
       <section>
-        <h2>9. Contact</h2>
+        <h2>9. Conținutul tău</h2>
+        <p>
+          Rămâi proprietarul textelor, pozelor și fișierelor pe care le publici. Ne acorzi dreptul neexclusiv, gratuit, de a le afișa și
+          distribui pe platformă (inclusiv în rezultatele de căutare și în notificările către alți utilizatori) cât timp sunt publicate.
+          Garantezi că ai dreptul să publici acest conținut și că nu încalcă drepturile altora.
+        </p>
+      </section>
+      <section>
+        <h2>10. Suspendarea și închiderea contului</h2>
+        <ul>
+          <li>Poți șterge oricând contul din pagina de setări; datele se șterg conform Politicii de confidențialitate.</li>
+          <li>
+            Putem limita, suspenda sau închide un cont care încalcă acești termeni (fraudă, spam, conținut ilegal, conturi multiple), cu
+            informarea utilizatorului, cu excepția cazurilor în care legea sau siguranța altor utilizatori nu o permit.
+          </li>
+        </ul>
+      </section>
+      <section>
+        <h2>11. Modificarea termenilor</h2>
+        <p>
+          Putem actualiza acești termeni când se schimbă serviciul sau legislația. Te anunțăm prin email sau în platformă cu cel puțin 15 zile
+          înainte de modificările importante. Continuarea utilizării după intrarea lor în vigoare înseamnă acceptarea noii versiuni.
+        </p>
+      </section>
+      <section>
+        <h2>12. Legea aplicabilă și litigii</h2>
+        <p>
+          Acești termeni sunt guvernați de legea română. Încercăm să rezolvăm orice nemulțumire amiabil, la {site.supportEmail}. Dacă nu reușim,
+          litigiile se soluționează de instanțele competente din România; consumatorii pot apela și la procedura de soluționare alternativă a
+          litigiilor (SAL) a ANPC.
+        </p>
+      </section>
+      <section>
+        <h2>13. Contact</h2>
         <p>
           Pentru întrebări sau sesizări scrie-ne la {site.supportEmail} sau folosește pagina de{" "}
           <Link href="/contact">contact</Link>. Consumatorii se pot adresa și Autorității Naționale pentru Protecția Consumatorilor, inclusiv

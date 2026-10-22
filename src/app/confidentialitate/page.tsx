@@ -44,7 +44,7 @@ export default function PrivacyPage() {
         <h2>5. Cui le transmitem</h2>
         <ul>
           <li>Celorlalți utilizatori: profilul public, proiectele publicate (fără date de contact și fără adresă exactă), ofertele și mesajele către destinatar.</li>
-          <li>Furnizorilor noștri: găzduire (VPS), email tranzacțional (Resend), plăți (Stripe), AI (OpenAI), analiza traficului (VisitTrack), chat de suport (Crisp, doar dacă deschizi chat-ul).</li>
+          <li>Furnizorilor noștri: găzduire (Hetzner Online, servere în Uniunea Europeană), email tranzacțional (Resend), plăți (Stripe), AI (OpenAI), analiza traficului (VisitTrack), chat de suport (Crisp, doar dacă deschizi chat-ul).</li>
           <li>Autorităților, doar când legea o cere.</li>
         </ul>
       </section>
@@ -64,8 +64,28 @@ export default function PrivacyPage() {
         </ul>
         <p>Pentru exercitarea drepturilor scrie-ne la {site.supportEmail}.</p>
       </section>
+      <section>
+        <h2>8. Transferuri în afara Uniunii Europene</h2>
+        <p>
+          Unii furnizori (de exemplu OpenAI, Stripe, Resend, Crisp) pot prelucra date și în afara Spațiului Economic European. În aceste
+          cazuri transferul se face pe baza mecanismelor prevăzute de GDPR: decizia de adecvare UE–SUA (Data Privacy Framework), acolo unde
+          furnizorul este certificat, sau clauzele contractuale standard aprobate de Comisia Europeană.
+        </p>
+      </section>
+      <section>
+        <h2>9. Securitate</h2>
+        <p>
+          Parolele sunt stocate criptat (hash), conexiunile folosesc HTTPS, accesul la date este limitat la persoanele care au nevoie de el, iar
+          fișierele private (de exemplu atașamentele din chat) sunt disponibile doar participanților la conversație. Facem copii de siguranță
+          zilnice ale datelor.
+        </p>
+      </section>
+      <section>
+        <h2>10. Vârsta minimă</h2>
+        <p>Platforma este destinată persoanelor de cel puțin 18 ani. Nu colectăm cu bună știință date despre minori.</p>
+      </section>
       <section id="cookie-uri" className="scroll-mt-24">
-        <h2>8. Cookie-uri și analiza traficului</h2>
+        <h2>11. Cookie-uri și analiza traficului</h2>
         <ul>
           <li>
             <strong>Strict necesare</strong> (fără acord, pentru că fără ele site-ul nu funcționează): sesiunea de autentificare, protecția
@@ -81,6 +101,13 @@ export default function PrivacyPage() {
           </li>
           <li>Nu folosim cookie-uri de publicitate și nu vindem date.</li>
         </ul>
+      </section>
+      <section>
+        <h2>12. Modificări</h2>
+        <p>
+          Putem actualiza această politică atunci când se schimbă serviciul sau legislația. Data ultimei actualizări apare la începutul
+          paginii; modificările importante le anunțăm prin email sau în platformă.
+        </p>
       </section>
     </LegalPage>
   );

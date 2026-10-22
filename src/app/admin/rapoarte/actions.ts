@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { formStr, toActionError, type ActionState } from "@/lib/action";
+import { isUuid } from "@/lib/ids";
 import { requireAdmin } from "@/server/auth/guards";
 import { DomainError } from "@/server/errors";
 import { removeProject } from "@/server/projects/service";
@@ -10,6 +11,7 @@ import { banUser, hideReview, resolveReport } from "@/server/trust/service";
 export async function resolveReportAction(_: ActionState, fd: FormData): Promise<ActionState> {
   try {
     const admin = await requireAdmin();
+    if (!isUuid(formStr(fd, "reportId"))) return { ok: false, error: "Raportarea nu există." };
     const status = formStr(fd, "status") === "dismissed" ? "dismissed" : "resolved";
     await resolveReport(formStr(fd, "reportId"), admin.id, status, formStr(fd, "resolution").trim() || (status === "dismissed" ? "Fără acțiune" : "Rezolvat"));
     revalidatePath("/admin/rapoarte");
@@ -26,6 +28,7 @@ export async function quickActionAction(_: ActionState, fd: FormData): Promise<A
     const kind = formStr(fd, "kind");
     const targetId = formStr(fd, "targetId");
     const reportId = formStr(fd, "reportId");
+    if (!isUuid(targetId) || (reportId && !isUuid(reportId))) return { ok: false, error: "Elementul nu există." };
     const reason = formStr(fd, "reason").trim() || "Încălcarea regulilor platformei";
     let message = "";
     if (kind === "remove_project") {

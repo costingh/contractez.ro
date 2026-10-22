@@ -46,6 +46,8 @@ export default async function CityHubPage({ params }: { params: Params }) {
     .map((root) => ({ root, services: root.children.filter((c) => cityServices[c.slug]) }))
     .filter((g) => g.services.length > 0);
   const demandByRoot = new Map(demand.map((d) => [d.categoryId, d]));
+  // Promitem acoperire locală doar dacă există prestatori în județ; altfel spunem deschis că suntem la început.
+  const hasLocal = demand.some((d) => d.providers > 0);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -75,13 +77,16 @@ export default async function CityHubPage({ params }: { params: Params }) {
             Meseriași și prestatori în <span className="serif-em text-gradient">{city.name}</span>
           </h1>
           <p className="enter mt-5 max-w-2xl text-[1.0625rem] leading-relaxed text-muted-foreground" style={cssVars({ i: 2 })}>
-            Alege serviciul de care ai nevoie în {areaLabel(city)}. Publici gratuit proiectul și primești până la 5 oferte de la
-            prestatori verificați, fără comision.
+            {hasLocal
+              ? `Alege serviciul de care ai nevoie în ${areaLabel(city)}. Publici gratuit proiectul și primești până la 5 oferte de la prestatori verificați, fără comision.`
+              : `Suntem la început în ${areaLabel(city)}. Alege serviciul și publică gratuit proiectul: ajunge la prestatorii verificați din zonă pe măsură ce se înscriu, fără comision.`}
           </p>
           {cityFacts[city.slug]?.neighborhoods.length ? (
             <p className="enter mt-4 flex max-w-2xl gap-2 text-sm text-muted-foreground" style={cssVars({ i: 2 })}>
               <MapPin className="mt-0.5 size-4 shrink-0" />
-              <span>Inclusiv în cartierele {cityFacts[city.slug].neighborhoods.join(", ")}.</span>
+              <span>
+                {hasLocal ? "Inclusiv în cartierele" : "Poți publica proiecte din orice cartier"}: {cityFacts[city.slug].neighborhoods.join(", ")}.
+              </span>
             </p>
           ) : null}
           <Link

@@ -1,4 +1,4 @@
-import { AlertTriangle, FileText, Mail, ShieldCheck } from "lucide-react";
+import { FileText, Mail, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { cssVars } from "@/components/home/css-vars";
 
@@ -32,14 +32,7 @@ export function LegalPage({ title, updated, children }: { title: string; updated
 
       <div className="container-page mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_260px]">
         <div className="max-w-3xl">
-          <div className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning/8 px-4 py-3 text-sm leading-relaxed">
-            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
-            <span>
-              <strong className="font-semibold">Document în lucru (draft).</strong> Acest text este un model orientativ și trebuie revizuit de un avocat
-              înainte de lansarea publică și de încasarea oricăror plăți.
-            </span>
-          </div>
-          <div className="mt-8 space-y-5 text-[0.9375rem] leading-[1.75] [&_a]:text-brand [&_a]:underline-offset-4 hover:[&_a]:underline [&_h2]:mt-12 [&_h2]:border-t [&_h2]:pt-8 [&_h2]:text-[1.375rem] [&_h2]:font-semibold [&_h2]:tracking-[-0.025em] [&_li]:ml-5 [&_li]:list-disc [&_li]:pl-1 [&_p]:text-muted-foreground [&_section:first-child_h2]:mt-0 [&_section:first-child_h2]:border-t-0 [&_section:first-child_h2]:pt-0 [&_strong]:text-foreground [&_ul]:space-y-1.5 [&_ul]:text-muted-foreground">
+          <div className="space-y-5 text-[0.9375rem] leading-[1.75] [&_a]:text-brand [&_a]:underline-offset-4 hover:[&_a]:underline [&_h2]:mt-12 [&_h2]:border-t [&_h2]:pt-8 [&_h2]:text-[1.375rem] [&_h2]:font-semibold [&_h2]:tracking-[-0.025em] [&_li]:ml-5 [&_li]:list-disc [&_li]:pl-1 [&_p]:text-muted-foreground [&_section:first-child_h2]:mt-0 [&_section:first-child_h2]:border-t-0 [&_section:first-child_h2]:pt-0 [&_strong]:text-foreground [&_ul]:space-y-1.5 [&_ul]:text-muted-foreground">
             {children}
           </div>
         </div>
