@@ -72,6 +72,7 @@ export default function AboutPage() {
     ["Ce este", "Platformă online de servicii (marketplace) pentru clienți și prestatori din România"],
     ["Lansare", site.launched.label],
     ["Operator", site.operator],
+    ["Fondator, autorul ghidurilor", <span key="fondator" id="fondator">{site.author}</span>],
     [
       "Contact",
       <>
@@ -97,7 +98,7 @@ export default function AboutPage() {
     logo: { "@type": "ImageObject", url: `${base}/icon-512.png` },
     email: site.supportEmail,
     foundingDate: site.launched.iso,
-    founder: { "@type": "Person", name: site.founder },
+    founder: { "@type": "Person", "@id": `${base}/despre#fondator`, name: site.author },
     areaServed: { "@type": "Country", name: "România", identifier: "RO" },
     description: aboutDefinition,
     knowsAbout: [...new Set(taxonomy.flatMap((c) => [c.name, ...c.subs.map((s) => s.name)]))],

@@ -32,6 +32,7 @@ export default function BlogIndexPage() {
       url: `${base}/blog/${p.slug}`,
       datePublished: p.date,
       dateModified: p.updated ?? p.date,
+      author: { "@type": "Person", "@id": `${base}/despre#fondator`, name: site.author },
     })),
   };
   return (

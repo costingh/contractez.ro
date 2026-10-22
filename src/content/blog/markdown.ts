@@ -68,7 +68,7 @@ export function postToMarkdown(post: Post, baseUrl: string): string {
     `URL: ${url}`,
     `Publicat: ${dateFmt.format(new Date(post.date))}`,
     `Actualizat: ${dateFmt.format(new Date(modified))}`,
-    `Autor: ${site.name} (${baseUrl}/despre)`,
+    `Autor: ${site.author}, fondator ${site.name} (${baseUrl}/despre)`,
   ];
   const parts = [
     `# ${post.title}`,

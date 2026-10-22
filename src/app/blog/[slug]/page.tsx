@@ -64,7 +64,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
         url,
         inLanguage: "ro-RO",
         image: `${env.APP_URL}/opengraph-image.png`,
-        author: org,
+        author: { "@type": "Person", "@id": `${env.APP_URL}/despre#fondator`, name: site.author, url: `${env.APP_URL}/despre`, worksFor: { "@id": `${env.APP_URL}/#org` } },
         publisher: { ...org, logo: { "@type": "ImageObject", url: `${env.APP_URL}/icon-512.png` } },
         ...(sources.length
           ? {
@@ -115,7 +115,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
             <span>
               Autor:{" "}
               <Link href="/despre" className="underline-offset-4 hover:text-foreground hover:underline">
-                {site.name}
+                {site.author}
               </Link>
             </span>
             <span className="inline-flex items-center gap-1.5">

@@ -13,6 +13,8 @@ export const site = {
   anpcSalUrl: "https://reclamatiisal.anpc.ro/",
   /** Numele operatorului (fondator), pentru datele structurate. */
   founder: "Gheorghe Constantin",
+  /** Autorul articolelor de pe blog (fondatorul), cu numele în ordinea obișnuită. */
+  author: "Constantin Gheorghe",
   /** Lansarea publică a platformei: ISO (pentru JSON-LD) și textul afișat. */
   launched: { iso: "2026-10", label: "octombrie 2026" },
 } as const;
