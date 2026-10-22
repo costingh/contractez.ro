@@ -7,6 +7,7 @@ Pe server, sursa de adevăr rămâne `/etc/nginx/`; fișierele de aici se copiaz
 |---|---|
 | `contractez-cache.conf` | `/etc/nginx/conf.d/contractez-cache.conf` (context `http`) |
 | `contractez.ro.conf` | `/etc/nginx/sites-available/contractez.ro` (link în `sites-enabled`) |
+| `cloudflare-realip.conf` | `/etc/nginx/snippets/cloudflare-realip.conf` (inclus doar în serverul contractez.ro) |
 
 ## Ce face cache-ul
 
