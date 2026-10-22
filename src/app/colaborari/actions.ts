@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { formBool, formStr, toActionError, type ActionState } from "@/lib/action";
+import { isUuid } from "@/lib/ids";
 import { requireOnboardedUser } from "@/server/auth/guards";
 import { cancelCollaboration, completeCollaboration, confirmCollaboration, leaveReview } from "@/server/trust/service";
 
 export async function confirmAction(id: string): Promise<ActionState> {
+  if (!isUuid(id)) return { ok: false, error: "Colaborarea nu există." };
   try {
     const user = await requireOnboardedUser("/colaborari");
     await confirmCollaboration(id, user.id);
@@ -17,6 +19,7 @@ export async function confirmAction(id: string): Promise<ActionState> {
 }
 
 export async function completeAction(id: string): Promise<ActionState> {
+  if (!isUuid(id)) return { ok: false, error: "Colaborarea nu există." };
   try {
     const user = await requireOnboardedUser("/colaborari");
     await completeCollaboration(id, user.id);
@@ -29,6 +32,7 @@ export async function completeAction(id: string): Promise<ActionState> {
 }
 
 export async function cancelAction(id: string): Promise<ActionState> {
+  if (!isUuid(id)) return { ok: false, error: "Colaborarea nu există." };
   try {
     const user = await requireOnboardedUser("/colaborari");
     await cancelCollaboration(id, user.id);

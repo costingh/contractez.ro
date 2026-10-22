@@ -21,6 +21,11 @@ export function toActionError(err: unknown): { ok: false; error: string; fieldEr
   if (err instanceof Error && (err.name === "DomainError" || err.name === "ActionError")) {
     return { ok: false, error: err.message };
   }
+  // Un identificator invalid a ajuns totuși în Postgres (invalid_text_representation): tratat ca „nu există”, nu ca eroare.
+  const pgCode = (e: unknown) => (e && typeof e === "object" && "code" in e ? (e as { code?: unknown }).code : undefined);
+  if (pgCode(err) === "22P02" || (err instanceof Error && pgCode(err.cause) === "22P02")) {
+    return { ok: false, error: "Elementul nu există sau nu mai este disponibil." };
+  }
   console.error(err);
   return { ok: false, error: "A apărut o eroare neașteptată. Încearcă din nou." };
 }
