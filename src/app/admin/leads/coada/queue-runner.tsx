@@ -62,7 +62,7 @@ export function QueueRunner({
     }
     if (lead.messengerUrl) window.open(lead.messengerUrl, "cz-messenger");
     setOpened(true);
-    toast.success("Mesaj copiat. Lipește-l în Messenger (⌘V), citește-l și trimite.");
+    toast.success("Mesaj copiat. În Messenger extensia apasă „Începe conversația”; tu lipești (⌘V), citești și trimiți.");
   }, [lead, message]);
 
   const act = useCallback(

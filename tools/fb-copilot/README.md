@@ -7,9 +7,13 @@ Un **asistent**, nu un bot. Extensia:
 - **afișează** un chip mic pe fiecare postare/comentariu („Client 82”, „Prestator 64”, „Irelevant”, „Contactat”…);
 - **verifică** în Messenger dacă ai mai vorbit cu persoana și îți arată un banner.
 
-Extensia **nu** dă click pe nimic (nici pe „Vezi mai mult”, nici pe „Vezi mai multe comentarii”), **nu** derulează,
+Extensia **nu** dă click în grupuri (nici pe „Vezi mai mult”, nici pe „Vezi mai multe comentarii”), **nu** derulează,
 **nu** navighează, **nu** scrie și **nu** trimite mesaje. Nu lucrează pe tab-uri pe care nu le vezi. Mesajul îl
 copiezi din `/admin/leads`, îl lipești în Messenger și apeși tu „Trimite”.
+
+Singura excepție: în tab-ul Messenger deschis din **coada rapidă** (`/admin/leads/coada`, tasta C), dacă o conversație
+nouă cere „Începe conversația” / „Continuă”, extensia apasă butonul o dată și pune cursorul în câmpul de mesaj.
+Nu scrie și nu trimite: tu lipești (⌘V) și apeși Enter.
 
 Contractul cu serverul: [`docs/OUTREACH.md`](../../docs/OUTREACH.md).
 
@@ -80,9 +84,10 @@ Facebook deschise. (Altfel panoul arată „Extensia a fost reîncărcată — d
 - **Max ~20 de mesaje pe zi** (limita serverului `OUTREACH_DAILY_CAP`, implicit 20). Nu trimite în rafală;
   lasă minute între mesaje și personalizează-le.
 - Nu trimite niciodată mesaj cuiva cu banner roșu sau chip „Deja contactat”.
-- Extensia **nu** automatizează nimic pe Facebook; dacă vreodată vezi că face click, derulează sau scrie singură,
-  dezactiveaz-o — e un bug. (Testul `test/manifest.test.mjs` verifică static că nu există `click()`,
-  `dispatchEvent`, `scrollTo`, `execCommand`, `focus()` etc. în content scripts.)
+- Extensia **nu** scrie și nu trimite nimic pe Facebook. Singurul click e „Începe conversația” în tab-ul cozii (vezi
+  mai sus); dacă vezi că apasă altceva, derulează sau scrie singură, dezactiveaz-o — e un bug. (Testul
+  `test/manifest.test.mjs` verifică static că există un singur `click()` și un singur `focus()`, limitate la tab-ul
+  cozii, și că nu există `dispatchEvent`, `scrollTo`, `execCommand`, scriere în câmpuri etc. în content scripts.)
 - Date trimise: doar de pe paginile de grup și din conversațiile Messenger (service worker-ul respinge mesajele venite
   din alte URL-uri). Doar ce e deja randat pe ecran.
 - Nu rulează pe tab-uri ascunse; fiecare scanare e limitată (throttle ~1,2 s, `requestIdleCallback`, max 30 articole/scanare).

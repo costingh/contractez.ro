@@ -37,7 +37,12 @@ test('toate fișierele referite în manifest există', () => {
   for (const f of files) assert.ok(existsSync(path.join(dir, f)), `lipsește ${f}`);
 });
 
+const stripComments = (src) => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+
 test('content script-urile nu dau click, nu derulează, nu navighează, nu scriu', () => {
+  // Excepția: content-messenger.js are exact un click() („Începe conversația”) și un focus() (câmpul de mesaj),
+  // verificate în testul următor; aici le eliminăm ca să rămână interzise oriunde altundeva.
+  const allowed = { 'content-messenger.js': [/found\.el\.click\(\);/, /box\.focus\(\);/] };
   const forbidden = [
     /\.click\s*\(/,
     /dispatchEvent\s*\(/,
@@ -52,9 +57,32 @@ test('content script-urile nu dau click, nu derulează, nu navighează, nu scriu
     /\.submit\s*\(/,
   ];
   for (const f of ['extract.js', 'content-group.js', 'content-messenger.js']) {
-    const src = read(f)
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/(^|[^:])\/\/.*$/gm, '$1');
+    let src = stripComments(read(f));
+    for (const re of allowed[f] ?? []) src = src.replace(re, '');
     for (const re of forbidden) assert.ok(!re.test(src), `${f} conține ${re}`);
+  }
+  // În Messenger nu scriem nimic în pagină (bannerul e în shadow DOM-ul propriu, setat prin innerHTML).
+  const msg = stripComments(read('content-messenger.js'));
+  assert.ok(!/insertText|ClipboardEvent|clipboard\.|\.(?:textContent|innerText|value)\s*=[^=]/.test(msg), 'content-messenger.js scrie în pagină');
+});
+
+test('Messenger: un singur click, doar pe „Începe conversația”, doar în tab-ul cozii', () => {
+  const src = stripComments(read('content-messenger.js'));
+  assert.equal(src.match(/\.click\s*\(/g)?.length, 1);
+  assert.equal(src.match(/\.focus\s*\(/g)?.length, 1);
+  assert.match(src, /const QUEUE_TAB = 'cz-messenger';/);
+  const fn = (name) => src.slice(src.indexOf(`function ${name}(`), src.indexOf('\n  }\n', src.indexOf(`function ${name}(`)));
+  for (const name of ['maybeStartConversation', 'focusComposer']) {
+    assert.match(fn(name), /if \(!fromQueue\(\) \|\| document\.hidden \|\| /, `${name} trebuie limitat la tab-ul cozii, vizibil`);
+  }
+
+  // Etichetele: doar pornirea conversației, niciodată trimiterea.
+  const start = new RegExp(src.match(/const START_LABEL = \/(.+)\/i;/)[1], 'i');
+  const never = new RegExp(src.match(/const NEVER_LABEL = \/(.+)\/i;/)[1], 'i');
+  for (const ok of ['Începe conversația', 'Incepe conversatia', 'Start conversation', 'Start a chat', 'Continuă', 'Continue']) {
+    assert.ok(start.test(ok) && !never.test(ok), ok);
+  }
+  for (const no of ['Trimite', 'Send', 'Trimite mesajul', 'Apel audio', 'Blochează', 'Continuă să trimiți', 'Șterge conversația']) {
+    assert.ok(!start.test(no) || never.test(no), no);
   }
 });

@@ -10,7 +10,11 @@
  *   2. raportează o singură dată per conversație: POST /api/outreach/thread { hasHistory };
  *   3. afișează un banner: roșu dacă ați mai vorbit / persoana e deja contactată, discret altfel.
  *
- * NU scrie nimic în câmpul de mesaj, NU trimite nimic, NU dă click.
+ * NU scrie nimic în câmpul de mesaj și NU trimite nimic.
+ *
+ * Singura acțiune: în tab-ul deschis din coada Contractez (window.name „cz-messenger”), dacă o conversație fără
+ * istoric arată butonul „Începe conversația” / „Continuă”, îl apasă o dată, apoi pune cursorul în câmpul de mesaj.
+ * Lipirea mesajului și „Trimite” rămân la om. În Messenger-ul folosit normal (alt tab) extensia nu apasă nimic.
  *
  * De ce o singură raportare per conversație (per încărcare de pagină): după ce omul trimite
  * mesajul de outreach, conversația ARE istoric. Dacă am raporta din nou, serverul ar marca
@@ -54,6 +58,8 @@
   const CHECK_EVERY_MS = 500;
   const STABLE_EMPTY_MS = 2500; // conversația trebuie să rămână goală atât timp ca să o considerăm „fără istoric”
   const GIVE_UP_MS = 12000;
+  /** Numele tab-ului deschis din /admin/leads/coada (window.open(url, "cz-messenger")). */
+  const QUEUE_TAB = 'cz-messenger';
 
   /* ------------------------------------------------------------------------ */
   /* Heuristici DOM (Messenger) — de actualizat aici dacă Facebook schimbă UI-ul */
@@ -124,6 +130,57 @@
   }
 
   /* ------------------------------------------------------------------------ */
+  /* „Începe conversația” (doar în tab-ul cozii)                                */
+  /* ------------------------------------------------------------------------ */
+
+  /** Potrivire exactă pe eticheta butonului; orice altceva (Trimite, Apel, Blochează…) e ignorat. */
+  const START_LABEL = /^(start(?: a)? (?:new )?(?:conversation|chat)|[îi]ncepe(?: o)? conversa[țt]i[ae]|[îi]ncepe (?:un )?chat(?:ul)?|continu[ăa]|continue)$/i;
+  const NEVER_LABEL = /(trimite|send|apel|call|[șs]terge|delete|bloc|block|raporteaz|report|ignor)/i;
+  const startClicked = new Set();
+  const focused = new Set();
+  const startNotes = new Map();
+  const fromQueue = () => window.name === QUEUE_TAB;
+
+  function findStartButton() {
+    const main = document.querySelector(MSEL.main);
+    const list = main && main.querySelector(MSEL.messageList);
+    const scopes = [...document.querySelectorAll('[role="dialog"]'), main].filter(Boolean);
+    for (const scope of scopes) {
+      for (const b of scope.querySelectorAll('button, [role="button"]')) {
+        if (list && list.contains(b)) continue; // butoane din mesaje
+        if (b.closest(MSEL.composer)) continue;
+        if (b.disabled || b.getAttribute('aria-disabled') === 'true') continue;
+        const label = (b.getAttribute('aria-label') || b.textContent || '').replace(/\s+/g, ' ').trim();
+        if (!START_LABEL.test(label) || NEVER_LABEL.test(label)) continue;
+        const r = b.getBoundingClientRect();
+        if (!r.width || !r.height) continue; // invizibil
+        return { el: b, label };
+      }
+    }
+    return null;
+  }
+
+  /** O singură apăsare per conversație, doar pe o conversație fără istoric, doar în tab-ul cozii, doar pe tab vizibil. */
+  function maybeStartConversation(thread) {
+    if (!fromQueue() || document.hidden || startClicked.has(thread.threadUrl)) return;
+    const found = findStartButton();
+    if (!found) return;
+    startClicked.add(thread.threadUrl);
+    found.el.click();
+    startNotes.set(thread.threadUrl, `Am apăsat „${found.label}”.`);
+  }
+
+  /** Pune cursorul în câmpul de mesaj, ca ⌘V să meargă direct. Nu scrie nimic în el. */
+  function focusComposer(thread) {
+    if (!fromQueue() || document.hidden || focused.has(thread.threadUrl)) return;
+    const main = document.querySelector(MSEL.main);
+    const box = main && main.querySelector(MSEL.composer);
+    if (!box) return;
+    focused.add(thread.threadUrl);
+    box.focus();
+  }
+
+  /* ------------------------------------------------------------------------ */
   /* Flux                                                                       */
   /* ------------------------------------------------------------------------ */
 
@@ -169,6 +226,8 @@
         finalize(thread, true);
         return;
       }
+      // Fără istoric (încă): dacă Messenger cere „Începe conversația”, îl apăsăm (doar în tab-ul cozii).
+      maybeStartConversation(thread);
       if (d.loaded) {
         emptySince = emptySince || now;
         if (now - emptySince >= STABLE_EMPTY_MS) {
@@ -227,9 +286,16 @@
         };
       }
     }
+    if (fromQueue() && view.kind === 'first') {
+      const started = startNotes.get(thread.threadUrl);
+      view.note = [started, 'Lipește mesajul (⌘V), citește-l și apasă tu Enter.', view.note].filter(Boolean).join(' ');
+    }
     // Rezultatul se reține doar dacă am primit un răspuns definitiv (ca să nu raportăm de două ori).
     if (!paused && !dead) reported.set(thread.threadUrl, view);
-    if (X.parseThreadUrl(location.href)?.threadUrl === thread.threadUrl) showBanner(view);
+    if (X.parseThreadUrl(location.href)?.threadUrl === thread.threadUrl) {
+      showBanner(view);
+      if (view.kind === 'first') focusComposer(thread);
+    }
   }
 
   /* ------------------------------------------------------------------------ */

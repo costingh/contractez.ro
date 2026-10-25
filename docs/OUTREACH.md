@@ -1,8 +1,8 @@
 # Outreach copilot (Facebook) — contract
 
 Un asistent, NU un bot: extensia citește doar ce utilizatorul a derulat deja pe ecran, serverul clasifică și scrie
-mesaje personalizate, iar **omul** deschide Messenger, lipește mesajul și apasă trimite. Fără click-uri automate,
-fără navigare automată, fără trimitere automată. Limită zilnică de mesaje (implicit 20).
+mesaje personalizate, iar **omul** deschide Messenger, lipește mesajul și apasă trimite. Fără navigare automată,
+fără scriere și fără trimitere automată. Singurul click automat: „Începe conversația” în tab-ul deschis din coadă. Limită zilnică de mesaje (implicit 20).
 
 ## Componente
 - `tools/fb-copilot/` — extensie Chrome MV3, instalată local („Load unpacked”), nepublicată.
