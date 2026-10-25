@@ -5,8 +5,10 @@
  *   - primește itemi de la content-group.js, îi strânge în loturi (max 50, debounce ~3 s);
  *   - ține minte id-urile deja trimise (LRU ~20k în chrome.storage.local) ca să nu le retrimită;
  *   - întreabă statusul itemilor vizibili (chip-uri) și raportează conversațiile Messenger;
- *   - afișează erorile 401/503 în badge și în popup.
- * Nu deschide pagini, nu injectează scripturi, nu rulează nimic pe Facebook singur.
+ *   - afișează erorile 401/503 în badge și în popup;
+ *   - coada: deschide conversația lead-ului în tab-ul Messenger al cozii (același tab, refolosit), marchează
+ *     lead-ul trimis/sărit când content-messenger.js vede ce ai făcut, copiază mesajul următorului lead în
+ *     clipboard și mută tab-ul la conversația lui. Nu scrie și nu trimite mesaje.
  */
 'use strict';
 
@@ -22,6 +24,10 @@ const RETRY_MAX_MS = 5 * 60 * 1000;
 /** Doar aceste pagini au voie să trimită date (pe lângă popup/opțiuni). */
 const GROUP_PAGE = /^https:\/\/www\.facebook\.com\/groups\//;
 const THREAD_PAGE = /^https:\/\/www\.facebook\.com\/messages\/(?:e2ee\/)?t\//;
+/** Linkurile pe care coada le poate deschide (cele generate de server: /messages/t/<id|username>). */
+const QUEUE_THREAD_URL = /^https:\/\/www\.facebook\.com\/messages\/t\/[^/?#]+$/;
+/** Pagina cozii din admin (unde rulează content-queue.js). */
+const QUEUE_PAGE = /^(?:https:\/\/contractez\.ro|http:\/\/localhost:3000)\/admin\/leads\/coada/;
 /** Originile pentru care avem host_permissions (altfel fetch-ul e blocat de CORS). */
 const ALLOWED_ORIGINS = ['https://contractez.ro', 'http://localhost:3000'];
 
@@ -372,6 +378,7 @@ async function reportThread(payload) {
     authorFbId: payload.authorFbId || null,
     authorProfileUrl: payload.authorProfileUrl || null,
     hasHistory: Boolean(payload.hasHistory),
+    leadId: payload.leadId || null,
   };
   const res = await api(cfg, 'POST', '/api/outreach/thread', body);
   if (!res.ok) return { ok: false, error: res.error };
@@ -410,6 +417,107 @@ async function getState() {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Coada (tab-ul Messenger deschis din /admin/leads/coada)                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Starea cozii, în storage.session (supraviețuiește repornirii service worker-ului, dispare la închiderea Chrome):
+ * tabId = tab-ul Messenger al cozii, leadId = lead-ul deschis acum în el, next = lead-ul pregătit (mesaj copiat).
+ */
+async function getQueueState() {
+  const { czQueue } = await chrome.storage.session.get({ czQueue: null });
+  return czQueue || { tabId: null, leadId: null, authorName: null, filters: {}, next: null };
+}
+
+async function setQueueState(patch) {
+  const next = { ...(await getQueueState()), ...patch };
+  await chrome.storage.session.set({ czQueue: next });
+  return next;
+}
+
+async function tabExists(tabId) {
+  if (!tabId) return false;
+  try {
+    await chrome.tabs.get(tabId);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Deschide conversația lead-ului în tab-ul cozii (îl refolosește dacă există, altfel îl creează). */
+async function openInQueueTab(url, lead, extra = {}) {
+  if (!QUEUE_THREAD_URL.test(url)) return { ok: false, error: { status: 0, message: 'Link Messenger nepermis.' } };
+  const st = await getQueueState();
+  let tabId = st.tabId;
+  if (await tabExists(tabId)) {
+    await chrome.tabs.update(tabId, { url, active: true });
+  } else {
+    const tab = await chrome.tabs.create({ url, active: true });
+    tabId = tab.id;
+  }
+  await setQueueState({ tabId, leadId: lead.id, authorName: lead.authorName || null, next: null, ...extra });
+  return { ok: true };
+}
+
+let offscreenReady = null;
+async function copyToClipboard(text) {
+  try {
+    offscreenReady =
+      offscreenReady ||
+      (async () => {
+        if (await chrome.offscreen.hasDocument()) return;
+        await chrome.offscreen.createDocument({
+          url: 'offscreen.html',
+          reasons: ['CLIPBOARD'],
+          justification: 'Copiază mesajul următorului lead din coadă, ca să-l lipești în Messenger.',
+        });
+      })();
+    await offscreenReady;
+    const r = await chrome.runtime.sendMessage({ target: 'offscreen', type: 'copy', text });
+    return Boolean(r && r.ok);
+  } catch (e) {
+    offscreenReady = null;
+    console.warn('[Contractez] clipboard', e);
+    return false;
+  }
+}
+
+async function queueCall(method, path, body) {
+  const cfg = await getConfig();
+  if (cfg.paused) return { ok: false, error: { status: 0, message: 'Extensia e în pauză.' } };
+  if (!cfg.token) return { ok: false, error: { status: 401, message: 'Lipsește tokenul — completează-l în Opțiuni.' } };
+  const res = await api(cfg, method, path, body);
+  if (res.ok) await setLastError(null);
+  else if (res.status === 409 || res.status === 404) await setLastError(null); // eroare de business, nu de conexiune
+  return res.ok ? { ok: true, data: res.data } : { ok: false, error: res.error, message: res.data && res.data.error };
+}
+
+/** Următorul lead: copiază mesajul în clipboard și îl ține pregătit pentru „queueGo”. */
+async function queueNext() {
+  const st = await getQueueState();
+  const f = st.filters || {};
+  const qs = new URLSearchParams();
+  if (f.type === 'client' || f.type === 'provider') qs.set('type', f.type);
+  qs.set('minScore', String(Math.max(0, Math.min(100, Number(f.minScore) || 0))));
+  const r = await queueCall('GET', '/api/outreach/queue?' + qs);
+  if (!r.ok) return r;
+  const d = r.data || {};
+  if (!d.lead) {
+    await setQueueState({ next: null });
+    return { ok: true, lead: null, sent: d.sent, cap: d.cap, remaining: d.remaining, capReached: Boolean(d.capReached) };
+  }
+  const copied = d.lead.message ? await copyToClipboard(d.lead.message) : false;
+  await setQueueState({ next: d.lead });
+  return { ok: true, lead: { authorName: d.lead.authorName }, copied, sent: d.sent, cap: d.cap, remaining: d.remaining, capReached: false };
+}
+
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+  const st = await getQueueState();
+  if (st.tabId === tabId) await setQueueState({ tabId: null, leadId: null, next: null });
+});
+
+/* -------------------------------------------------------------------------- */
 /* Mesaje                                                                      */
 /* -------------------------------------------------------------------------- */
 
@@ -421,10 +529,12 @@ function senderKind(sender) {
   if (!sender.tab) return null;
   if (GROUP_PAGE.test(url)) return 'group';
   if (THREAD_PAGE.test(url)) return 'thread';
+  if (QUEUE_PAGE.test(url)) return 'queuePage';
   return null;
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg && msg.target === 'offscreen') return false; // pentru offscreen.js
   const kind = senderKind(sender);
   if (!kind || !msg || typeof msg.type !== 'string') return false;
 
@@ -444,6 +554,42 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       case 'thread':
         if (kind !== 'thread') return { ok: false, error: { status: 0, message: 'Pagină nepermisă.' } };
         return reportThread(msg.payload || {});
+      case 'queueOpen': {
+        if (kind !== 'queuePage') return { ok: false, error: { status: 0, message: 'Pagină nepermisă.' } };
+        const lead = msg.lead || {};
+        if (typeof lead.id !== 'string' || typeof lead.messengerUrl !== 'string') return { ok: false, error: { status: 0, message: 'Lead invalid.' } };
+        const f = msg.filters || {};
+        const filters = { type: f.type === 'client' || f.type === 'provider' ? f.type : null, minScore: Number(f.minScore) || 0 };
+        return openInQueueTab(lead.messengerUrl, lead, { filters });
+      }
+      case 'queueContext': {
+        // Doar tab-ul cozii primește lead-ul curent; orice alt tab Messenger e lăsat în pace.
+        if (kind !== 'thread') return { ok: false };
+        const st = await getQueueState();
+        if (st.tabId !== sender.tab.id || !st.leadId) return { ok: false };
+        return { ok: true, leadId: st.leadId, authorName: st.authorName };
+      }
+      case 'queueSent':
+      case 'queueSkip': {
+        if (kind !== 'thread') return { ok: false, error: { status: 0, message: 'Pagină nepermisă.' } };
+        const st = await getQueueState();
+        if (st.tabId !== sender.tab.id || !st.leadId || msg.leadId !== st.leadId) return { ok: false, error: { status: 0, message: 'Lead-ul nu mai e cel din coadă.' } };
+        const r = await queueCall('POST', msg.type === 'queueSent' ? '/api/outreach/queue/sent' : '/api/outreach/queue/skip', { leadId: st.leadId });
+        if (!r.ok) return { ok: false, error: { status: r.error.status, message: r.message || r.error.message } };
+        return { ok: true, data: r.data };
+      }
+      case 'queueNext': {
+        if (kind !== 'thread') return { ok: false };
+        const st = await getQueueState();
+        if (st.tabId !== sender.tab.id) return { ok: false, error: { status: 0, message: 'Nu e tab-ul cozii.' } };
+        return queueNext();
+      }
+      case 'queueGo': {
+        if (kind !== 'thread') return { ok: false };
+        const st = await getQueueState();
+        if (st.tabId !== sender.tab.id || !st.next) return { ok: false, error: { status: 0, message: 'Nu am un lead pregătit.' } };
+        return openInQueueTab(st.next.messengerUrl, st.next);
+      }
       case 'getState':
         return getState();
       case 'getConfig': {

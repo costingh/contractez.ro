@@ -8,12 +8,20 @@ Un **asistent**, nu un bot. Extensia:
 - **verifică** în Messenger dacă ai mai vorbit cu persoana și îți arată un banner.
 
 Extensia **nu** dă click în grupuri (nici pe „Vezi mai mult”, nici pe „Vezi mai multe comentarii”), **nu** derulează,
-**nu** navighează, **nu** scrie și **nu** trimite mesaje. Nu lucrează pe tab-uri pe care nu le vezi. Mesajul îl
-copiezi din `/admin/leads`, îl lipești în Messenger și apeși tu „Trimite”.
+**nu** scrie și **nu** trimite mesaje. Nu lucrează pe tab-uri pe care nu le vezi. Mesajul îl lipești tu în Messenger
+și apeși tu Enter.
 
-Singura excepție: în tab-ul Messenger deschis din **coada rapidă** (`/admin/leads/coada`, tasta C), dacă o conversație
-nouă cere „Începe conversația” / „Continuă”, extensia apasă butonul o dată și pune cursorul în câmpul de mesaj.
-Nu scrie și nu trimite: tu lipești (⌘V) și apeși Enter.
+**Coada rapidă** (`/admin/leads/coada`): apeși **C** o dată, apoi lucrezi doar în Messenger.
+1. Extensia deschide conversația într-un **singur tab Messenger, refolosit** pentru toate lead-urile.
+2. Dacă o conversație nouă cere „Începe conversația” / „Continuă”, apasă butonul o dată și pune cursorul în câmpul de mesaj.
+3. Tu: **⌘V**, citești, **Enter**.
+4. Când apare mesajul trimis (câmpul de scris s-a golit), extensia marchează lead-ul „trimis”. Dacă ați mai vorbit,
+   serverul îl marchează „deja contactat” și extensia trece mai departe. Butonul **Sari** din banner îl sare.
+5. Mesajul următorului lead ajunge în clipboard, iar după 4 s (butonul **Stop** oprește) tab-ul trece la conversația lui.
+6. Se oprește singură la limita zilnică (`OUTREACH_DAILY_CAP`) sau când coada e goală.
+
+Doar tab-ul deschis de coadă e automatizat (service worker-ul îi știe id-ul). Dacă treci în el la altă conversație,
+automatizarea se oprește. În Messenger-ul folosit normal extensia doar verifică istoricul.
 
 Contractul cu serverul: [`docs/OUTREACH.md`](../../docs/OUTREACH.md).
 
@@ -68,7 +76,8 @@ Facebook deschise. (Altfel panoul arată „Extensia a fost reîncărcată — d
    | `A răspuns`, `Înscris` | progres după contact |
 
    Click pe chip → deschide `/admin/leads` într-un tab nou.
-5. Deschide **`/admin/leads`**, alege lead-urile cu scor bun, copiază mesajul personalizat.
+5. Deschide **`/admin/leads/coada`** și apasă **C** (vezi „Coada rapidă” mai sus). Sau, manual: din **`/admin/leads`**
+   alege lead-urile cu scor bun și copiază mesajul personalizat.
 6. Deschide conversația Messenger cu persoana (`facebook.com/messages/t/...`). Extensia verifică istoricul:
    - banner **roșu** „Ai mai vorbit cu această persoană — nu trimite mesajul de outreach” → **nu trimite**;
    - banner discret „Prima conversație” → lipește mesajul și trimite-l **tu**;

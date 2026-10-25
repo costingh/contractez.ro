@@ -15,13 +15,18 @@ test('manifest.json e JSON valid, MV3, cu permisiunile cerute', () => {
   assert.equal(m.manifest_version, 3);
   assert.equal(m.name, 'Contractez Copilot');
   // scripting: injectare în tab-urile deja deschise la instalare (doar fișierele extensiei).
-  assert.deepEqual(m.permissions, ['storage', 'scripting']);
+  // offscreen + clipboardWrite: copierea mesajului următorului lead din coadă (doar scriere în clipboard).
+  assert.deepEqual(m.permissions, ['storage', 'scripting', 'offscreen', 'clipboardWrite']);
   assert.deepEqual(m.host_permissions.sort(), ['http://localhost:3000/*', 'https://contractez.ro/*', 'https://www.facebook.com/*']);
   assert.equal(m.background.service_worker, 'background.js');
-  const matches = m.content_scripts.flatMap((c) => c.matches).sort();
+  const fb = m.content_scripts.filter((c) => c.matches.includes('https://www.facebook.com/*'));
   // FB e SPA: scripturile se încarcă pe tot domeniul și se activează singure doar pe grupuri / conversații.
-  assert.deepEqual(matches, ['https://www.facebook.com/*', 'https://www.facebook.com/*']);
-  for (const cs of m.content_scripts) assert.equal(cs.js[0], 'extract.js', 'extract.js trebuie încărcat primul');
+  assert.equal(fb.length, 2);
+  for (const cs of fb) assert.equal(cs.js[0], 'extract.js', 'extract.js trebuie încărcat primul');
+  // Puntea cu /admin/leads/coada (Next e SPA: se încarcă pe /admin/* și se activează doar pe coadă).
+  const queue = m.content_scripts.filter((c) => !c.matches.includes('https://www.facebook.com/*'));
+  assert.deepEqual(queue.map((c) => c.js), [['content-queue.js']]);
+  assert.deepEqual(queue[0].matches.sort(), ['http://localhost:3000/admin/*', 'https://contractez.ro/admin/*']);
 });
 
 test('toate fișierele referite în manifest există', () => {
@@ -56,7 +61,7 @@ test('content script-urile nu dau click, nu derulează, nu navighează, nu scriu
     /\.focus\s*\(/,
     /\.submit\s*\(/,
   ];
-  for (const f of ['extract.js', 'content-group.js', 'content-messenger.js']) {
+  for (const f of ['extract.js', 'content-group.js', 'content-messenger.js', 'content-queue.js']) {
     let src = stripComments(read(f));
     for (const re of allowed[f] ?? []) src = src.replace(re, '');
     for (const re of forbidden) assert.ok(!re.test(src), `${f} conține ${re}`);
@@ -70,7 +75,9 @@ test('Messenger: un singur click, doar pe „Începe conversația”, doar în t
   const src = stripComments(read('content-messenger.js'));
   assert.equal(src.match(/\.click\s*\(/g)?.length, 1);
   assert.equal(src.match(/\.focus\s*\(/g)?.length, 1);
-  assert.match(src, /const QUEUE_TAB = 'cz-messenger';/);
+  // „Tab-ul cozii” îl decide service worker-ul (după id-ul tab-ului pe care l-a deschis), nu pagina.
+  assert.match(src, /const fromQueue = \(\) => Boolean\(queueCtx\);/);
+  assert.match(src, /sendMessage\(\{ type: 'queueContext' \}\)/);
   const fn = (name) => src.slice(src.indexOf(`function ${name}(`), src.indexOf('\n  }\n', src.indexOf(`function ${name}(`)));
   for (const name of ['maybeStartConversation', 'focusComposer']) {
     assert.match(fn(name), /if \(!fromQueue\(\) \|\| document\.hidden \|\| /, `${name} trebuie limitat la tab-ul cozii, vizibil`);
@@ -85,4 +92,20 @@ test('Messenger: un singur click, doar pe „Începe conversația”, doar în t
   for (const no of ['Trimite', 'Send', 'Trimite mesajul', 'Apel audio', 'Blochează', 'Continuă să trimiți', 'Șterge conversația']) {
     assert.ok(!start.test(no) || never.test(no), no);
   }
+});
+
+test('service worker: mută doar tab-ul cozii și doar pe linkuri Messenger generate de server', () => {
+  const src = stripComments(read('background.js'));
+  const open = src.slice(src.indexOf('async function openInQueueTab('), src.indexOf('\n}\n', src.indexOf('async function openInQueueTab(')));
+  assert.match(open, /if \(!QUEUE_THREAD_URL\.test\(url\)\) return/);
+  assert.equal(src.match(/chrome\.tabs\.(?:update|create)\(/g)?.length, 2, 'tabs.update/create doar în openInQueueTab');
+  assert.ok(open.includes('chrome.tabs.update(') && open.includes('chrome.tabs.create('));
+  for (const t of ['queueSent', 'queueSkip', 'queueNext', 'queueGo', 'queueContext']) {
+    const i = src.indexOf(`case '${t}'`);
+    assert.ok(i > 0, t);
+    assert.match(src.slice(i, i + 400), /st\.tabId !== sender\.tab\.id/, `${t} trebuie limitat la tab-ul cozii`);
+  }
+  const re = new RegExp(src.match(/const QUEUE_THREAD_URL = \/(.+)\/;/)[1]);
+  assert.ok(re.test('https://www.facebook.com/messages/t/100012345'));
+  assert.ok(!re.test('https://www.facebook.com/messages/t/1/?send=1') && !re.test('https://evil.com/messages/t/1'));
 });

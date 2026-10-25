@@ -2,12 +2,14 @@
   "manifest_version": 3,
   "name": "Contractez Copilot",
   "short_name": "Contractez",
-  "version": "0.3.0",
-  "description": "Asistent local pentru outreach în grupurile de Facebook: citește doar ce ai derulat deja pe ecran. Nu navighează și nu trimite mesaje; în tab-ul deschis din coadă apasă doar „Începe conversația”.",
+  "version": "0.4.0",
+  "description": "Asistent local pentru outreach în grupurile de Facebook: citește ce ai derulat deja. În tab-ul cozii apasă „Începe conversația”, marchează lead-ul după ce trimiți tu și trece la următorul. Nu scrie și nu trimite mesaje.",
   "minimum_chrome_version": "116",
   "permissions": [
     "storage",
-    "scripting"
+    "scripting",
+    "offscreen",
+    "clipboardWrite"
   ],
   "host_permissions": [
     "https://www.facebook.com/*",
@@ -36,6 +38,17 @@
       "js": [
         "extract.js",
         "content-messenger.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "https://contractez.ro/admin/*",
+        "http://localhost:3000/admin/*"
+      ],
+      "js": [
+        "content-queue.js"
       ],
       "run_at": "document_idle",
       "all_frames": false

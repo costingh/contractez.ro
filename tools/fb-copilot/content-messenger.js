@@ -12,9 +12,14 @@
  *
  * NU scrie nimic în câmpul de mesaj și NU trimite nimic.
  *
- * Singura acțiune: în tab-ul deschis din coada Contractez (window.name „cz-messenger”), dacă o conversație fără
- * istoric arată butonul „Începe conversația” / „Continuă”, îl apasă o dată, apoi pune cursorul în câmpul de mesaj.
- * Lipirea mesajului și „Trimite” rămân la om. În Messenger-ul folosit normal (alt tab) extensia nu apasă nimic.
+ * Tab-ul cozii (deschis de extensie din /admin/leads/coada; service worker-ul îi știe id-ul și lead-ul curent):
+ *   - dacă o conversație fără istoric arată „Începe conversația” / „Continuă”, apasă butonul o dată și pune
+ *     cursorul în câmpul de mesaj. Lipirea mesajului și Enter rămân la om;
+ *   - când apare mesajul trimis de om (câmpul de scris s-a golit), marchează lead-ul „trimis”; dacă ați mai
+ *     vorbit, serverul îl marchează „deja contactat”; butonul „Sari” din banner îl sare;
+ *   - apoi cere următorul lead (mesajul lui ajunge în clipboard) și, după o numărătoare inversă pe care o poți
+ *     opri, service worker-ul mută tab-ul la conversația lui.
+ * În Messenger-ul folosit normal (orice alt tab) extensia doar verifică istoricul și nu apasă nimic.
  *
  * De ce o singură raportare per conversație (per încărcare de pagină): după ce omul trimite
  * mesajul de outreach, conversația ARE istoric. Dacă am raporta din nou, serverul ar marca
@@ -58,8 +63,8 @@
   const CHECK_EVERY_MS = 500;
   const STABLE_EMPTY_MS = 2500; // conversația trebuie să rămână goală atât timp ca să o considerăm „fără istoric”
   const GIVE_UP_MS = 12000;
-  /** Numele tab-ului deschis din /admin/leads/coada (window.open(url, "cz-messenger")). */
-  const QUEUE_TAB = 'cz-messenger';
+  const SEND_POLL_MS = 700;
+  const ADVANCE_SECONDS = 4; // numărătoarea până la următoarea conversație (o poți opri)
 
   /* ------------------------------------------------------------------------ */
   /* Heuristici DOM (Messenger) — de actualizat aici dacă Facebook schimbă UI-ul */
@@ -139,7 +144,22 @@
   const startClicked = new Set();
   const focused = new Set();
   const startNotes = new Map();
-  const fromQueue = () => window.name === QUEUE_TAB;
+
+  /**
+   * Lead-ul pentru care coada a deschis acest tab (îl știe doar service worker-ul). E legat de prima conversație
+   * verificată după încărcare: dacă treci la altă conversație în același tab, automatizarea se oprește.
+   */
+  let queueCtx = null;
+  let queueThread = null;
+  const queueReady = (async () => {
+    try {
+      const r = await chrome.runtime.sendMessage({ type: 'queueContext' });
+      if (r && r.ok && r.leadId) queueCtx = { leadId: r.leadId, authorName: r.authorName || null };
+    } catch {
+      /* extensie reîncărcată */
+    }
+  })();
+  const fromQueue = () => Boolean(queueCtx);
 
   function findStartButton() {
     const main = document.querySelector(MSEL.main);
@@ -180,6 +200,134 @@
     box.focus();
   }
 
+  /** Câmpul de scris e gol (după Enter, Messenger îl golește). Nu îl modificăm. */
+  function composerEmpty() {
+    const main = document.querySelector(MSEL.main);
+    const box = main && main.querySelector(MSEL.composer);
+    return Boolean(box) && !(box.textContent || '').replace(/[\s\u200b\ufeff]+/g, '');
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* Coada: trimis → următorul                                                  */
+  /* ------------------------------------------------------------------------ */
+
+  let sendTimer = null;
+  let countdownTimer = null;
+
+  /** Conversația era goală; când apare un mesaj și câmpul de scris s-a golit (de două ori la rând) = ai trimis. */
+  function watchSend(thread) {
+    clearInterval(sendTimer);
+    let hits = 0;
+    sendTimer = setInterval(() => {
+      if (!fromQueue() || X.parseThreadUrl(location.href)?.threadUrl !== thread.threadUrl) {
+        clearInterval(sendTimer);
+        return;
+      }
+      hits = detectHistory().hasHistory && composerEmpty() ? hits + 1 : 0;
+      if (hits >= 2) {
+        clearInterval(sendTimer);
+        void queueAdvance(thread, 'sent');
+      }
+    }, SEND_POLL_MS);
+  }
+
+  /**
+   * intent: 'sent' (am văzut mesajul trimis), 'skip' (butonul „Sari”), 'history' (serverul l-a marcat deja contactat),
+   * 'next' (doar treci mai departe, fără să marchezi).
+   */
+  async function queueAdvance(thread, intent) {
+    if (!fromQueue()) return;
+    clearInterval(sendTimer);
+    const ctx = queueCtx;
+    const base = { kind: intent === 'history' ? 'history' : 'done' };
+    const show = (v) => {
+      if (X.parseThreadUrl(location.href)?.threadUrl === thread.threadUrl) showBanner({ ...base, ...v });
+    };
+    if (intent === 'sent' || intent === 'skip') {
+      show({ text: intent === 'sent' ? 'Trimis — îl marchez în Contractez…' : 'Îl sar…' });
+      let r;
+      try {
+        r = await chrome.runtime.sendMessage({ type: intent === 'sent' ? 'queueSent' : 'queueSkip', leadId: ctx.leadId });
+      } catch (e) {
+        r = { ok: false, error: { message: String((e && e.message) || e) } };
+      }
+      if (!r || !r.ok) {
+        const reason = (r && r.error && r.error.message) || 'eroare necunoscută';
+        show({ kind: 'unknown', text: `Nu am putut marca lead-ul: ${reason}`, actions: queueActions(intent === 'sent' ? ['retrySent', 'next', 'stop'] : ['skip', 'next', 'stop']) });
+        return;
+      }
+    }
+    const done = intent === 'sent' ? 'Trimis ✓' : intent === 'skip' ? 'Sărit ✓' : intent === 'history' ? 'Ai mai vorbit cu această persoană — sărit' : '';
+    show({ text: `${done ? done + '. ' : ''}Caut următorul lead…` });
+    let n;
+    try {
+      n = await chrome.runtime.sendMessage({ type: 'queueNext' });
+    } catch (e) {
+      n = { ok: false, error: { message: String((e && e.message) || e) } };
+    }
+    if (!n || !n.ok) {
+      show({ kind: 'unknown', text: `${done ? done + '. ' : ''}Nu am putut lua următorul lead: ${(n && n.error && n.error.message) || 'eroare'}`, actions: queueActions(['next', 'stop']) });
+      return;
+    }
+    queueCtx = null; // lead-ul acesta s-a încheiat
+    if (!n.lead) {
+      show({
+        text: `${done ? done + '. ' : ''}${n.capReached ? `Ai atins limita de azi (${n.sent}/${n.cap}). Gata pe azi.` : 'Coada e goală pentru filtrele alese.'}`,
+      });
+      return;
+    }
+    const who = n.lead.authorName || 'următoarea persoană';
+    const clip = n.copied ? 'Mesajul lui e deja copiat.' : 'Nu am putut copia mesajul — îl copiezi din coadă.';
+    let left = ADVANCE_SECONDS;
+    const tick = () =>
+      show({
+        text: `${done ? done + '. ' : ''}Urmează ${who} în ${left} s. ${clip}`,
+        note: `Trimise azi: ${n.sent}/${n.cap} · ${n.remaining} în coadă`,
+        actions: [{ id: 'stop', label: 'Stop' }],
+      });
+    tick();
+    clearInterval(countdownTimer);
+    countdownTimer = setInterval(async () => {
+      left -= 1;
+      if (left > 0) return tick();
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+      if (document.hidden) {
+        show({ text: `Urmează ${who}. ${clip}`, actions: [{ id: 'go', label: 'Deschide' }] });
+        return;
+      }
+      try {
+        await chrome.runtime.sendMessage({ type: 'queueGo' });
+      } catch {
+        /* tab-ul se reîncarcă oricum */
+      }
+    }, 1000);
+  }
+
+  const ACTION_LABELS = { sent: 'Am trimis', skip: 'Sari', next: 'Următorul', stop: 'Stop', retrySent: 'Reîncearcă', go: 'Deschide' };
+  const queueActions = (ids) => ids.map((id) => ({ id, label: ACTION_LABELS[id] }));
+
+  function onBannerAction(id) {
+    const t = X.parseThreadUrl(location.href);
+    if (!t) return;
+    if (id === 'stop') {
+      clearInterval(countdownTimer);
+      clearInterval(sendTimer);
+      countdownTimer = null;
+      queueCtx = null;
+      showBanner({ kind: 'done', text: 'Coada e oprită. Apasă C în /admin/leads/coada ca s-o pornești din nou.' });
+      return;
+    }
+    if (id === 'go') {
+      chrome.runtime.sendMessage({ type: 'queueGo' }).catch(() => {});
+      return;
+    }
+    if (!fromQueue()) return;
+    if (id === 'sent' || id === 'retrySent') void queueAdvance(t, 'sent');
+    else if (id === 'skip') void queueAdvance(t, 'skip');
+    else if (id === 'next') void queueAdvance(t, 'next');
+  }
+
   /* ------------------------------------------------------------------------ */
   /* Flux                                                                       */
   /* ------------------------------------------------------------------------ */
@@ -199,6 +347,12 @@
     if (!t) {
       hideBanner();
       return;
+    }
+    // Ai trecut singur la altă conversație în tab-ul cozii: coada nu mai acționează aici.
+    if (queueThread && t.threadUrl !== queueThread) {
+      queueCtx = null;
+      clearInterval(sendTimer);
+      clearInterval(countdownTimer);
     }
     const prev = reported.get(t.threadUrl);
     if (prev) {
@@ -241,7 +395,8 @@
       if (now - started > GIVE_UP_MS) {
         clearInterval(checkTimer);
         // Nu știm sigur → NU raportăm „fără istoric” la server.
-        showBanner({ kind: 'unknown' });
+        showBanner({ kind: 'unknown', actions: fromQueue() ? queueActions(['sent', 'skip', 'stop']) : null });
+        if (fromQueue()) queueThread = thread.threadUrl;
       }
     }, CHECK_EVERY_MS);
   }
@@ -253,7 +408,13 @@
       authorFbId: profile && profile.fbId ? profile.fbId : !thread.e2ee && /^\d+$/.test(thread.threadId) ? thread.threadId : null,
       authorProfileUrl: profile ? profile.profileUrl : null,
       hasHistory,
+      leadId: null,
     };
+    await queueReady;
+    if (fromQueue()) {
+      queueThread = thread.threadUrl;
+      payload.leadId = queueCtx.leadId;
+    }
 
     let paused = false;
     try {
@@ -286,15 +447,23 @@
         };
       }
     }
-    if (fromQueue() && view.kind === 'first') {
+    const queued = fromQueue() && !paused && !dead;
+    if (queued && view.kind === 'first') {
       const started = startNotes.get(thread.threadUrl);
-      view.note = [started, 'Lipește mesajul (⌘V), citește-l și apasă tu Enter.', view.note].filter(Boolean).join(' ');
+      view.note = [started, 'Lipește mesajul (⌘V), citește-l și apasă Enter: marchez singur și trec la următorul.', view.note]
+        .filter(Boolean)
+        .join(' ');
+      view.actions = queueActions(['sent', 'skip', 'stop']);
     }
     // Rezultatul se reține doar dacă am primit un răspuns definitiv (ca să nu raportăm de două ori).
-    if (!paused && !dead) reported.set(thread.threadUrl, view);
+    if (!paused && !dead) reported.set(thread.threadUrl, { ...view, actions: null });
     if (X.parseThreadUrl(location.href)?.threadUrl === thread.threadUrl) {
       showBanner(view);
       if (view.kind === 'first') focusComposer(thread);
+    }
+    if (queued) {
+      if (view.kind === 'first') watchSend(thread);
+      else void queueAdvance(thread, 'history'); // serverul l-a marcat deja „deja contactat”
     }
   }
 
@@ -312,6 +481,12 @@
     .checking, .unknown { background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; font-weight: 500; }
     .unknown { background: #fffbeb; color: #92400e; border-color: #fcd34d; }
     .note { display: block; font-weight: 400; font-size: 11px; opacity: .9; margin-top: 2px; }
+    .done { background: #eef2ff; color: #1e3a8a; border: 1px solid #c7d2fe; font-weight: 500; }
+    .acts { display: flex; gap: 6px; margin-left: 4px; }
+    .act { all: unset; cursor: pointer; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+           background: rgba(15,23,42,.08); white-space: nowrap; }
+    .act:hover { background: rgba(15,23,42,.16); }
+    .history .act { background: rgba(255,255,255,.2); }
     .x { all: unset; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; opacity: .8; }
     .x:hover { opacity: 1; }
     .tag { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; opacity: .75; }
@@ -329,7 +504,10 @@
       host = document.createElement('contractez-banner');
       host.attachShadow({ mode: 'open' });
       host.shadowRoot.addEventListener('click', (e) => {
-        if (e.target.closest && e.target.closest('.x')) hideBanner();
+        if (!e.target.closest) return;
+        if (e.target.closest('.x')) hideBanner();
+        const act = e.target.closest('.act');
+        if (act) onBannerAction(act.dataset.act);
       });
       document.documentElement.appendChild(host);
     }
@@ -338,7 +516,8 @@
     host.shadowRoot.innerHTML = `<style>${CSS}</style>
       <div class="b ${view.kind}" role="status">
         <span class="tag">Contractez</span>
-        <span>${esc(TEXT[view.kind])}${view.note ? `<span class="note">${esc(view.note)}</span>` : ''}</span>
+        <span>${esc(view.text || TEXT[view.kind] || '')}${view.note ? `<span class="note">${esc(view.note)}</span>` : ''}</span>
+        ${view.actions && view.actions.length ? `<span class="acts">${view.actions.map((a) => `<button class="act" data-act="${esc(a.id)}">${esc(a.label)}</button>`).join('')}</span>` : ''}
         <button class="x" title="Închide" aria-label="Închide">×</button>
       </div>`;
   }

@@ -35,7 +35,7 @@ export default async function QueuePage({ searchParams }: { searchParams: Promis
     <div className="space-y-6">
       <PageHeader
         title="Coadă rapidă"
-        description="Un lead pe ecran. Copiezi, trimiți tu din Messenger, apoi treci la următorul. Nimic nu se trimite automat."
+        description="Un lead pe ecran. Apeși C, trimiți tu din Messenger; cu extensia, lead-ul se marchează singur și se deschide următorul. Nimic nu se trimite automat."
         actions={
           <Button asChild variant="outline" size="sm">
             <Link href="/admin/leads">Toate lead-urile</Link>
@@ -72,6 +72,7 @@ export default async function QueuePage({ searchParams }: { searchParams: Promis
         remaining={remaining}
         skippedNow={skippedNow}
         baseHref={href({})}
+        filters={{ type: TYPES[tipKey], minScore: min }}
         lead={
           lead && {
             id: lead.id,

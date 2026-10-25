@@ -3,6 +3,9 @@ import { eq, inArray } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { POST as ingestPOST } from "@/app/api/outreach/ingest/route";
 import { GET as statusGET } from "@/app/api/outreach/status/route";
+import { GET as queueGET } from "@/app/api/outreach/queue/route";
+import { POST as queueSentPOST } from "@/app/api/outreach/queue/sent/route";
+import { POST as queueSkipPOST } from "@/app/api/outreach/queue/skip/route";
 import { POST as threadPOST } from "@/app/api/outreach/thread/route";
 import { db } from "@/server/db";
 import { outreachLeads } from "@/server/db/schema";
@@ -164,6 +167,51 @@ describe("POST /api/outreach/thread", () => {
   it("persoană necunoscută", async () => {
     const res = await threadPOST(req("/api/outreach/thread", { threadUrl: "https://www.facebook.com/messages/t/999999999999", hasHistory: true }));
     expect(await res.json()).toEqual({ known: false, personKey: "id:999999999999", status: null, leadId: null });
+  });
+});
+
+describe("coada din extensie", () => {
+  async function scoredLead(overrides: Record<string, unknown> = {}) {
+    const a = item(overrides);
+    await ingest([a]);
+    const lead = await leadOf(a.fbItemId);
+    await db.update(outreachLeads).set({ status: "scored", type: "client", score: 100, message: "Salut! https://contractez.ro" }).where(eq(outreachLeads.id, lead.id));
+    return { ...lead, fbId: a.authorFbId as string };
+  }
+
+  it("GET /queue dă următorul lead cu link Messenger și mesaj; null la limită", async () => {
+    const lead = await scoredLead();
+    const res = await queueGET(req("/api/outreach/queue?type=client&minScore=100"));
+    const body = await res.json();
+    expect(body.lead).toMatchObject({ id: lead.id, messengerUrl: `https://www.facebook.com/messages/t/${lead.fbId}`, message: "Salut! https://contractez.ro" });
+
+    env.OUTREACH_DAILY_CAP = Math.max(0, await sentToday());
+    const capped = await (await queueGET(req("/api/outreach/queue?minScore=100"))).json();
+    expect(capped).toMatchObject({ lead: null, capReached: true });
+    expect((await queueGET(req("/api/outreach/queue?type=altceva"))).status).toBe(400);
+  });
+
+  it("POST /queue/sent marchează trimis; a doua oară → 409; /queue/skip sare", async () => {
+    const lead = await scoredLead();
+    const ok = await queueSentPOST(req("/api/outreach/queue/sent", { leadId: lead.id }));
+    expect(ok.status).toBe(200);
+    expect((await leadOf(lead.fbItemId)).status).toBe("contacted");
+    const again = await queueSentPOST(req("/api/outreach/queue/sent", { leadId: lead.id }));
+    expect(again.status).toBe(409);
+    expect((await again.json()).error).toMatch(/deja contactat/);
+    expect((await queueSentPOST(req("/api/outreach/queue/sent", { leadId: randomUUID() }))).status).toBe(404);
+    expect((await queueSentPOST(req("/api/outreach/queue/sent", { leadId: lead.id }, null))).status).toBe(401);
+
+    const other = await scoredLead();
+    expect((await queueSkipPOST(req("/api/outreach/queue/skip", { leadId: other.id }))).status).toBe(200);
+    expect((await leadOf(other.fbItemId)).status).toBe("skipped");
+  });
+
+  it("thread criptat (fără persoană în URL) + leadId din coadă → istoricul marchează persoana", async () => {
+    const lead = await scoredLead();
+    const res = await threadPOST(req("/api/outreach/thread", { threadUrl: "https://www.facebook.com/messages/e2ee/t/7788", hasHistory: true, leadId: lead.id }));
+    expect(await res.json()).toMatchObject({ known: true, personKey: `id:${lead.fbId}`, status: "already_contacted" });
+    expect((await leadOf(lead.fbItemId)).status).toBe("already_contacted");
   });
 });
 

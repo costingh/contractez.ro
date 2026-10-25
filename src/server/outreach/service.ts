@@ -5,7 +5,7 @@ import { outreachLeads, type OutreachLead } from "../db/schema";
 import { env } from "../env";
 import { DomainError } from "../errors";
 import { enqueue } from "../queue";
-import { isAnonymousAuthor, personKey, personKeyFromThread } from "./person-key";
+import { isAnonymousAuthor, messengerUrl, personKey, personKeyFromThread } from "./person-key";
 
 export type LeadStatus = OutreachLead["status"];
 
@@ -63,7 +63,17 @@ export const threadSchema = z.object({
     .transform((v) => (v === null || v === undefined || v === "" ? null : String(v))),
   authorProfileUrl: optStr(2_000),
   hasHistory: z.boolean().default(false),
+  /** Lead-ul deschis din coadă: identifică persoana când URL-ul conversației nu o face (conversații criptate). */
+  leadId: z.string().uuid().nullish(),
 });
+
+/** Filtrele cozii, aceleași ca pe /admin/leads/coada. */
+export const queueFilterSchema = z.object({
+  type: z.enum(["client", "provider"]).nullish(),
+  minScore: z.coerce.number().int().min(0).max(100).default(0),
+});
+
+export const queueLeadSchema = z.object({ leadId: z.string().uuid() });
 
 export type IngestInput = z.infer<typeof ingestSchema>;
 export type ThreadInput = z.infer<typeof threadSchema>;
@@ -182,7 +192,11 @@ export async function leadStatuses(ids: string[]) {
  * contactată prin copilot, toate lead-urile ei devin `already_contacted`.
  */
 export async function threadOpened(input: ThreadInput) {
-  const key = personKey(input.authorProfileUrl, input.authorFbId) ?? personKeyFromThread(input.threadUrl);
+  let key = personKey(input.authorProfileUrl, input.authorFbId) ?? personKeyFromThread(input.threadUrl);
+  if (!key && input.leadId) {
+    const [lead] = await db.select({ personKey: outreachLeads.personKey }).from(outreachLeads).where(eq(outreachLeads.id, input.leadId));
+    key = lead?.personKey ?? null;
+  }
   if (!key) return { known: false, personKey: null, status: null, leadId: null };
   const leads = await db
     .select({ id: outreachLeads.id, status: outreachLeads.status })
@@ -306,4 +320,21 @@ export async function nextQueueLead(opts: { type?: "client" | "provider" | null;
     .from(outreachLeads)
     .where(and(...where));
   return { lead: lead ?? null, remaining };
+}
+
+/**
+ * Coada din extensie: după ce omul a trimis (sau a sărit) un mesaj, extensia cere următorul lead și mută tab-ul
+ * Messenger la el. La limita zilnică sau cu coada goală, `lead` e null.
+ */
+export async function queueNext(filters: z.infer<typeof queueFilterSchema>) {
+  const [sent, { lead, remaining }] = await Promise.all([sentToday(), nextQueueLead({ type: filters.type ?? null, minScore: filters.minScore })]);
+  const cap = dailyCap();
+  const url = lead ? messengerUrl(lead.personKey, lead.authorFbId) : null;
+  return {
+    sent,
+    cap,
+    remaining,
+    capReached: sent >= cap,
+    lead: lead && url && sent < cap ? { id: lead.id, authorName: lead.authorName, messengerUrl: url, message: lead.message ?? "" } : null,
+  };
 }

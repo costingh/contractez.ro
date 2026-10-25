@@ -1,8 +1,9 @@
 # Outreach copilot (Facebook) — contract
 
 Un asistent, NU un bot: extensia citește doar ce utilizatorul a derulat deja pe ecran, serverul clasifică și scrie
-mesaje personalizate, iar **omul** deschide Messenger, lipește mesajul și apasă trimite. Fără navigare automată,
-fără scriere și fără trimitere automată. Singurul click automat: „Începe conversația” în tab-ul deschis din coadă. Limită zilnică de mesaje (implicit 20).
+mesaje personalizate, iar **omul** lipește mesajul în Messenger și apasă Enter. Extensia nu scrie și nu trimite.
+În tab-ul Messenger deschis din coadă: apasă „Începe conversația”, marchează lead-ul după ce omul trimite și mută
+tab-ul la următorul lead (cu mesajul copiat în clipboard). Limită zilnică de mesaje (implicit 20). Limită zilnică de mesaje (implicit 20).
 
 ## Componente
 - `tools/fb-copilot/` — extensie Chrome MV3, instalată local („Load unpacked”), nepublicată.
@@ -59,6 +60,17 @@ Max 100 id-uri. Răspuns: `{ "leads": [{ "fbItemId", "status", "type", "score", 
 Când utilizatorul deschide o conversație. Dacă `hasHistory` (există deja mesaje în conversație) și persoana nu e marcată
 `contacted` prin copilot → toate lead-urile persoanei devin `already_contacted`.
 Răspuns: `{ "known": true, "personKey": "id:1000123", "status": "already_contacted", "leadId": "..." }`
+
+### Coada din extensie
+- `GET /api/outreach/queue?type=client|provider&minScore=0..100` → `{ sent, cap, remaining, capReached, lead: { id, authorName, messengerUrl, message } | null }`
+  (`lead` e null la limita zilnică sau cu coada goală).
+- `POST /api/outreach/queue/sent { leadId }` → marchează trimis (ca „Am trimis”); 409 la limită / deja contactat, 404 lead inexistent.
+- `POST /api/outreach/queue/skip { leadId }` → `skipped`.
+- `POST /api/outreach/thread` primește și `leadId` (opțional) din tab-ul cozii: identifică persoana când URL-ul conversației
+  nu o face (conversații criptate `/messages/e2ee/t/...`).
+
+Pagina `/admin/leads/coada` vorbește cu extensia prin `window.postMessage` (`cz-ping`/`cz-pong`, `cz-open-lead`), prin
+`content-queue.js`; fără extensie, tasta C deschide Messenger cu `window.open` ca înainte.
 
 ## Statusuri lead
 `new` (așteaptă AI) → `scored` → `contacted` / `skipped` / `already_contacted` → `replied` → `signed_up`.

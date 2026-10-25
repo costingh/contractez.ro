@@ -26,9 +26,31 @@ type QueueLead = {
   messengerUrl: string | null;
 };
 
+type QueueFilters = { type: "client" | "provider" | null; minScore: number };
+
+/** Extensia Contractez Copilot e instalată? content-queue.js răspunde la „cz-ping” cu „cz-pong”. */
+function useCopilotBridge() {
+  const [version, setVersion] = useState<string | null>(null);
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      if (e.source !== window || e.origin !== window.location.origin) return;
+      const d = e.data as { source?: string; type?: string; version?: string; ok?: boolean; error?: string | null } | null;
+      if (d?.source !== "cz-extension") return;
+      if (d.type === "cz-pong") setVersion(d.version ?? "?");
+      if (d.type === "cz-open-lead-result" && !d.ok) toast.error(d.error || "Extensia nu a putut deschide conversația.");
+    };
+    window.addEventListener("message", onMessage);
+    window.postMessage({ source: "cz-page", type: "cz-ping" }, window.location.origin);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
+  return version;
+}
+
 /**
  * Scurtături: C = copiază și deschide Messenger · Enter = trimis → următorul · S = sari (marcat) · N = nu acum (sari fără marcare).
- * Messenger se deschide mereu în același tab („cz-messenger”), ca să nu se adune zeci de tab-uri.
+ * Cu extensia instalată, ea deschide conversația într-un singur tab Messenger refolosit, apasă „Începe conversația”,
+ * marchează singură lead-ul după ce trimiți și trece la următorul (cu mesajul deja copiat). Fără extensie,
+ * Messenger se deschide în același tab („cz-messenger”), iar marcarea se face de aici.
  */
 export function QueueRunner({
   lead,
@@ -37,6 +59,7 @@ export function QueueRunner({
   remaining,
   skippedNow,
   baseHref,
+  filters,
 }: {
   lead: QueueLead | null;
   sent: number;
@@ -44,6 +67,7 @@ export function QueueRunner({
   remaining: number;
   skippedNow: string[];
   baseHref: string;
+  filters: QueueFilters;
 }) {
   const router = useRouter();
   const [message, setMessage] = useState(lead?.message ?? "");
@@ -51,6 +75,16 @@ export function QueueRunner({
   const [pending, startTransition] = useTransition();
   const textRef = useRef<HTMLTextAreaElement>(null);
   const capReached = sent >= cap;
+  const copilot = useCopilotBridge();
+
+  // Extensia marchează lead-urile din tab-ul Messenger; când revii aici, coada arată starea reală.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") router.refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [router]);
 
   const copyAndOpen = useCallback(async () => {
     if (!lead) return;
@@ -60,10 +94,19 @@ export function QueueRunner({
       textRef.current?.select();
       document.execCommand("copy");
     }
-    if (lead.messengerUrl) window.open(lead.messengerUrl, "cz-messenger");
+    if (!lead.messengerUrl) return;
+    if (copilot) {
+      window.postMessage(
+        { source: "cz-page", type: "cz-open-lead", lead: { id: lead.id, messengerUrl: lead.messengerUrl, authorName: lead.authorName }, filters },
+        window.location.origin,
+      );
+      toast.success("Mesaj copiat. În Messenger: ⌘V și Enter. Extensia marchează singură și trece la următorul.");
+    } else {
+      window.open(lead.messengerUrl, "cz-messenger");
+      toast.success("Mesaj copiat. Lipește-l în Messenger (⌘V), citește-l și trimite.");
+    }
     setOpened(true);
-    toast.success("Mesaj copiat. În Messenger extensia apasă „Începe conversația”; tu lipești (⌘V), citești și trimiți.");
-  }, [lead, message]);
+  }, [lead, message, copilot, filters]);
 
   const act = useCallback(
     (intent: "sent" | "skipped") => {
@@ -199,7 +242,9 @@ export function QueueRunner({
               </Button>
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              În Messenger: dacă extensia arată bannerul roșu „Ai mai vorbit cu această persoană”, nu trimite — apasă „Sari definitiv”.
+              {copilot
+                ? `Extensia v${copilot} e conectată: după C lucrezi doar în Messenger (⌘V, Enter). Lead-urile cu care ai mai vorbit sunt sărite automat.`
+                : "În Messenger: dacă extensia arată bannerul roșu „Ai mai vorbit cu această persoană”, nu trimite — apasă „Sari definitiv”."}
             </p>
           </div>
         </div>

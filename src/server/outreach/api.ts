@@ -3,6 +3,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import type { z } from "zod";
 import { env } from "../env";
+import { isDomainError } from "../errors";
 
 const NO_STORE = { "cache-control": "no-store" };
 
@@ -25,6 +26,12 @@ export function checkOutreachAuth(req: Request): NextResponse | null {
   const m = header.match(/^Bearer\s+(.+)$/i);
   if (!m || !tokensMatch(m[1].trim(), expected)) return json({ error: "Neautorizat" }, 401);
   return null;
+}
+
+/** Erorile de business (limită zilnică, deja contactat, lead inexistent) → 404/409 cu mesajul lor; restul se aruncă. */
+export function domainErrorResponse(err: unknown) {
+  if (!isDomainError(err)) throw err;
+  return json({ error: err.message, code: err.code }, err.code === "not_found" ? 404 : 409);
 }
 
 const MAX_BODY = 1_000_000;
