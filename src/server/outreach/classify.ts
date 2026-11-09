@@ -1,6 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { truncate } from "@/lib/text";
+import { stripDiacritics, truncate } from "@/lib/text";
 import { aiStructured, withFallback } from "../ai/client";
 import { SYSTEM_BASE } from "../ai/features";
 import { getCatalog } from "../catalog/taxonomy";
@@ -36,7 +36,7 @@ type Classified = {
   message: string | null;
 };
 
-/** Linkul UTM e obligatoriu și trebuie să fie exact al grupului. */
+/** Linkul UTM e obligatoriu și trebuie să fie exact al grupului; diacriticele scăpate de AI se scot. */
 export function finalizeMessage(raw: string | null, audience: OutreachAudience, groupId: string): string {
   const link = outreachLink(audience, groupId);
   let msg = (raw ?? "").trim();
@@ -46,7 +46,7 @@ export function finalizeMessage(raw: string | null, audience: OutreachAudience, 
     const replaced = msg.replace(/https?:\/\/(www\.)?contractez\.ro[^\s)]*/i, link);
     msg = replaced.includes(link) ? replaced : `${msg} ${link}`;
   }
-  return msg.slice(0, 1_000);
+  return stripDiacritics(msg).slice(0, 1_000);
 }
 
 async function catalogContext() {

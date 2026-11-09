@@ -10,6 +10,11 @@ export function normalizeText(input: string): string {
     .trim();
 }
 
+/** Scoate diacriticele, dar păstrează literele mari și restul textului (ș/ş → s, ț/ţ → t, ă/â → a, î → i). */
+export function stripDiacritics(input: string): string {
+  return input.normalize("NFD").replace(/[\u0300-\u036f]/g, "").normalize("NFC");
+}
+
 export function slugify(input: string): string {
   return normalizeText(input)
     .replace(/[^a-z0-9]+/g, "-")

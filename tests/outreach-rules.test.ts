@@ -3,6 +3,8 @@ import { isAnonymousAuthor, messengerUrl, personKey, personKeyFromThread } from 
 import { ruleCategories, ruleClassify } from "@/server/outreach/rules";
 import { GET as fbLinkGET } from "@/app/fb/[tip]/[grup]/route";
 import { rules } from "@/config/site";
+import { stripDiacritics } from "@/lib/text";
+import { finalizeMessage } from "@/server/outreach/classify";
 import { MESSAGE_GUIDELINES, outreachLink, templateMessage } from "@/server/outreach/templates";
 
 describe("personKey", () => {
@@ -115,7 +117,15 @@ describe("șabloane", () => {
       expect(msg).toContain(`cel mult ${rules.defaultMaxApplications} oferte`);
       expect(msg.endsWith(outreachLink(audience, "42"))).toBe(true);
       expect(msg.length).toBeLessThanOrEqual(450);
+      expect(msg).not.toMatch(/[ăâîșşțţĂÂÎȘŞȚŢ]/);
     }
     expect(MESSAGE_GUIDELINES).toMatch(/NU ceri feedback/);
+    expect(MESSAGE_GUIDELINES).toMatch(/FĂRĂ diacritice/);
+  });
+
+  it("mesajul final al AI-ului iese fără diacritice, cu linkul grupului", () => {
+    const msg = finalizeMessage("Salut, Ștefan! Îți faci profilul în câteva minute, ușor: {LINK}", "provider", "42");
+    expect(msg).toBe(`Salut, Stefan! Iti faci profilul in cateva minute, usor: ${outreachLink("provider", "42")}`);
+    expect(stripDiacritics("ŞŢşţ ăâî ȘȚ „ok”")).toBe("STst aai ST „ok”");
   });
 });

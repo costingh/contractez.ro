@@ -1,6 +1,7 @@
 // Șabloanele mesajelor de outreach (docs/OUTREACH.md). AI-ul le adaptează la postarea fiecărei persoane;
 // fără AI se folosesc ca atare, cu linkul scurt al grupului.
 import { plans, rules } from "@/config/site";
+import { stripDiacritics } from "@/lib/text";
 import { env } from "../env";
 
 export type OutreachAudience = "client" | "provider";
@@ -26,9 +27,9 @@ export function outreachLink(audience: OutreachAudience, groupId: string): strin
   return `${base}/fb/${audience === "provider" ? "p" : "c"}/${encodeURIComponent(groupId)}`;
 }
 
-/** Șablonul original, cu linkul scurt în locul domeniului (fallback fără AI). */
+/** Șablonul original, cu linkul scurt în locul domeniului (fallback fără AI); fără diacritice, ca un mesaj scris pe chat. */
 export function templateMessage(audience: OutreachAudience, groupId: string): string {
-  return OUTREACH_TEMPLATES[audience].replace(SITE_PLACEHOLDER, outreachLink(audience, groupId));
+  return stripDiacritics(OUTREACH_TEMPLATES[audience].replace(SITE_PLACEHOLDER, outreachLink(audience, groupId)));
 }
 
 /** Faptele pe care mesajul are voie să le folosească (nimic în afara lor). */
@@ -46,7 +47,7 @@ export const MESSAGE_GUIDELINES = [
   "Structura, în 3–4 propoziții scurte: (1) referire concretă la postarea/comentariul persoanei, cu serviciul sau categoria ei (ex: „Am văzut că faci montaj video pentru TikTok”); (2) beneficiul direct pentru ea, ales din faptele de mai jos și legat de ce face; (3) un singur îndemn clar, cu linkul la final.",
   "Pentru prestatori, beneficiul principal: fiecare proiect primește cel mult " + maxOffers + " oferte, deci concurează cu puțini, nu cu zeci de comentarii; profil gratuit, fără comision. Atenție: prestatorul NU primește oferte de la clienți; el primește alerte pentru proiecte și aplică cu o ofertă. Ofertele le primește clientul. Pentru clienți: publică gratuit, primește cel mult " + maxOffers + " oferte, compară și alege, fără să-și lase telefonul public.",
   "Scrii ca un om, nu ca o reclamă: prima propoziție nu începe cu „Am lansat” sau cu numele platformei, fără superlative, fără „revoluționar”, „oportunitate”, „ofertă limitată”, „garantat”, „click aici”.",
-  "Între 250 și 450 de caractere, persoana a II-a singular, diacritice corecte (ș, ț). Cel mult un emoji. Fără liste, bife sau majuscule.",
+  "Între 250 și 450 de caractere, persoana a II-a singular, FĂRĂ diacritice (scrii „s, t, a, i”, nu „ș, ț, ă, â, î”), ca pe chat, dar cu ortografie corectă în rest. Cel mult un emoji. Fără liste, bife sau majuscule.",
   "Incluzi exact linkul primit, o singură dată, neschimbat, la finalul mesajului.",
   "Variază formularea de la un mesaj la altul (salut, ordinea, încheierea), ca mesajele să nu pară copiate.",
   "Nu promiți clienți, proiecte sau câștiguri, nu spui câți utilizatori sau proiecte sunt pe platformă și nu inventezi funcții. Faptele permise: " + FACTS.join("; ") + ".",
