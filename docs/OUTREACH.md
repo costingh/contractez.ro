@@ -79,5 +79,7 @@ Pagina `/admin/leads/coada` vorbește cu extensia prin `window.postMessage` (`cz
 ## Clasificare AI (worker, loturi de ~20)
 Pentru fiecare item: `type` (`client` caută prestator / `provider` oferă servicii / `irrelevant`), `categorySlug` (din taxonomie),
 `locality` (dacă apare), `score` 0–100 (prospețime, claritate, buget, potrivire cu categoriile cu prestatori), `reason` (scurt),
-`message` — mesaj personalizat în română, pornind de la șabloanele din `src/server/outreach/templates.ts`, care face referire
-concretă la postarea persoanei, cu link UTM (`utm_source=facebook&utm_medium=dm&utm_campaign=<groupId>`).
+`message` — cold DM personalizat în română, pornind de la șabloanele din `src/server/outreach/templates.ts`: o frază despre
+postarea persoanei, beneficiul concret (doar faptele din `FACTS`), un singur îndemn (profil / proiect), fără cerere de feedback.
+Linkul e scurt: `/fb/p/<groupId>` (prestator) sau `/fb/c/<groupId>` (client), care redirecționează la `/inregistrare` cu
+`utm_source=facebook&utm_medium=dm&utm_campaign=<groupId>`.

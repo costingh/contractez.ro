@@ -1,41 +1,53 @@
 // Șabloanele mesajelor de outreach (docs/OUTREACH.md). AI-ul le adaptează la postarea fiecărei persoane;
-// fără AI se folosesc ca atare, cu linkul UTM al grupului.
+// fără AI se folosesc ca atare, cu linkul scurt al grupului.
+import { plans, rules } from "@/config/site";
 import { env } from "../env";
 
 export type OutreachAudience = "client" | "provider";
 
-/** Domeniul public din șabloane, înlocuit cu linkul UTM. */
+/** Domeniul public din șabloane, înlocuit cu linkul scurt. */
 const SITE_PLACEHOLDER = "https://contractez.ro";
 
+const maxOffers = rules.defaultMaxApplications;
+const freeApplications = plans.find((p) => p.id === "free")?.monthlyApplications ?? 0;
+
+/**
+ * Cold DM, nu cerere de feedback: o frază despre postarea persoanei, ce câștigă ea concret, un singur pas cu linkul.
+ * Cifrele vin din config, ca mesajele să nu promită altceva decât face platforma.
+ */
 export const OUTREACH_TEMPLATES: Record<OutreachAudience, string> = {
-  provider:
-    "Salut! Am văzut că ești activ în grupul de freelancing și că oferi servicii. Am lansat recent https://contractez.ro, o platformă care conectează prestatorii de servicii cu persoane care au nevoie de ajutor pentru diverse proiecte. Momentan sunt în etapa de lansare și caut primii prestatori care vor să își promoveze serviciile și să ajungă la potențiali clienți. Mi-ar plăcea să arunci o privire și să îmi spui ce părere ai. Orice feedback m-ar ajuta enorm! 😁 Sper să te ajute în a găsi constant clienți/proiecte.",
-  client:
-    "Salut! 👋 Am văzut că ești activ în grupul de freelancing și că ești în căutarea unui prestator pentru un proiect și m-am gândit că ți-ar putea fi util. Am lansat recent https://contractez.ro, o platformă unde poți publica gratuit proiecte și poți primi oferte direct de la freelanceri și prestatori de servicii. ✅ 100% gratuit pentru cei care caută servicii ✅ Publici proiectul și prestatorii pot aplica direct ✅ Compari ofertele și alegi cu cine vrei să colaborezi ✅ Discuți direct cu prestatorii prin chat ✅ Fără comisioane din valoarea lucrării. Platforma este la început, așa că orice feedback m-ar ajuta mult. Dacă încă ești în căutarea cuiva, te invit să o încerci! 😁",
+  provider: `Salut! Am văzut că oferi servicii în grup. Pe Contractez clienții publică proiecte și primesc cel mult ${maxOffers} oferte, deci oferta ta nu se pierde printre zeci de comentarii. Profilul e gratuit, ai ${freeApplications} aplicări gratuite pe lună și nu luăm comision din lucrare. Îți faci profilul în câteva minute: https://contractez.ro`,
+  client: `Salut! Am văzut că cauți pe cineva pentru un proiect. Dacă n-ai găsit încă, îl poți publica gratuit pe Contractez: primești cel mult ${maxOffers} oferte de la prestatori, le compari și alegi tu. Telefonul nu apare public și nu plătești comision. Îl publici aici: https://contractez.ro`,
 };
 
-/** Linkul din mesaj, cu UTM per grup (campania = id-ul grupului de Facebook). */
+/** Linkul scurt din mesaj (/fb/p|c/<grup>); redirecționează la înregistrare cu UTM-ul grupului. */
 export function outreachLink(audience: OutreachAudience, groupId: string): string {
   const base = env.APP_URL.replace(/\/+$/, "");
-  const utm = new URLSearchParams({ utm_source: "facebook", utm_medium: "dm", utm_campaign: groupId });
-  return audience === "provider"
-    ? `${base}/inregistrare?rol=prestator&${utm}`
-    : `${base}/proiecte/nou?${utm}`;
+  return `${base}/fb/${audience === "provider" ? "p" : "c"}/${encodeURIComponent(groupId)}`;
 }
 
-/** Șablonul original, cu linkul UTM în locul domeniului (fallback fără AI). */
+/** Șablonul original, cu linkul scurt în locul domeniului (fallback fără AI). */
 export function templateMessage(audience: OutreachAudience, groupId: string): string {
   return OUTREACH_TEMPLATES[audience].replace(SITE_PLACEHOLDER, outreachLink(audience, groupId));
 }
 
+/** Faptele pe care mesajul are voie să le folosească (nimic în afara lor). */
+const FACTS = [
+  `clienții publică gratuit un proiect și primesc cel mult ${maxOffers} oferte de la prestatori compatibili`,
+  "telefonul, emailul și adresa exactă ale clientului nu apar în anunț",
+  `prestatorii își fac profil gratuit și au ${freeApplications} aplicări gratuite pe lună; primesc alerte pentru proiectele compatibile din categoria lor`,
+  "nu se ia comision din lucrare, nici de la client, nici de la prestator; plata se face direct între ei",
+  "firmele pot primi insigna „Firmă verificată ANAF”; recenziile apar doar după o colaborare confirmată",
+];
+
 /** Instrucțiunile de stil pentru AI (aceleași pentru ambele tipuri). */
 export const MESSAGE_GUIDELINES = [
-  "Pornești de la șablonul de mai jos, dar îl rescrii pentru persoana respectivă.",
-  "Prima frază face referire concretă la postarea/comentariul ei (ex: „Am văzut că cauți un social media manager pentru centrul educațional…”), fără să citezi lung și fără detalii sensibile.",
-  "Maxim ~500 de caractere, ton cald și natural, la persoana a II-a singular, cu diacritice corecte (ș, ț).",
-  "Spui sincer că platforma e nouă/la început și ceri părerea sau feedback-ul persoanei.",
-  "Incluzi exact linkul primit, o singură dată, neschimbat.",
-  "Cel mult un emoji. Fără liste cu bife, fără majuscule, fără „ofertă limitată”, „garantat”, „click aici” sau alte formule de spam.",
-  "Variază formularea de la un mesaj la altul (salut, structură, încheiere), ca mesajele să nu pară copiate.",
-  "Nu promiți clienți sau câștiguri, nu inventezi funcții.",
+  "Scopul e o acțiune, nu o părere: prestatorul să-și facă profilul, clientul să-și publice proiectul. NU ceri feedback, păreri sau „să arunce o privire” și nu spui că platforma e nouă sau la început.",
+  "Structura, în 3–4 propoziții scurte: (1) referire concretă la postarea/comentariul persoanei, cu serviciul sau categoria ei (ex: „Am văzut că faci montaj video pentru TikTok”); (2) beneficiul direct pentru ea, ales din faptele de mai jos și legat de ce face; (3) un singur îndemn clar, cu linkul la final.",
+  "Pentru prestatori, beneficiul principal: cel mult " + maxOffers + " oferte pe proiect înseamnă șanse reale, nu concurență cu zeci de comentarii; profil gratuit, fără comision. Pentru clienți: publică gratuit, primește cel mult " + maxOffers + " oferte, compară și alege, fără să-și lase telefonul public.",
+  "Scrii ca un om, nu ca o reclamă: prima propoziție nu începe cu „Am lansat” sau cu numele platformei, fără superlative, fără „revoluționar”, „oportunitate”, „ofertă limitată”, „garantat”, „click aici”.",
+  "Între 250 și 450 de caractere, persoana a II-a singular, diacritice corecte (ș, ț). Cel mult un emoji. Fără liste, bife sau majuscule.",
+  "Incluzi exact linkul primit, o singură dată, neschimbat, la finalul mesajului.",
+  "Variază formularea de la un mesaj la altul (salut, ordinea, încheierea), ca mesajele să nu pară copiate.",
+  "Nu promiți clienți, proiecte sau câștiguri, nu spui câți utilizatori sau proiecte sunt pe platformă și nu inventezi funcții. Faptele permise: " + FACTS.join("; ") + ".",
 ].join("\n- ");

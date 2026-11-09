@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { isAnonymousAuthor, messengerUrl, personKey, personKeyFromThread } from "@/server/outreach/person-key";
 import { ruleCategories, ruleClassify } from "@/server/outreach/rules";
-import { outreachLink, templateMessage } from "@/server/outreach/templates";
+import { GET as fbLinkGET } from "@/app/fb/[tip]/[grup]/route";
+import { rules } from "@/config/site";
+import { MESSAGE_GUIDELINES, outreachLink, templateMessage } from "@/server/outreach/templates";
 
 describe("personKey", () => {
   it("normalizează URL-urile de profil", () => {
@@ -90,13 +92,30 @@ describe("ruleClassify (fallback fără AI)", () => {
 });
 
 describe("șabloane", () => {
-  it("linkurile au UTM per grup", () => {
-    expect(outreachLink("provider", "252706105062924")).toMatch(
-      /\/inregistrare\?rol=prestator&utm_source=facebook&utm_medium=dm&utm_campaign=252706105062924$/,
-    );
-    expect(outreachLink("client", "42")).toMatch(/\/proiecte\/nou\?utm_source=facebook&utm_medium=dm&utm_campaign=42$/);
+  it("linkuri scurte per grup, care redirecționează la înregistrare cu UTM", async () => {
+    expect(outreachLink("provider", "252706105062924")).toMatch(/\/fb\/p\/252706105062924$/);
+    expect(outreachLink("client", "42")).toMatch(/\/fb\/c\/42$/);
     const msg = templateMessage("client", "42");
     expect(msg).toContain(outreachLink("client", "42"));
     expect(msg).not.toContain("https://contractez.ro,");
+
+    const go = async (tip: string, grup: string) =>
+      (await fbLinkGET(new Request(`http://localhost/fb/${tip}/${grup}`), { params: Promise.resolve({ tip, grup }) })).headers.get("location");
+    expect(await go("p", "252706105062924")).toMatch(
+      /\/inregistrare\?rol=prestator&utm_source=facebook&utm_medium=dm&utm_campaign=252706105062924$/,
+    );
+    expect(await go("c", "42")).toMatch(/\/inregistrare\?rol=client&utm_source=facebook&utm_medium=dm&utm_campaign=42$/);
+    expect(await go("x", "42")).toMatch(/\/\?utm_source=facebook/);
+  });
+
+  it("sunt cold DM: îndemn la acțiune, fără cerere de feedback, cu cifrele din config", () => {
+    for (const audience of ["provider", "client"] as const) {
+      const msg = templateMessage(audience, "42");
+      expect(msg).not.toMatch(/feedback|părere|arunci o privire|la început|am lansat/i);
+      expect(msg).toContain(`cel mult ${rules.defaultMaxApplications} oferte`);
+      expect(msg.endsWith(outreachLink(audience, "42"))).toBe(true);
+      expect(msg.length).toBeLessThanOrEqual(450);
+    }
+    expect(MESSAGE_GUIDELINES).toMatch(/NU ceri feedback/);
   });
 });
