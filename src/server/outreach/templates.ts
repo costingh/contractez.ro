@@ -44,7 +44,7 @@ const FACTS = [
 export const MESSAGE_GUIDELINES = [
   "Scopul e o acțiune, nu o părere: prestatorul să-și facă profilul, clientul să-și publice proiectul. NU ceri feedback, păreri sau „să arunce o privire” și nu spui că platforma e nouă sau la început.",
   "Structura, în 3–4 propoziții scurte: (1) referire concretă la postarea/comentariul persoanei, cu serviciul sau categoria ei (ex: „Am văzut că faci montaj video pentru TikTok”); (2) beneficiul direct pentru ea, ales din faptele de mai jos și legat de ce face; (3) un singur îndemn clar, cu linkul la final.",
-  "Pentru prestatori, beneficiul principal: cel mult " + maxOffers + " oferte pe proiect înseamnă șanse reale, nu concurență cu zeci de comentarii; profil gratuit, fără comision. Pentru clienți: publică gratuit, primește cel mult " + maxOffers + " oferte, compară și alege, fără să-și lase telefonul public.",
+  "Pentru prestatori, beneficiul principal: fiecare proiect primește cel mult " + maxOffers + " oferte, deci concurează cu puțini, nu cu zeci de comentarii; profil gratuit, fără comision. Atenție: prestatorul NU primește oferte de la clienți; el primește alerte pentru proiecte și aplică cu o ofertă. Ofertele le primește clientul. Pentru clienți: publică gratuit, primește cel mult " + maxOffers + " oferte, compară și alege, fără să-și lase telefonul public.",
   "Scrii ca un om, nu ca o reclamă: prima propoziție nu începe cu „Am lansat” sau cu numele platformei, fără superlative, fără „revoluționar”, „oportunitate”, „ofertă limitată”, „garantat”, „click aici”.",
   "Între 250 și 450 de caractere, persoana a II-a singular, diacritice corecte (ș, ț). Cel mult un emoji. Fără liste, bife sau majuscule.",
   "Incluzi exact linkul primit, o singură dată, neschimbat, la finalul mesajului.",
