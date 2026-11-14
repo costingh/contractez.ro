@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "@/server/db";
 import { categories, notifications, projectStatusHistory, projects, reports } from "@/server/db/schema";
 import { approveProject, publishProject, saveProject } from "@/server/projects/service";
+import { rules } from "@/config/site";
 import { createReport } from "@/server/trust/service";
 import { createTestUser } from "./helpers";
 
@@ -207,5 +208,28 @@ describe("editarea unui proiect publicat", () => {
     expect(after.budgetMax).toBe(6000);
     expect(after.publishedAt?.getTime()).toBe(p.publishedAt?.getTime());
     expect(await history(p.id)).toHaveLength(before.length);
+  });
+});
+
+describe("câte oferte vrea clientul", () => {
+  it("implicit 5; clientul alege la publicare până la plafon, nu mai mult", async () => {
+    const client = await createTestUser({ isClient: true });
+    const implicit = await saveProject(client.id, await input({ title: "Montaj mobilă pentru un apartament nou" }), { publish: true });
+    expect((await load(implicit.project.id)).maxApplications).toBe(rules.defaultMaxApplications);
+
+    const ales = await saveProject(client.id, await input({ title: "Renovare completă baie și bucătărie", maxApplications: 20 }), { publish: true });
+    expect((await load(ales.project.id)).maxApplications).toBe(20);
+
+    await expect(saveProject(client.id, await input({ title: "Proiect cu prea multe oferte cerute", maxApplications: rules.maxApplicationsCap + 1 }), { publish: true })).rejects.toThrow();
+  });
+
+  it("la editare rămâne cât era dacă nu se trimite și nu scade sub ofertele deja primite", async () => {
+    const client = await createTestUser({ isClient: true });
+    const p = await insertProject(client.id, { title: "Logo pentru o brutărie de cartier", maxApplications: 15, applicationsCount: 8 });
+    await saveProject(client.id, await input({ title: p.title, description: p.description }), { projectId: p.id, publish: true });
+    expect((await load(p.id)).maxApplications).toBe(15);
+
+    await saveProject(client.id, await input({ title: p.title, description: p.description, maxApplications: 5 }), { projectId: p.id, publish: true });
+    expect((await load(p.id)).maxApplications).toBe(8);
   });
 });

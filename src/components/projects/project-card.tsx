@@ -31,14 +31,21 @@ export type ProjectCardData = {
   score?: number;
 };
 
+/** Segmentele afișate pentru locuri: unul per loc până la 15, apoi proporțional (un loc ocupat se vede mereu). */
+export function slotSegments(used: number, max: number): { total: number; filled: number } {
+  const total = Math.min(max, 15);
+  return { total, filled: max <= 15 ? Math.min(used, total) : Math.min(total, Math.ceil((used * total) / max)) };
+}
+
 /** Locurile de aplicare, ca segmente: câte oferte mai pot intra. */
 export function SlotMeter({ used, max, className }: { used: number; max: number; className?: string }) {
   const full = used >= max;
+  const seg = slotSegments(used, max);
   return (
     <span className={cn("flex items-center gap-2", className)}>
       <span className="flex gap-0.5" aria-hidden>
-        {Array.from({ length: Math.min(max, 15) }, (_, i) => (
-          <span key={i} className={cn("h-2.5 w-1.5 rounded-[2px]", i < used ? (full ? "bg-muted-foreground/60" : "bg-foreground/75") : "bg-border-strong/70")} />
+        {Array.from({ length: seg.total }, (_, i) => (
+          <span key={i} className={cn("h-2.5 w-1.5 rounded-[2px]", i < seg.filled ? (full ? "bg-muted-foreground/60" : "bg-foreground/75") : "bg-border-strong/70")} />
         ))}
       </span>
       <span className="tabular-nums">{full ? "Locuri ocupate" : `${used} din ${max} locuri ocupate`}</span>

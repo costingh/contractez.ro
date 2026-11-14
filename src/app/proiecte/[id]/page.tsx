@@ -27,6 +27,7 @@ import { ScoreBadge } from "@/components/shared/score-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { slotSegments } from "@/components/projects/project-card";
 import { freePlan, labels } from "@/config/site";
 import { describeBudget, formatDate, timeAgo } from "@/lib/format";
 import { pageTitle } from "@/lib/seo";
@@ -169,6 +170,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   }
 
   const slotsLeft = Math.max(0, p.maxApplications - p.applicationsCount);
+  const slots = slotSegments(p.applicationsCount, p.maxApplications);
   const open = p.status === "open" && (!p.expiresAt || p.expiresAt > new Date());
   const where = p.workMode === "remote" ? "Remote, de oriunde" : [row.localityName, row.county].filter(Boolean).join(", ");
   const quality = p.quality;
@@ -234,11 +236,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               {/* Locurile de aplicare, mari: semnătura platformei */}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
                 <span className="flex gap-1" aria-hidden>
-                  {Array.from({ length: Math.min(p.maxApplications, 15) }, (_, i) => (
+                  {Array.from({ length: slots.total }, (_, i) => (
                     <span
                       key={i}
                       className={
-                        i < p.applicationsCount
+                        i < slots.filled
                           ? "h-5 w-2.5 rounded-[3px] bg-[linear-gradient(180deg,#a9bcff,#5b7cff)]"
                           : "h-5 w-2.5 rounded-[3px] bg-white/12"
                       }

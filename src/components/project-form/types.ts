@@ -1,4 +1,5 @@
 import type { LocalityValue } from "@/components/shared/locality-combobox";
+import { rules } from "@/config/site";
 
 export type BudgetType = "fixed" | "hourly" | "monthly" | "unknown";
 export type WorkMode = "remote" | "on_site" | "hybrid";
@@ -24,6 +25,7 @@ export type ProjectFormValues = {
   startDate: string;
   durationText: string;
   allowAutoBids: boolean;
+  maxApplications: number;
   source: "web" | "import";
   sourceText: string | null;
 };
@@ -46,6 +48,7 @@ export const emptyProjectValues: ProjectFormValues = {
   startDate: "",
   durationText: "",
   allowAutoBids: true,
+  maxApplications: rules.defaultMaxApplications,
   source: "web",
   sourceText: null,
 };

@@ -38,6 +38,8 @@ export const projectInputSchema = z
     skills: z.array(z.string().trim().min(2).max(60)).max(10).default([]),
     attributes: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).default({}),
     allowAutoBids: z.boolean().default(true),
+    /** Câte oferte vrea clientul (locuri de aplicare); lipsă la editare = rămâne cât era. */
+    maxApplications: z.coerce.number().int().min(rules.defaultMaxApplications).max(rules.maxApplicationsCap).optional(),
     source: z.enum(["web", "import"]).default("web"),
     sourceText: z.string().max(10_000).nullable().optional(),
   })
@@ -130,6 +132,7 @@ export async function saveProject(clientId: string, raw: unknown, opts: { projec
     durationText: input.durationText ?? null,
     attributes: input.attributes,
     allowAutoBids: input.allowAutoBids,
+    maxApplications: Math.max(input.maxApplications ?? existing?.maxApplications ?? rules.defaultMaxApplications, existing?.applicationsCount ?? 0),
     source: input.source,
     sourceText: input.sourceText ?? null,
     contentHash: hash,

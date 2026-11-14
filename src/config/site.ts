@@ -26,7 +26,7 @@ export const rules = {
   defaultMaxAutoApplications: 2,
   /** Cu cât poate clientul extinde selecția, o dată. */
   reopenIncrement: 5,
-  maxApplicationsCap: 15,
+  maxApplicationsCap: 30,
   /** Fereastra în care doar oamenii pot aplica, înainte de Auto Bid (minute). */
   autoBidDelayMinutes: 30,
   /** Durata implicită a unui proiect deschis (zile). */

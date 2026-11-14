@@ -17,6 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import { rules } from "@/config/site";
 import type { ActionState } from "@/lib/action";
 
 function useAction() {
@@ -67,7 +68,7 @@ export function ProjectControls({
       )}
       {status === "open" && canReopen && (
         <Button variant="outline" onClick={() => run(() => reopenAction(projectId))} disabled={pending}>
-          <PlusCircle /> Încă 5 locuri
+          <PlusCircle /> Încă {rules.reopenIncrement} locuri
         </Button>
       )}
       {active && (

@@ -20,6 +20,12 @@ import { cn } from "@/lib/utils";
 import { QualityPanel } from "./quality-panel";
 import type { BudgetType, ProjectFormState, ProjectFormValues, QualityView, WorkMode } from "./types";
 
+/** Câte oferte poate cere clientul: implicit, apoi din câte locuri se adaugă la o redeschidere, până la plafon. */
+const OFFER_CHOICES = Array.from(
+  { length: (rules.maxApplicationsCap - rules.defaultMaxApplications) / rules.reopenIncrement + 1 },
+  (_, i) => rules.defaultMaxApplications + i * rules.reopenIncrement,
+);
+
 type Props = {
   categories: CategoryOption[];
   value: ProjectFormValues;
@@ -330,7 +336,22 @@ export function ProjectForm({ categories, value: v, onChange, projectId, status,
           <Field label="Durată estimată" optional>
             <Input value={v.durationText} onChange={(e) => set("durationText", e.target.value)} maxLength={120} placeholder="ex: 2-3 săptămâni" />
           </Field>
+          <Field label="Câte oferte vrei să primești">
+            <NativeSelect value={v.maxApplications} onChange={(e) => set("maxApplications", Number(e.target.value))}>
+              {OFFER_CHOICES.map((n) => (
+                <option key={n} value={n}>
+                  {n === rules.defaultMaxApplications ? `Cel mult ${n} (recomandat)` : `Cel mult ${n}`}
+                </option>
+              ))}
+            </NativeSelect>
+          </Field>
         </div>
+        {v.maxApplications > rules.defaultMaxApplications && (
+          <p className="flex gap-1.5 text-xs text-muted-foreground">
+            <Info className="mt-0.5 size-3.5 shrink-0" /> Cu mai puține locuri, prestatorii aplică mai serios și fiecare ofertă e citită. Dacă ai nevoie de mai multe variante, poți
+            adăuga locuri și după publicare.
+          </p>
+        )}
         {v.invoice === "required" && (
           <p className="flex gap-1.5 text-xs text-muted-foreground">
             <Info className="mt-0.5 size-3.5 shrink-0" /> Doar prestatorii care emit factură (PFA, SRL etc.) vor putea aplica.
@@ -342,7 +363,7 @@ export function ProjectForm({ categories, value: v, onChange, projectId, status,
               <Bot className="size-4 text-primary" /> Accept aplicări automate (Auto Bid)
             </span>
             <span className="block text-xs text-muted-foreground">
-              Maximum {rules.defaultMaxAutoApplications} din cele {rules.defaultMaxApplications} locuri, după primele {rules.autoBidDelayMinutes} de minute
+              Maximum {rules.defaultMaxAutoApplications} din cele {v.maxApplications} locuri, după primele {rules.autoBidDelayMinutes} de minute
               rezervate aplicărilor manuale. Ofertele automate sunt marcate vizibil.
             </span>
           </span>

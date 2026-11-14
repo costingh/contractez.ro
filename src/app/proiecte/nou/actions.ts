@@ -42,6 +42,7 @@ function toInput(v: ProjectFormValues) {
     skills: v.skills,
     attributes: v.attributes,
     allowAutoBids: v.allowAutoBids,
+    maxApplications: v.maxApplications,
     source: v.source,
     sourceText: v.sourceText,
   };

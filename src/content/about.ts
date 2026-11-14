@@ -15,7 +15,7 @@ export const clientSteps: string[] = [
   "Descrii lucrarea cu cuvintele tale; platforma o structurează (categorie, buget, localitate, termen, factură) și întreabă doar ce lipsește.",
   "Îți confirmi emailul și publici gratuit. Telefonul, emailul și adresa exactă nu apar în anunț, doar localitatea.",
   "Sunt anunțați doar prestatorii compatibili: oferă serviciul, acoperă zona, se încadrează în buget și emit factură dacă o ceri.",
-  `Primești cel mult ${pluralRo(max, "ofertă", "oferte")}. Dacă vrei mai multe variante, extinzi selecția cu încă ${rules.reopenIncrement}, până la ${rules.maxApplicationsCap} în total. Proiectul rămâne deschis ${pluralRo(rules.projectLifetimeDays, "zi", "zile")}.`,
+  `Primești cel mult ${pluralRo(max, "ofertă", "oferte")}. Dacă vrei mai multe variante, alegi mai multe locuri când publici sau extinzi selecția mai târziu, până la ${rules.maxApplicationsCap} în total. Proiectul rămâne deschis ${pluralRo(rules.projectLifetimeDays, "zi", "zile")}.`,
   "Compari tarife, portofolii și recenzii, discuți în chat și alegi. Prețul, termenele și plata le stabilești direct cu prestatorul.",
 ];
 

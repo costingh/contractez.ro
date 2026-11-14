@@ -72,6 +72,7 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
     startDate: p.startDate ? p.startDate.toISOString().slice(0, 10) : "",
     durationText: p.durationText ?? "",
     allowAutoBids: p.allowAutoBids,
+    maxApplications: p.maxApplications,
     source: p.source === "import" ? "import" : "web",
     sourceText: p.sourceText,
   };

@@ -270,7 +270,7 @@ export default function AboutPage() {
         <Section id="intrebari" eyebrow="Întrebări frecvente" heading={`Despre ${site.name}, pe scurt`}>
           <Faq
             items={[
-              { q: `Cât costă ${site.name} pentru clienți?`, a: `Nimic. Publicarea unui proiect și ofertele primite sunt gratuite. Primești cel mult ${max} oferte, iar dacă vrei mai multe poți extinde selecția până la ${rules.maxApplicationsCap}.` },
+              { q: `Cât costă ${site.name} pentru clienți?`, a: `Nimic. Publicarea unui proiect și ofertele primite sunt gratuite. Implicit primești cel mult ${max} oferte, iar dacă vrei mai multe poți alege până la ${rules.maxApplicationsCap}, la publicare sau mai târziu.` },
               { q: `Ia ${site.name} comision din lucrare?`, a: "Nu. Prețul și plata le stabilesc direct clientul și prestatorul. Platforma nu intermediază plata și nu reține niciun procent." },
               {
                 q: "Cât plătește un prestator?",
