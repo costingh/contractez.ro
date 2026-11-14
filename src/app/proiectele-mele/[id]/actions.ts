@@ -130,7 +130,7 @@ export async function hireAction(applicationId: string): Promise<ActionState> {
     await hireApplication(applicationId, user.id);
     refresh(projectId);
     revalidatePath("/colaborari");
-    return { ok: true, message: "Ai ales prestatorul! Proiectul a trecut „în desfășurare”." };
+    return { ok: true, message: "Ai ales prestatorul! Proiectul a trecut „în desfășurare”, iar aplicările sunt înghețate." };
   } catch (err) {
     return toActionError(err);
   }

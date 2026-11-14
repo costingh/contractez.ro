@@ -46,7 +46,9 @@ export default async function CollaborationsPage() {
             const asClient = r.collab.clientId === user.id;
             const other = asClient ? r.providerName : r.clientName;
             const st = STATUS[r.collab.status];
-            const canReview = (r.collab.status === "active" || r.collab.status === "completed") && r.myReview === null;
+            const ended = r.collab.status === "completed" || r.collab.status === "cancelled";
+            // Feedback cerut la final de la ambele părți; în timpul colaborării confirmate se poate lăsa și mai devreme.
+            const canReview = (r.collab.status === "active" || ended) && r.myReview === null;
             const contact = contactByCollab.get(r.collab.id);
             return (
               <article
@@ -55,6 +57,7 @@ export default async function CollaborationsPage() {
                   "reveal relative space-y-4 overflow-hidden rounded-2xl border bg-card p-5 shadow-xs sm:p-6",
                   r.collab.status === "completed" && "border-success/30",
                   r.collab.status === "pending_confirmation" && !asClient && "border-brand/35",
+                  ended && r.myReview === null && "border-warning/40",
                 )}
               >
                 {r.collab.status === "completed" && (
@@ -95,14 +98,16 @@ export default async function CollaborationsPage() {
                       </Link>
                     </Button>
                   )}
-                  <CollaborationActions id={r.collab.id} status={r.collab.status} isProvider={!asClient} />
+                  <CollaborationActions id={r.collab.id} status={r.collab.status} isProvider={!asClient} confirmed={Boolean(r.collab.confirmedAt)} otherName={other} />
                   {r.myReview !== null && (
                     <span className="ml-auto flex items-center gap-1 text-sm text-muted-foreground">
-                      Ai acordat {r.myReview} <Star className="size-3.5 fill-warning text-warning" />
+                      {r.collab.confirmedAt ? "Ai acordat" : "Feedback privat:"} {r.myReview} <Star className="size-3.5 fill-warning text-warning" />
                     </span>
                   )}
                 </div>
-                {canReview && <ReviewForm collaborationId={r.collab.id} targetName={other} asClient={asClient} />}
+                {canReview && (
+                  <ReviewForm collaborationId={r.collab.id} targetName={other} asClient={asClient} isPublic={Boolean(r.collab.confirmedAt)} ended={ended} />
+                )}
               </article>
             );
           })}

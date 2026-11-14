@@ -18,24 +18,27 @@ export async function confirmAction(id: string): Promise<ActionState> {
   }
 }
 
-export async function completeAction(id: string): Promise<ActionState> {
+/** Feedbackul cerut la încheierea colaborării (validat în serviciu). */
+export type EndFeedback = { rating: number; comment: string; hideAuthor: boolean };
+
+export async function completeAction(id: string, feedback: EndFeedback): Promise<ActionState> {
   if (!isUuid(id)) return { ok: false, error: "Colaborarea nu există." };
   try {
     const user = await requireOnboardedUser("/colaborari");
-    await completeCollaboration(id, user.id);
+    await completeCollaboration(id, user.id, feedback);
     revalidatePath("/colaborari");
     revalidatePath("/proiectele-mele");
-    return { ok: true, message: "Colaborarea a fost marcată ca finalizată." };
+    return { ok: true, message: "Colaborarea a fost marcată ca finalizată. Mulțumim pentru feedback!" };
   } catch (err) {
     return toActionError(err);
   }
 }
 
-export async function cancelAction(id: string): Promise<ActionState> {
+export async function cancelAction(id: string, feedback: EndFeedback, reopen: boolean): Promise<ActionState> {
   if (!isUuid(id)) return { ok: false, error: "Colaborarea nu există." };
   try {
     const user = await requireOnboardedUser("/colaborari");
-    await cancelCollaboration(id, user.id);
+    await cancelCollaboration(id, user.id, { feedback, reopen });
     revalidatePath("/colaborari");
     revalidatePath("/proiectele-mele", "layout");
     revalidatePath("/aplicarile-mele");
@@ -54,7 +57,7 @@ export async function reviewAction(_: ActionState, fd: FormData): Promise<Action
       hideAuthor: formBool(fd, "hideAuthor"),
     });
     revalidatePath("/colaborari");
-    return { ok: true, message: "Mulțumim! Recenzia ta a fost publicată." };
+    return { ok: true, message: "Mulțumim pentru feedback!" };
   } catch (err) {
     return toActionError(err);
   }

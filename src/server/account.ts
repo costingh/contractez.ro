@@ -7,6 +7,7 @@ import { db } from "./db";
 import {
   applications,
   autoBidExecutions,
+  collaborationFeedback,
   messages,
   notificationPreferences,
   portfolioItems,
@@ -121,7 +122,7 @@ export async function exportAccountData(userId: string) {
   void _omit;
   const [profile] = await db.select().from(providerProfiles).where(eq(providerProfiles.userId, userId));
   const [prefs] = await db.select().from(notificationPreferences).where(eq(notificationPreferences.userId, userId));
-  const [services, portfolio, myProjects, myApplications, sentMessages, plans, writtenReviews, autoBids] = await Promise.all([
+  const [services, portfolio, myProjects, myApplications, sentMessages, plans, writtenReviews, writtenFeedback, autoBids] = await Promise.all([
     db.select().from(providerServices).where(eq(providerServices.providerId, userId)),
     db.select().from(portfolioItems).where(eq(portfolioItems.providerId, userId)),
     db.select().from(projects).where(eq(projects.clientId, userId)),
@@ -133,6 +134,7 @@ export async function exportAccountData(userId: string) {
       .orderBy(desc(messages.createdAt)),
     db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).orderBy(desc(subscriptions.createdAt)),
     db.select().from(reviews).where(eq(reviews.authorId, userId)),
+    db.select().from(collaborationFeedback).where(eq(collaborationFeedback.authorId, userId)),
     db.select().from(autoBidExecutions).where(eq(autoBidExecutions.providerId, userId)),
   ]);
   const { searchVector: _sv, ...safeProfile } = profile ?? ({} as Record<string, unknown>);
@@ -153,6 +155,7 @@ export async function exportAccountData(userId: string) {
     messagesSent: sentMessages,
     subscriptions: plans,
     reviewsWritten: writtenReviews,
+    privateFeedbackWritten: writtenFeedback,
     autoBidExecutions: autoBids,
   };
 }

@@ -26,6 +26,7 @@ import { labels } from "@/config/site";
 import { formatDistance, formatRating, initials, timeAgo } from "@/lib/format";
 import { pluralRo } from "@/lib/text";
 import { cn } from "@/lib/utils";
+import { HIRE_EXPLAINER } from "./hire-button";
 import type { OfferView } from "./types";
 
 type Sort = "date" | "price_asc" | "price_desc" | "rating";
@@ -259,10 +260,7 @@ export function OffersList({ offers, projectOpen, highlight }: { offers: OfferVi
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Alegi pe {hiring?.provider.name}?</DialogTitle>
-            <DialogDescription>
-              Proiectul trece „în desfășurare” și nu mai primește oferte noi. Ceilalți prestatori vor fi anunțați politicos că ai ales pe altcineva. După
-              confirmarea colaborării de către prestator, vă puteți lăsa recenzii unul altuia.
-            </DialogDescription>
+            <DialogDescription>{HIRE_EXPLAINER}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>

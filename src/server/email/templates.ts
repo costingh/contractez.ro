@@ -436,7 +436,7 @@ export function collabCancelledTemplate(d: { projectTitle: string; byClient: boo
     eyebrow: "Colaborare anulată",
     heading: `${who} a anulat colaborarea`,
     preheader: `Colaborarea pentru ${quoted(d.projectTitle)} a fost anulată.`,
-    cta: d.byClient ? "Vezi aplicările mele" : "Vezi proiectul",
+    cta: d.byClient ? "Lasă feedback" : "Vezi proiectul",
     blocks: [
       { type: "callout", tone: "info", text: `${who} a anulat colaborarea pentru ${quoted(d.projectTitle)}.` },
       {
@@ -444,9 +444,10 @@ export function collabCancelledTemplate(d: { projectTitle: string; byClient: boo
         text: d.byClient
           ? "Îți trimitem în continuare proiecte noi compatibile cu profilul tău. Dacă vreți să clarificați ce s-a întâmplat, conversația rămâne disponibilă."
           : d.projectReopened
-            ? "Proiectul este din nou deschis: poți alege altă ofertă sau poți primi oferte noi."
+            ? "Proiectul este din nou deschis, cu locuri noi pentru oferte."
             : "Proiectul a expirat între timp, așa că l-am închis. Dacă încă ai nevoie de un prestator, publică un proiect nou.",
       },
+      { type: "p", text: "Te rugăm să lași și tu un feedback scurt despre colaborare, din pagina Colaborări. Durează un minut." },
     ],
   };
 }

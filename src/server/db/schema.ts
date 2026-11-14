@@ -901,6 +901,27 @@ export const reviews = pgTable(
   ],
 );
 
+/**
+ * Feedback privat la o colaborare anulată înainte de confirmarea prestatorului: nu e recenzie verificată,
+ * deci nu apare public și nu intră în rating. Îl vede doar echipa platformei.
+ */
+export const collaborationFeedback = pgTable(
+  "collaboration_feedback",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    collaborationId: uuid("collaboration_id")
+      .notNull()
+      .references(() => collaborations.id, { onDelete: "cascade" }),
+    authorId: uuid("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    rating: integer("rating").notNull(),
+    comment: text("comment").notNull().default(""),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("collaboration_feedback_collab_author_uq").on(t.collaborationId, t.authorId)],
+);
+
 export const reports = pgTable(
   "reports",
   {

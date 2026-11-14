@@ -272,6 +272,15 @@ export default async function ManageProjectPage({
             </dl>
           </section>
 
+          {p.status === "in_progress" && (
+            <p className="rounded-lg border bg-surface px-4 py-3 text-sm leading-relaxed dark:bg-muted/40">
+              Ai ales un prestator, așa că aplicările sunt înghețate: proiectul nu mai primește oferte noi. Dacă anulezi colaborarea din{" "}
+              <Link href="/colaborari" className="font-medium underline underline-offset-4">
+                Colaborări
+              </Link>{" "}
+              și proiectul nu e gata, poți redeschide aplicările.
+            </p>
+          )}
           {full && p.status === "open" && (
             <p className="rounded-lg border bg-surface px-4 py-3 text-sm leading-relaxed dark:bg-muted/40">
               Toate cele {p.maxApplications} locuri sunt ocupate. Dacă vrei mai multe variante, apasă „Încă {rules.reopenIncrement} locuri”.

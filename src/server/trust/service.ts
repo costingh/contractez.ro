@@ -1,11 +1,13 @@
 import { and, desc, eq, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import { z } from "zod";
+import { rules } from "@/config/site";
 import { truncate } from "@/lib/text";
 import { track } from "../analytics";
 import { db } from "../db";
 import {
   applicationEvents,
   applications,
+  collaborationFeedback,
   collaborations,
   conversations,
   moderationActions,
@@ -31,7 +33,11 @@ export async function listCollaborations(userId: string) {
       projectTitle: projects.title,
       clientName: sql<string>`(SELECT name FROM users WHERE id = ${collaborations.clientId})`,
       providerName: sql<string>`(SELECT name FROM users WHERE id = ${collaborations.providerId})`,
-      myReview: sql<number | null>`(SELECT rating FROM reviews r WHERE r.collaboration_id = ${collaborations.id} AND r.author_id = ${userId})`,
+      // Nota dată de mine: recenzia publică sau, la o colaborare anulată înainte de confirmare, feedbackul privat.
+      myReview: sql<number | null>`coalesce(
+        (SELECT rating FROM reviews r WHERE r.collaboration_id = ${collaborations.id} AND r.author_id = ${userId}),
+        (SELECT rating FROM collaboration_feedback f WHERE f.collaboration_id = ${collaborations.id} AND f.author_id = ${userId})
+      )`,
       conversationId: sql<string | null>`(SELECT id FROM conversations c WHERE c.application_id = ${collaborations.applicationId})`,
     })
     .from(collaborations)
@@ -62,7 +68,50 @@ export async function confirmCollaboration(id: string, providerId: string) {
   await notify({ userId: c.clientId, type: "collab.confirmed", title: "Prestatorul a confirmat colaborarea", link: "/colaborari", dedupeKey: `collab-confirmed:${id}` });
 }
 
-export async function completeCollaboration(id: string, userId: string) {
+/* -------------------------------- Feedback -------------------------------- */
+
+export const reviewSchema = z.object({
+  rating: z.coerce.number().int().min(1, "Alege o notă").max(5),
+  comment: z.string().trim().max(2_000).default(""),
+  hideAuthor: z.boolean().default(false),
+});
+
+/** La anulare motivul e obligatoriu: ajută cealaltă parte și echipa să înțeleagă ce nu a mers. */
+export const cancelFeedbackSchema = reviewSchema.extend({
+  comment: z.string().trim().min(10, "Spune pe scurt de ce anulezi colaborarea.").max(2_000),
+});
+
+type Collaboration = typeof collaborations.$inferSelect;
+type FeedbackInput = z.infer<typeof reviewSchema>;
+
+/**
+ * Salvează feedbackul unei părți. Dacă prestatorul confirmase colaborarea, e recenzie publică verificată;
+ * altfel e feedback privat (o colaborare neconfirmată nu poate produce recenzii publice). `false` = există deja.
+ */
+async function saveFeedback(c: Collaboration, authorId: string, input: FeedbackInput): Promise<boolean> {
+  const targetId = authorId === c.clientId ? c.providerId : c.clientId;
+  if (!c.confirmedAt) {
+    const [row] = await db
+      .insert(collaborationFeedback)
+      .values({ collaborationId: c.id, authorId, rating: input.rating, comment: input.comment })
+      .onConflictDoNothing()
+      .returning({ id: collaborationFeedback.id });
+    return Boolean(row);
+  }
+  const [row] = await db
+    .insert(reviews)
+    .values({ collaborationId: c.id, authorId, targetId, rating: input.rating, comment: input.comment, hideAuthor: input.hideAuthor })
+    .onConflictDoNothing()
+    .returning();
+  if (!row) return false;
+  await refreshProviderStats(targetId);
+  await notify({ userId: targetId, type: "review.new", title: `Ai primit o recenzie de ${input.rating}★`, link: "/profil#recenzii", dedupeKey: `review:${row.id}` });
+  return true;
+}
+
+/** Finalizarea cere feedbackul celui care o marchează; cealaltă parte e rugată să-l lase pe al ei. */
+export async function completeCollaboration(id: string, userId: string, feedback: unknown) {
+  const input = reviewSchema.parse(feedback);
   const c = await loadCollab(id, userId);
   if (c.status === "completed") return;
   if (c.status === "cancelled") throw new DomainError("state", "Colaborarea a fost anulată.");
@@ -81,6 +130,7 @@ export async function completeCollaboration(id: string, userId: string) {
     await db.update(projects).set({ status: "closed", closedAt: new Date() }).where(eq(projects.id, p.id));
     await db.insert(projectStatusHistory).values({ projectId: p.id, fromStatus: "in_progress", toStatus: "closed", actorId: userId, reason: "Colaborare finalizată" });
   }
+  await saveFeedback(c, userId, input); // dacă lăsase deja recenzie în timpul colaborării, o păstrăm pe aceea
   await refreshProviderStats(c.providerId);
   const other = userId === c.clientId ? c.providerId : c.clientId;
   await notify({
@@ -97,15 +147,20 @@ export async function completeCollaboration(id: string, userId: string) {
 export const COLLAB_CANCELLED_REASON = "Colaborare anulată";
 
 /**
- * Oricare parte poate anula o colaborare neîncheiată. Într-o singură tranzacție (cu proiectul blocat, ca alegerea
- * unui prestator): colaborarea devine anulată, oferta aleasă devine respinsă („Colaborare anulată”), iar proiectul
- * revine „deschis” dacă nu a expirat (altfel se închide), cu rând în istoric. Cealaltă parte este anunțată.
+ * Oricare parte poate anula o colaborare neîncheiată, cu feedback obligatoriu. Într-o singură tranzacție (cu proiectul
+ * blocat, ca alegerea unui prestator): colaborarea devine anulată, oferta aleasă devine respinsă („Colaborare anulată”)
+ * și proiectul iese din „în desfășurare”:
+ * - clientul alege: proiectul nu e gata → aplicările se redeschid (cu locuri noi și termen prelungit), altfel se închide;
+ * - prestatorul anulează → proiectul se redeschide cu locuri noi, dacă nu a expirat (altfel se închide).
+ * Cealaltă parte este anunțată și rugată să lase și ea feedback.
  */
-export async function cancelCollaboration(id: string, userId: string) {
+export async function cancelCollaboration(id: string, userId: string, opts: { feedback: unknown; reopen?: boolean }) {
+  const input = cancelFeedbackSchema.parse(opts.feedback);
   const c = await loadCollab(id, userId);
   if (c.status === "completed") throw new DomainError("state", "Colaborarea este deja finalizată.");
   if (c.status === "cancelled") return;
   const byClient = userId === c.clientId;
+  const wantsReopen = byClient ? (opts.reopen ?? true) : true;
 
   const res = await db.transaction(async (tx) => {
     const [project] = await tx.select().from(projects).where(eq(projects.id, c.projectId)).for("update");
@@ -119,28 +174,41 @@ export async function cancelCollaboration(id: string, userId: string) {
       .update(applications)
       .set({ status: "rejected", rejectionReason: COLLAB_CANCELLED_REASON, decidedAt: new Date() })
       .where(and(eq(applications.id, c.applicationId), eq(applications.status, "hired")));
-    await tx.insert(applicationEvents).values({ applicationId: c.applicationId, type: "collab_cancelled", actorId: userId, data: { byClient } });
+    await tx.insert(applicationEvents).values({ applicationId: c.applicationId, type: "collab_cancelled", actorId: userId, data: { byClient, reopen: wantsReopen } });
 
     let projectStatus: (typeof projects.$inferSelect)["status"] | null = null;
     if (project?.status === "in_progress") {
-      const expired = Boolean(project.expiresAt && project.expiresAt <= new Date());
-      projectStatus = expired ? "closed" : "open";
+      const now = new Date();
+      const expired = Boolean(project.expiresAt && project.expiresAt <= now);
+      // Clientul a cerut explicit redeschiderea: primește termen nou. La anularea prestatorului, un proiect expirat se închide.
+      const reopen = wantsReopen && (byClient || !expired);
+      projectStatus = reopen ? "open" : "closed";
       await tx
         .update(projects)
-        .set(expired ? { status: "closed", closedAt: new Date() } : { status: "open" })
+        .set(
+          reopen
+            ? {
+                status: "open",
+                // Locuri noi: ofertele de până acum rămân socotite, deci fără ele proiectul redeschis ar fi deja plin.
+                maxApplications: sql`greatest(${projects.maxApplications}, ${projects.applicationsCount} + ${rules.reopenIncrement})`,
+                expiresAt: expired ? new Date(now.getTime() + rules.projectLifetimeDays * 86_400_000) : project.expiresAt,
+              }
+            : { status: "closed", closedAt: now },
+        )
         .where(eq(projects.id, project.id));
       await tx.insert(projectStatusHistory).values({
         projectId: project.id,
         fromStatus: "in_progress",
         toStatus: projectStatus,
         actorId: userId,
-        reason: `${COLLAB_CANCELLED_REASON} de ${byClient ? "client" : "prestator"}`,
+        reason: `${COLLAB_CANCELLED_REASON} de ${byClient ? "client" : "prestator"}${byClient && !wantsReopen ? "; proiect închis" : ""}`,
       });
     }
     return { projectTitle: project?.title ?? "", projectStatus };
   });
   if (!res) return;
 
+  await saveFeedback(c, userId, input);
   const reopened = res.projectStatus === "open";
   const conv = await conversationIdFor(c.applicationId);
   if (conv) await systemMessage(conv, `Colaborarea a fost anulată de ${byClient ? "client" : "prestator"}.`);
@@ -151,44 +219,28 @@ export async function cancelCollaboration(id: string, userId: string) {
     type: "collab.cancelled",
     title: `${byClient ? "Clientul" : "Prestatorul"} a anulat colaborarea pentru „${title}”`,
     body: byClient
-      ? undefined
+      ? "Lasă și tu un feedback scurt despre colaborare."
       : reopened
-        ? "Proiectul este din nou deschis pentru oferte."
-        : "Proiectul a expirat între timp, așa că l-am închis.",
-    link: byClient ? "/aplicarile-mele" : `/proiectele-mele/${c.projectId}`,
+        ? "Proiectul este din nou deschis pentru oferte. Lasă și tu un feedback din pagina Colaborări."
+        : "Proiectul a expirat între timp, așa că l-am închis. Lasă și tu un feedback din pagina Colaborări.",
+    link: byClient ? "/colaborari" : `/proiectele-mele/${c.projectId}`,
     dedupeKey: `collab-cancelled:${id}`,
     email: collabCancelledTemplate({ projectTitle: title, byClient, projectReopened: reopened }),
   });
-  await track("collaboration.cancelled", userId, { collaborationId: id, byClient });
+  await track("collaboration.cancelled", userId, { collaborationId: id, byClient, reopen: reopened });
 }
 
-/* -------------------------------- Recenzii -------------------------------- */
-
-export const reviewSchema = z.object({
-  rating: z.coerce.number().int().min(1).max(5),
-  comment: z.string().trim().max(2_000).default(""),
-  hideAuthor: z.boolean().default(false),
-});
-
 /**
- * Doar participanții unei colaborări confirmate/finalizate pot lăsa recenzii.
- * `hideAuthor`: public apare „Client verificat” / „Prestator verificat”; persoana evaluată vede totuși cine a scris-o.
+ * Feedbackul lăsat separat (de cealaltă parte, sau în timpul colaborării). O colaborare confirmată produce recenzie
+ * publică verificată; una anulată înainte de confirmare, doar feedback privat.
  */
 export async function leaveReview(collaborationId: string, authorId: string, raw: unknown) {
   const input = reviewSchema.parse(raw);
   const c = await loadCollab(collaborationId, authorId);
-  if (!["active", "completed"].includes(c.status) || !c.confirmedAt) {
+  if (c.status === "pending_confirmation") {
     throw new DomainError("state", "Poți lăsa recenzie după ce colaborarea este confirmată.");
   }
-  const targetId = authorId === c.clientId ? c.providerId : c.clientId;
-  const [row] = await db
-    .insert(reviews)
-    .values({ collaborationId, authorId, targetId, rating: input.rating, comment: input.comment, hideAuthor: input.hideAuthor })
-    .onConflictDoNothing()
-    .returning();
-  if (!row) throw new DomainError("duplicate", "Ai lăsat deja o recenzie pentru această colaborare.");
-  await refreshProviderStats(targetId);
-  await notify({ userId: targetId, type: "review.new", title: `Ai primit o recenzie de ${input.rating}★`, link: "/profil#recenzii", dedupeKey: `review:${row.id}` });
+  if (!(await saveFeedback(c, authorId, input))) throw new DomainError("duplicate", "Ai lăsat deja feedback pentru această colaborare.");
 }
 
 export async function replyToReview(reviewId: string, userId: string, reply: string) {

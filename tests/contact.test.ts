@@ -155,7 +155,7 @@ describe("datele de contact în colaborări", () => {
     const { client, provider, app } = await setup();
     const collab = await hireApplication(app.id, client.id);
     await confirmCollaboration(collab!.id, provider.id);
-    await completeCollaboration(collab!.id, client.id);
+    await completeCollaboration(collab!.id, client.id, { rating: 5 });
     expect(await counterpartContacts(client.id, { collaborationIds: [collab!.id] })).toHaveLength(1);
     expect(await counterpartContacts(provider.id, { collaborationIds: [collab!.id] })).toHaveLength(1);
   });
@@ -169,7 +169,7 @@ describe("datele de contact în colaborări", () => {
     expect(await counterpartContacts(outsider.id)).toEqual([]);
     expect(await counterpartContacts(outsider.id, { collaborationIds: [collab!.id] })).toEqual([]);
 
-    await cancelCollaboration(collab!.id, client.id);
+    await cancelCollaboration(collab!.id, client.id, { feedback: { rating: 2, comment: "Nu ne-am înțeles asupra termenului." } });
     expect(await counterpartContacts(client.id)).toEqual([]);
     expect(await counterpartContacts(provider.id)).toEqual([]);
   });

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChatView } from "@/components/chat/chat-view";
 import { ReportDialog } from "@/components/chat/report-dialog";
+import { HireButton } from "@/components/manage-project/hire-button";
 import { serializeMessage } from "@/components/chat/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +43,8 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
   ]);
 
   const closed = app?.status === "withdrawn" || Boolean(other?.bannedAt);
+  // Clientul poate spune direct din conversație că a ales acest prestator, cât timp oferta și proiectul sunt active.
+  const canHire = role === "client" && project?.status === "open" && app && ["submitted", "viewed", "shortlisted"].includes(app.status) && !other?.bannedAt;
   const projectHref = role === "client" ? `/proiectele-mele/${c.projectId}` : `/proiecte/${c.projectId}`;
 
   return (
@@ -84,6 +87,12 @@ export default async function ConversationPage({ params }: { params: Promise<{ i
         )}
         <ReportDialog conversationId={id} />
       </header>
+      {canHire && (
+        <div className="flex items-center justify-between gap-3 border-b bg-brand-soft px-3 py-2 sm:px-5">
+          <p className="text-sm text-muted-foreground max-sm:hidden">Te-ai decis? Spune-ne cu cine lucrezi, iar aplicările la proiect se îngheață.</p>
+          <HireButton applicationId={c.applicationId} providerName={other?.name ?? "prestator"} className="max-sm:w-full" />
+        </div>
+      )}
       <ChatView
         key={id}
         conversationId={id}

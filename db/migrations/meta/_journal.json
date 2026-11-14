@@ -71,6 +71,13 @@
       "when": 1792652141411,
       "tag": "0009_harsh_major_mapleleaf",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794682919889,
+      "tag": "0010_melodic_annihilus",
+      "breakpoints": true
     }
   ]
 }
