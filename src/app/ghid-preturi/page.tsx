@@ -45,6 +45,8 @@ export default function PriceGuidePage() {
         url,
         inLanguage: "ro-RO",
         isAccessibleForFree: true,
+        // Datele pot fi preluate cu atribuire (link către pagină): ajută citarea de presă și AI.
+        license: "https://creativecommons.org/licenses/by/4.0/",
         dateModified: guidesUpdatedIso,
         temporalCoverage: "2026",
         spatialCoverage: { "@type": "Place", name: "România" },
@@ -90,6 +92,13 @@ export default function PriceGuidePage() {
               Intervalele sunt orientative și provin din oferte și liste de prețuri publice din România, verificate în {guidesUpdated}. Nu sunt tarife
               oficiale. Nota de sub fiecare lucrare spune ce include prețul, de exemplu doar manopera sau și materialele. În orașele mari prețurile tind
               spre capătul de sus al intervalului. Prețul final îl stabilești direct cu prestatorul, după ce vede lucrarea.
+            </p>
+            <p>
+              Poți prelua datele, cu link către această pagină, sub licența{" "}
+              <a href="https://creativecommons.org/licenses/by/4.0/deed.ro" rel="license noopener" target="_blank" className="underline underline-offset-4 hover:text-foreground">
+                CC BY 4.0
+              </a>
+              .
             </p>
           </div>
         </aside>
