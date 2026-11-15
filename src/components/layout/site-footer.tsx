@@ -21,6 +21,7 @@ const columns: { title: string; links: { href: string; label: string }[] }[] = [
   {
     title: "Pentru prestatori",
     links: [
+      { href: "/pentru-prestatori", label: "De ce să lucrezi prin Contractez" },
       { href: "/proiecte", label: "Proiecte deschise" },
       { href: "/preturi", label: "Abonamente & Auto Bid" },
       { href: "/inregistrare?rol=prestator", label: "Creează profil" },

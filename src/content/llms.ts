@@ -70,6 +70,7 @@ export function buildLlmsTxt(baseUrl: string): string {
   const keyPages = [
     link("Despre Contractez", u("/despre"), "ce este platforma, cine o operează, cum funcționează, verificare, abonamente"),
     link("Cum funcționează", u("/cum-functioneaza"), "pașii pentru clienți și prestatori, scorul de compatibilitate, regulile de încredere"),
+    link("Pentru prestatori", u("/pentru-prestatori"), "cum găsesc clienți prestatorii și freelancerii: profil gratuit, fără comision, alerte, maximum 5 oferte per proiect"),
     link("Abonamente pentru prestatori", u("/preturi"), "planurile Gratuit, Pro și Business"),
     link("Toate categoriile de servicii", u("/categorii"), "lista completă a serviciilor, cu primul preț orientativ din fiecare ghid"),
     link(`Ghid de prețuri 2026`, u("/ghid-preturi"), `toate prețurile orientative pentru servicii din România, pe o singură pagină (actualizate ${guidesUpdated})`),

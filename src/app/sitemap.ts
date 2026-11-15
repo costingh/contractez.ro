@@ -56,6 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     page("/ghid-preturi", guidesDate, "monthly", 0.8),
     page("/blog", latestPost ? new Date(latestPost) : undefined, "weekly", 0.7),
     page("/orase", guidesDate, "weekly", 0.7),
+    page("/pentru-prestatori", undefined, "monthly", 0.7),
     ...["/preturi", "/cum-functioneaza", "/despre", "/contact", "/termeni", "/confidentialitate"].map((p) => page(p, undefined, "monthly", 0.5)),
   ];
   const categories = [...catalog.byId.values()].map((c) => page(`/categorii/${c.slug}`, guidesDate, "weekly", c.parentId ? 0.6 : 0.8));

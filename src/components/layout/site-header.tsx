@@ -22,6 +22,7 @@ export function navFor(user: { isClient: boolean; isProvider: boolean; role: str
       { href: "/proiecte", label: "Proiecte" },
       { href: "/prestatori", label: "Prestatori" },
       { href: "/cum-functioneaza", label: "Cum funcționează" },
+      { href: "/pentru-prestatori", label: "Pentru prestatori" },
       { href: "/preturi", label: "Prețuri" },
       { href: "/blog", label: "Ghiduri" },
     ];
